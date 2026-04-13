@@ -1,0 +1,189 @@
+<section id="hero" class="hero-section">
+  <div class="hero-terminal">
+    <div class="terminal-bar">
+      <span class="t-dot red"></span>
+      <span class="t-dot yellow"></span>
+      <span class="t-dot green"></span>
+      <span class="t-title">sos-pc.sh — bash</span>
+    </div>
+    <div class="terminal-body">
+      <div class="t-line"><span class="t-prompt">$</span> <span class="t-cmd">whoami</span></div>
+      <div class="t-output">sos-pc — expert en dépannage & solutions numériques</div>
+      <div class="t-line"><span class="t-prompt">$</span> <span class="t-cmd">cat services.txt</span></div>
+      <div class="t-output t-list">
+        <span class="t-item ok">✓ Réparation informatique</span>
+        <span class="t-item ok">✓ Création de sites web</span>
+        <span class="t-item ok">✓ Hébergement streaming</span>
+        <span class="t-item warn">~ Hébergement IA (coming soon)</span>
+      </div>
+      <div class="t-line"><span class="t-prompt">$</span> <span class="t-cursor">_</span></div>
+    </div>
+  </div>
+  <div class="hero-content">
+    <div class="hero-badge">
+      <span class="tag tag-teal">SOS-PC</span>
+      <span class="hero-location mono">// Le Castellet, 04700</span>
+    </div>
+    <h1 class="hero-title">
+      Votre <em>partenaire tech</em><br />de confiance
+    </h1>
+    <p class="hero-sub">
+      Diagnostic IA, réparation, création web et self-hosting —<br />des solutions fiables pour particuliers et pros.
+    </p>
+    <div class="hero-actions">
+      <a href="#diagnostic" class="btn-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        Diagnostic gratuit
+      </a>
+      <a href="#contact" class="btn-ghost">Demander un devis</a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: center;
+    min-height: calc(100vh - 80px);
+    padding: 5rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .hero-content { order: -1; }
+  .hero-terminal { order: 1; }
+
+  .hero-badge {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 1.5rem;
+  }
+
+  .hero-location {
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  .hero-title {
+    font-size: clamp(2.4rem, 5vw, 3.6rem);
+    margin-bottom: 1.25rem;
+    line-height: 1.1;
+  }
+
+  .hero-title em {
+    font-style: normal;
+    color: var(--accent-hex);
+  }
+
+  .hero-sub {
+    color: var(--text-muted);
+    font-size: 16px;
+    margin-bottom: 2rem;
+    line-height: 1.6;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .terminal-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--bg-elevated);
+    padding: 10px 16px;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .t-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+  }
+  .t-dot.red { background: #f7768e; }
+  .t-dot.yellow { background: #e0af68; }
+  .t-dot.green { background: #00d4aa; }
+
+  .t-title {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-left: 8px;
+  }
+
+  .terminal-body {
+    background: #0d0e14;
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    padding: 20px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.8;
+    border: 1px solid var(--border);
+    border-top: none;
+  }
+
+  .hero-terminal .terminal-body {
+    border-radius: var(--radius-lg);
+    border-top: 1px solid var(--border);
+  }
+
+  .hero-terminal {
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    box-shadow: 0 0 30px #0006, 0 0 0 1px #00d4aa0d;
+  }
+
+  .t-line {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .t-prompt {
+    color: var(--accent-hex);
+    font-weight: 600;
+  }
+
+  .t-cmd { color: var(--text); }
+
+  .t-output {
+    color: var(--text-muted);
+    padding-left: 16px;
+  }
+
+  .t-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .t-item { display: block; }
+  .t-item.ok { color: #00d4aa; }
+  .t-item.warn { color: #e0af68; }
+  .t-item.err { color: #f7768e; }
+
+  .t-cursor {
+    color: var(--accent-hex);
+    animation: blink 1s step-end infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  @media (max-width: 900px) {
+    .hero-section {
+      grid-template-columns: 1fr;
+      min-height: auto;
+    }
+    .hero-content { order: 0; }
+    .hero-terminal { order: 1; }
+  }
+</style>

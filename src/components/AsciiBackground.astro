@@ -1,0 +1,181 @@
+<canvas id="ascii-background-canvas"></canvas>
+
+<script>
+  const canvas = document.getElementById("ascii-background-canvas") as HTMLCanvasElement;
+  if (canvas) {
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+      const chars = [".", ":", "-", "|", "*", "+", "~"];
+      const fontSize = 16;
+      const refreshInterval = 200;
+      const charChangeProbability = 0.02;
+      const lightColors = ["#909090", "#A0A0A0", "#B0B0B0", "#C0C0C0", "#D0D0D0"];
+      const darkColors = ["#303030", "#383838", "#404040", "#484848", "#505050"];
+      const mouseInfluenceRadius = 150;
+      const darkModeBrighten = 0.99;
+      const lightModeDarken = 0.85;
+
+      let currentAsciiColors: string[] = [];
+      let dpr = window.devicePixelRatio || 1;
+      let cols: number, rows: number;
+      let grid: { char: string; color: string }[][] = [];
+      let lastRefreshTime = 0;
+      let mouseX = -Infinity, mouseY = -Infinity;
+
+      function hexToRgb(hex: string) {
+        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result ? { r: parseInt(result[1], 16), g: parseInt(result[2], 16), b: parseInt(result[3], 16) } : null;
+      }
+
+      function rgbToHex(r: number, g: number, b: number) {
+        return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
+      }
+
+      function brightenColor(hex: string, amount: number) {
+        const rgb = hexToRgb(hex);
+        if (!rgb) return hex;
+        const a = Math.max(0, Math.min(1, amount));
+        return rgbToHex(
+          Math.min(255, Math.round(rgb.r + (255 - rgb.r) * a)),
+          Math.min(255, Math.round(rgb.g + (255 - rgb.g) * a)),
+          Math.min(255, Math.round(rgb.b + (255 - rgb.b) * a))
+        );
+      }
+
+      function darkenColor(hex: string, amount: number) {
+        const rgb = hexToRgb(hex);
+        if (!rgb) return hex;
+        const a = Math.max(0, Math.min(1, amount));
+        return rgbToHex(
+          Math.max(0, Math.round(rgb.r * (1 - a))),
+          Math.max(0, Math.round(rgb.g * (1 - a))),
+          Math.max(0, Math.round(rgb.b * (1 - a)))
+        );
+      }
+
+      function updateThemeColors() {
+        if (document.documentElement.classList.contains("dark")) {
+          currentAsciiColors = darkColors;
+        } else {
+          currentAsciiColors = lightColors;
+        }
+      }
+
+      function initGrid() {
+        if (currentAsciiColors.length === 0) updateThemeColors();
+        if (currentAsciiColors.length === 0) return;
+        cols = Math.ceil(window.innerWidth / fontSize);
+        rows = Math.ceil(window.innerHeight / fontSize);
+        grid = [];
+        for (let y = 0; y < rows; y++) {
+          grid[y] = [];
+          for (let x = 0; x < cols; x++) {
+            grid[y][x] = {
+              char: chars[Math.floor(Math.random() * chars.length)],
+              color: currentAsciiColors[Math.floor(Math.random() * currentAsciiColors.length)],
+            };
+          }
+        }
+      }
+
+      function resizeCanvas() {
+        updateThemeColors();
+        dpr = window.devicePixelRatio || 1;
+        canvas.width = window.innerWidth * dpr;
+        canvas.height = window.innerHeight * dpr;
+        ctx.scale(dpr, dpr);
+        ctx.font = `${fontSize}px monospace`;
+        ctx.textAlign = "left";
+        ctx.textBaseline = "top";
+        initGrid();
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+        if (!grid || grid.length === 0) return;
+        const isDark = document.documentElement.classList.contains("dark");
+        for (let y = 0; y < rows; y++) {
+          for (let x = 0; x < cols; x++) {
+            if (!grid[y] || !grid[y][x]) continue;
+            const cell = grid[y][x];
+            const cellCenterX = x * fontSize + fontSize / 2;
+            const cellCenterY = y * fontSize + fontSize / 2;
+            const dist = Math.sqrt(Math.pow(cellCenterX - mouseX, 2) + Math.pow(cellCenterY - mouseY, 2));
+            let color = cell.color;
+            if (dist < mouseInfluenceRadius) {
+              const proximity = 1 - dist / mouseInfluenceRadius;
+              const effect = Math.pow(proximity, 2);
+              const baseColor = cell.color;
+              if (isDark) {
+                color = brightenColor(baseColor, effect * darkModeBrighten);
+              } else {
+                color = darkenColor(baseColor, effect * lightModeDarken);
+              }
+            }
+            ctx.fillStyle = color;
+            ctx.fillText(cell.char, x * fontSize, y * fontSize);
+          }
+        }
+      }
+
+      function updateChars() {
+        if (!grid || grid.length === 0) return;
+        for (let y = 0; y < rows; y++) {
+          for (let x = 0; x < cols; x++) {
+            if (grid[y] && grid[y][x] && Math.random() < charChangeProbability) {
+              grid[y][x].char = chars[Math.floor(Math.random() * chars.length)];
+              if (currentAsciiColors.length > 0) {
+                grid[y][x].color = currentAsciiColors[Math.floor(Math.random() * currentAsciiColors.length)];
+              }
+            }
+          }
+        }
+      }
+
+      function animate(timestamp: number) {
+        if (timestamp - lastRefreshTime > refreshInterval) {
+          updateChars();
+          lastRefreshTime = timestamp;
+        }
+        draw();
+        requestAnimationFrame(animate);
+      }
+
+      window.addEventListener("mousemove", (e) => { mouseX = e.clientX; mouseY = e.clientY; });
+      window.addEventListener("mouseout", () => { mouseX = -Infinity; mouseY = -Infinity; });
+
+      resizeCanvas();
+
+      let resizeTimer: ReturnType<typeof setTimeout>;
+      window.addEventListener("resize", () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => { resizeCanvas(); }, 250);
+      });
+
+      new MutationObserver((mutations) => {
+        for (const m of mutations) {
+          if (m.type === "attributes" && m.attributeName === "class") {
+            const prev = JSON.stringify(currentAsciiColors);
+            updateThemeColors();
+            if (JSON.stringify(currentAsciiColors) !== prev) initGrid();
+            break;
+          }
+        }
+      }).observe(document.documentElement, { attributes: true });
+
+      requestAnimationFrame(animate);
+    }
+  }
+</script>
+
+<style>
+  #ascii-background-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    opacity: 0.15;
+  }
+</style>

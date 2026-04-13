@@ -1,0 +1,158 @@
+<section id="about" class="about-section">
+  <div class="section-label">
+    <span class="tag tag-teal">01</span>
+    <span class="mono text-muted">// À propos</span>
+  </div>
+  <div class="about-grid">
+    <div>
+      <h2>Solutions fiables,<br /><span class="teal">adaptées à vos besoins</span></h2>
+      <p>SOS-PC, dirigé par un auto-entrepreneur passionné, propose une gamme complète de services pour répondre à vos besoins technologiques. Particuliers ou professionnels — nous avons l'expertise qu'il vous faut.</p>
+      <div class="about-stats">
+        <div class="stat">
+          <span class="stat-val mono">04+</span>
+          <span class="stat-label">Services proposés</span>
+        </div>
+        <div class="stat">
+          <span class="stat-val mono">24h</span>
+          <span class="stat-label">Délai de réponse</span>
+        </div>
+        <div class="stat">
+          <span class="stat-val mono">100%</span>
+          <span class="stat-label">Sur mesure</span>
+        </div>
+      </div>
+    </div>
+    <div class="about-card-stack">
+      <div class="info-card">
+        <span class="ic-icon">⚡</span>
+        <div>
+          <p class="ic-title">Intervention rapide</p>
+          <p class="ic-desc">Dépannage à distance ou à domicile dans les Alpes-de-Haute-Provence</p>
+        </div>
+      </div>
+      <div class="info-card">
+        <span class="ic-icon">🔒</span>
+        <div>
+          <p class="ic-title">Données sécurisées</p>
+          <p class="ic-desc">Vos données restent privées — aucune revente, aucun partage tiers</p>
+        </div>
+      </div>
+      <div class="info-card">
+        <span class="ic-icon">🤝</span>
+        <div>
+          <p class="ic-title">Accompagnement humain</p>
+          <p class="ic-desc">Un interlocuteur unique, disponible et à l'écoute</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .teal { color: var(--accent-hex); }
+  .text-muted { color: var(--text-muted); }
+  .section-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 1rem;
+  }
+
+  .about-section { padding: 5rem 0; }
+
+  .about-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: start;
+    margin-top: 2rem;
+  }
+
+  .about-grid h2 {
+    font-size: clamp(1.8rem, 3.5vw, 2.4rem);
+    margin-bottom: 1rem;
+    line-height: 1.2;
+  }
+
+  .about-grid p {
+    color: var(--text-muted);
+    line-height: 1.7;
+    margin-bottom: 2rem;
+  }
+
+  .about-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+
+  .stat {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+  }
+
+  .stat-val {
+    display: block;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--accent-hex);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .stat-label {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .about-card-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .info-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .info-card:hover {
+    border-color: #00d4aa66;
+    box-shadow: 0 0 16px #00d4aa14;
+  }
+
+  .ic-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .ic-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 3px;
+  }
+
+  .ic-desc {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.4;
+  }
+
+  @media (max-width: 900px) {
+    .about-grid { grid-template-columns: 1fr; gap: 2rem; }
+  }
+
+  @media (max-width: 480px) {
+    .about-stats { grid-template-columns: 1fr 1fr; }
+  }
+</style>

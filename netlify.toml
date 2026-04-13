@@ -1,0 +1,32 @@
+[functions]
+
+  [functions.emails]
+  included_files = [
+    "./emails/**"
+  ]
+
+[[redirects]]
+from = "/diag.ps1"
+to = "https://sos-pc-diagnostic.netlify.app/diag.ps1"
+status = 200
+force = true
+
+[context]
+
+  [context.production]
+
+    [context.production.functions]
+
+      [context.production.functions.emails]
+      included_files = [
+        "./emails/**"
+      ]
+
+  [context.design-alternative]
+
+    [context.design-alternative.functions]
+
+      [context.design-alternative.functions.emails]
+      included_files = [
+        "./emails/**"
+      ]

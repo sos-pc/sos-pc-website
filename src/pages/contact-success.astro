@@ -1,0 +1,70 @@
+---
+import Layout from "../layouts/Layout.astro";
+import CoverPage from "../components/CoverPage.astro";
+import AsciiBackground from "../components/AsciiBackground.astro";
+import Navbar from "../components/Navbar.astro";
+import Footer from "../components/Footer.astro";
+import DiagnosticWidget from "../components/DiagnosticWidget.astro";
+---
+
+<Layout title="Message envoyé">
+  <CoverPage />
+  <AsciiBackground />
+  <Navbar />
+  <main>
+    <section class="success-section">
+      <div class="success-icon" aria-hidden="true">&#10004;</div>
+      <h1>Message envoyé !</h1>
+      <p>
+        Merci de nous avoir contactés. Votre message a bien été reçu et nous vous répondrons dans les plus brefs délais.
+      </p>
+      <a href="/" class="back-button">Retour à l'accueil</a>
+    </section>
+  </main>
+  <Footer />
+  <DiagnosticWidget />
+</Layout>
+
+<style>
+  .success-section {
+    text-align: center;
+    padding: 4rem 2rem;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  .success-icon {
+    font-size: 4rem;
+    color: #4caf50;
+    margin-bottom: 1rem;
+    width: 80px;
+    height: 80px;
+    line-height: 80px;
+    border-radius: 50%;
+    border: 3px solid #4CAF50;
+    display: inline-block;
+  }
+  .success-section h1 {
+    color: var(--heading-color);
+    margin-bottom: 1rem;
+  }
+  .success-section p {
+    color: var(--text-color);
+    font-size: 1.1rem;
+    line-height: 1.6;
+    margin-bottom: 2rem;
+  }
+  .back-button {
+    display: inline-block;
+    background-color: var(--button-bg-color);
+    color: var(--button-text-color);
+    padding: 0.8rem 2rem;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: 700;
+    transition: background-color 0.2s ease;
+  }
+  .back-button:hover {
+    background-color: var(--button-hover-bg-color);
+    color: var(--button-text-color);
+  }
+</style>

@@ -1,0 +1,379 @@
+<div id="sos-pc-cover-page" class="cover-page" aria-labelledby="cover-heading" role="dialog" aria-modal="true">
+  <div class="cover-grid" aria-hidden="true"></div>
+  <div class="cover-content">
+    <div class="cover-badge">
+      <span class="cover-dot"></span>
+      <span class="cover-badge-text mono">sos-pc.sh — v2.0</span>
+    </div>
+    <img src="/logo.png" alt="SOS-PC Logo" class="logo" />
+    <h1 id="cover-heading" class="brand-name mono">SOS-PC</h1>
+    <p class="tagline">Votre partenaire tech de confiance</p>
+    <div class="cover-terminal-line mono">
+      <span class="cover-prompt">$</span>
+      <span class="cover-cmd"> initializing services</span>
+      <span class="cover-cursor">_</span>
+    </div>
+    <div class="interaction-cue" role="button" tabindex="0" aria-label="Swiper vers le haut ou défiler pour explorer">
+      <span class="cue-text mono">// scroll to explore</span>
+      <svg class="arrow-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="28" height="28" aria-hidden="true">
+        <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z" transform="rotate(-90 12 12)"></path>
+      </svg>
+    </div>
+  </div>
+</div>
+
+<script>
+  const coverPageId = "sos-pc-cover-page";
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const coverPage = document.getElementById(coverPageId);
+    if (!coverPage) return;
+
+    const interactionCue = coverPage.querySelector('.interaction-cue');
+    const dismissedKey = 'sospc_cover_dismissed_session_v1';
+    let isDismissed = false;
+
+    let isInteracting = false;
+    let startY_interaction = 0;
+    let initialTranslateYOnDragStart = 0;
+    let currentAppliedTranslateY = 0;
+    let scrollEndTimer = null;
+    const SCROLL_SENSITIVITY = 1;
+    const DISMISS_THRESHOLD_PERCENT = 0.4;
+
+    const eventHandlers: any = {
+      scroll: null,
+      keyDown: null,
+      clickCue: null,
+      boundHandleInteractionStart: null,
+      boundHandleInteractionMove: null,
+      boundHandleInteractionEnd: null,
+    };
+
+    function applyTransform(translateY: number) {
+      const minTranslateY = -coverPage.offsetHeight;
+      const maxTranslateY = 0;
+      translateY = Math.max(minTranslateY, Math.min(maxTranslateY, translateY));
+      coverPage.style.transform = `translateY(${translateY}px)`;
+      currentAppliedTranslateY = translateY;
+    }
+
+    function dismissCover() {
+      if (isDismissed) return;
+      isDismissed = true;
+      clearTimeout(scrollEndTimer);
+
+      if (isInteracting) {
+        document.removeEventListener('mousemove', eventHandlers.boundHandleInteractionMove);
+        document.removeEventListener('mouseup', eventHandlers.boundHandleInteractionEnd);
+        coverPage.removeEventListener('touchmove', eventHandlers.boundHandleInteractionMove);
+        coverPage.removeEventListener('touchend', eventHandlers.boundHandleInteractionEnd);
+        coverPage.removeEventListener('touchcancel', eventHandlers.boundHandleInteractionEnd);
+        isInteracting = false;
+      }
+
+      coverPage.style.transition = '';
+      coverPage.classList.add('dismissed');
+
+      try { sessionStorage.setItem(dismissedKey, 'true'); } catch (e) {}
+
+      const mainContent = document.querySelector('main');
+      if (mainContent) mainContent.focus({ preventScroll: true });
+
+      document.removeEventListener('wheel', eventHandlers.scroll);
+      document.removeEventListener('keydown', eventHandlers.keyDown);
+      coverPage.removeEventListener('touchstart', eventHandlers.boundHandleInteractionStart);
+      coverPage.removeEventListener('mousedown', eventHandlers.boundHandleInteractionStart);
+      if (interactionCue && eventHandlers.clickCue) {
+        interactionCue.removeEventListener('click', eventHandlers.clickCue);
+      }
+    }
+
+    try {
+      if (sessionStorage.getItem(dismissedKey) === 'true') {
+        coverPage.style.transitionProperty = 'none';
+        requestAnimationFrame(() => {
+          coverPage.classList.add('dismissed');
+          isDismissed = true;
+          requestAnimationFrame(() => { coverPage.style.transitionProperty = ''; });
+        });
+        return;
+      }
+    } catch (e) {}
+
+    function handleInteractionStart(event: Event) {
+      if (isDismissed || isInteracting) return;
+      const isTouchEvent = event.type.startsWith('touch');
+      if (!isTouchEvent && (event as MouseEvent).button !== 0) return;
+      if (!isTouchEvent) event.preventDefault();
+      isInteracting = true;
+      const clientEvent = event as TouchEvent | MouseEvent;
+      startY_interaction = isTouchEvent ? (clientEvent as TouchEvent).touches[0].clientY : (clientEvent as MouseEvent).clientY;
+      initialTranslateYOnDragStart = currentAppliedTranslateY;
+      coverPage.style.transition = 'none';
+      if (isTouchEvent) {
+        coverPage.addEventListener('touchmove', eventHandlers.boundHandleInteractionMove, { passive: false });
+        coverPage.addEventListener('touchend', eventHandlers.boundHandleInteractionEnd, { passive: false });
+        coverPage.addEventListener('touchcancel', eventHandlers.boundHandleInteractionEnd, { passive: false });
+      } else {
+        document.addEventListener('mousemove', eventHandlers.boundHandleInteractionMove, { passive: false });
+        document.addEventListener('mouseup', eventHandlers.boundHandleInteractionEnd, { passive: false });
+      }
+    }
+
+    function handleInteractionMove(event: Event) {
+      if (!isInteracting || isDismissed) return;
+      event.preventDefault();
+      const isTouchEvent = event.type.startsWith('touch');
+      const currentPointerY = isTouchEvent ? (event as TouchEvent).touches[0].clientY : (event as MouseEvent).clientY;
+      applyTransform(initialTranslateYOnDragStart + (currentPointerY - startY_interaction));
+    }
+
+    function handleInteractionEnd() {
+      if (!isInteracting || isDismissed) return;
+      isInteracting = false;
+      coverPage.style.transition = '';
+      document.removeEventListener('mousemove', eventHandlers.boundHandleInteractionMove);
+      document.removeEventListener('mouseup', eventHandlers.boundHandleInteractionEnd);
+      coverPage.removeEventListener('touchmove', eventHandlers.boundHandleInteractionMove);
+      coverPage.removeEventListener('touchend', eventHandlers.boundHandleInteractionEnd);
+      coverPage.removeEventListener('touchcancel', eventHandlers.boundHandleInteractionEnd);
+
+      const upwardDisplacement = -currentAppliedTranslateY;
+      if (upwardDisplacement > coverPage.offsetHeight * DISMISS_THRESHOLD_PERCENT) {
+        dismissCover();
+      } else {
+        applyTransform(0);
+      }
+    }
+
+    eventHandlers.boundHandleInteractionStart = handleInteractionStart;
+    eventHandlers.boundHandleInteractionMove = handleInteractionMove;
+    eventHandlers.boundHandleInteractionEnd = handleInteractionEnd;
+
+    coverPage.addEventListener('touchstart', eventHandlers.boundHandleInteractionStart, { passive: false });
+    coverPage.addEventListener('mousedown', eventHandlers.boundHandleInteractionStart, { passive: false });
+
+    eventHandlers.scroll = function(event: WheelEvent) {
+      if (isDismissed || isInteracting) return;
+      event.preventDefault();
+      coverPage.style.transition = 'none';
+      applyTransform(currentAppliedTranslateY - event.deltaY * SCROLL_SENSITIVITY);
+      clearTimeout(scrollEndTimer);
+      scrollEndTimer = setTimeout(() => {
+        if (isDismissed || isInteracting) return;
+        coverPage.style.transition = '';
+        if (-currentAppliedTranslateY > coverPage.offsetHeight * DISMISS_THRESHOLD_PERCENT) {
+          dismissCover();
+        } else if (currentAppliedTranslateY !== 0) {
+          applyTransform(0);
+        }
+      }, 150);
+    };
+    document.addEventListener('wheel', eventHandlers.scroll, { passive: false });
+
+    eventHandlers.clickCue = function() { if (!isDismissed) dismissCover(); };
+    if (interactionCue) interactionCue.addEventListener('click', eventHandlers.clickCue);
+
+    eventHandlers.keyDown = function(event: KeyboardEvent) {
+      if (isDismissed) return;
+      if ((event.key === 'Enter' || event.key === ' ') && document.activeElement === interactionCue) {
+        event.preventDefault();
+        dismissCover();
+      }
+      if (event.key === 'Escape') dismissCover();
+    };
+    document.addEventListener('keydown', eventHandlers.keyDown);
+
+    setTimeout(() => {
+      if (!isDismissed && interactionCue && !coverPage.classList.contains('dismissed')) {
+        interactionCue.focus({ preventScroll: true });
+      }
+    }, 1600);
+  });
+</script>
+
+<style>
+  .cover-page {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: #1a1b26;
+    color: #c0caf5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    transition: opacity 0.7s cubic-bezier(0.25, 1, 0.5, 1),
+      transform 0.7s cubic-bezier(0.25, 1, 0.5, 1),
+      visibility 0s linear 0s;
+    user-select: none;
+    overflow: hidden;
+  }
+
+  .cover-page.dismissed {
+    transform: translateY(-100%);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.7s ease-out,
+      transform 0.7s ease-out,
+      visibility 0s linear 0.7s;
+    pointer-events: none;
+  }
+
+  .cover-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0, 212, 170, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 212, 170, 0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+  }
+
+  .cover-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #00d4aa14;
+    border: 1px solid rgba(0, 212, 170, 0.2);
+    border-radius: 20px;
+    padding: 5px 14px;
+    margin-bottom: 2rem;
+    font-size: 12px;
+    color: #00d4aa;
+  }
+
+  .cover-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #00d4aa;
+    box-shadow: 0 0 6px #00d4aa;
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .cover-badge-text {
+    color: #00d4aa;
+  }
+
+  .cover-content {
+    text-align: center;
+    animation: fadeInContent 1.2s ease-out 0.3s forwards;
+    opacity: 0;
+    padding: 20px;
+    position: relative;
+    z-index: 1;
+  }
+
+  @keyframes fadeInContent {
+    to { opacity: 1; }
+  }
+
+  .logo {
+    width: clamp(60px, 12vw, 100px);
+    height: auto;
+    margin-bottom: 1.25rem;
+    object-fit: contain;
+    filter: drop-shadow(0 0 20px rgba(0, 212, 170, 0.3));
+  }
+
+  .brand-name {
+    font-size: clamp(2.4rem, 7vw, 4rem);
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+    color: #c0caf5;
+    letter-spacing: 0.12em;
+    background: linear-gradient(135deg, #c0caf5 30%, #00d4aa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .tagline {
+    font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+    margin-bottom: 2rem;
+    color: #7982a9;
+    font-family: Outfit, system-ui, sans-serif;
+  }
+
+  .cover-terminal-line {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+    background: #0d0e1499;
+    border: 1px solid #3b4261;
+    border-radius: 6px;
+    padding: 7px 16px;
+    margin-bottom: 2.5rem;
+    color: #7982a9;
+  }
+
+  .cover-prompt {
+    color: #00d4aa;
+    font-weight: 700;
+  }
+
+  .cover-cmd {
+    color: #c0caf5;
+  }
+
+  .cover-cursor {
+    color: #00d4aa;
+    animation: blink 1s step-end infinite;
+    margin-left: 2px;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  .interaction-cue {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    transition: border-color 0.2s, background 0.2s;
+  }
+
+  .interaction-cue:hover,
+  .interaction-cue:focus-visible {
+    background: #00d4aa0f;
+    border-color: #00d4aa40;
+    outline: none;
+  }
+
+  .cue-text {
+    font-size: 12px;
+    color: #7982a9;
+    letter-spacing: 0.05em;
+  }
+
+  .arrow-icon {
+    color: #00d4aa;
+    animation: bounceArrow 2.5s infinite ease-in-out;
+  }
+
+  @keyframes bounceArrow {
+    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-10px); }
+    60% { transform: translateY(-5px); }
+  }
+</style>

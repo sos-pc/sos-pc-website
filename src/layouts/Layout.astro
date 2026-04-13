@@ -1,0 +1,86 @@
+---
+export interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title = "SOS-PC — Dépannage & Solutions Informatiques", description = "Dépannage PC, réparation informatique et création de sites web à Le Castellet (04700). SOS-PC, intervention rapide dans les Alpes-de-Haute-Provence. Diagnostic IA gratuit." } = Astro.props;
+---
+
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content={description} />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{title}</title>
+    <meta name="keywords" content="depannage informatique 04700, reparation PC Le Castellet, technicien informatique Alpes-Haute-Provence" />
+    <meta name="author" content="SOS-PC" />
+    <link rel="canonical" href="https://sos-pc.click" />
+    <meta property="og:title" content="SOS-PC  Dépannage informatique Le Castellet 04700" />
+    <meta property="og:description" content="Diagnostic IA gratuit, réparation PC et création web dans les Alpes-de-Haute-Provence." />
+    <meta property="og:image" content="https://sos-pc.click/logo.png" />
+    <meta property="og:url" content="https://sos-pc.click" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="fr_FR" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="SOS-PC  Dépannage informatique Le Castellet" />
+    <meta name="twitter:image" content="https://sos-pc.click/logo.png" />
+    <script type="application/ld+json" set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "LocalBusiness",
+      "name": "SOS-PC",
+      "description": "Dépannage informatique, réparation PC et création de sites web",
+      "telephone": "+33769561491",
+      "email": "sos.pc.04@gmail.com",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Le Castellet",
+        "postalCode": "04700",
+        "addressCountry": "FR"
+      },
+      "url": "https://sos-pc.click",
+      "areaServed": "Alpes-de-Haute-Provence"
+    })} />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <script is:inline>
+      (function() {
+        var theme = localStorage.getItem("theme");
+        if (theme === "light") {
+          document.documentElement.classList.remove("dark");
+        } else {
+          document.documentElement.classList.add("dark");
+          if (!theme) localStorage.setItem("theme", "dark");
+        }
+      })();
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <slot />
+  </body>
+  <script src="../scripts/main.ts"></script>
+  <script is:inline>
+    document.addEventListener("DOMContentLoaded", function() {
+      var cover = document.getElementById("sos-pc-cover-page");
+      if (!cover) return;
+      var body = document.body;
+      if (!cover.classList.contains("dismissed") && sessionStorage.getItem("sospc_cover_dismissed_session_v1") !== "true") {
+        body.classList.add("cover-active");
+      }
+      new MutationObserver(function(mutations) {
+        mutations.forEach(function(m) {
+          if (m.target.classList.contains("dismissed")) {
+            body.classList.remove("cover-active");
+          }
+        });
+      }).observe(cover, { attributes: true, attributeFilter: ["class"] });
+    });
+  </script>
+</html>
+
+<style is:global>
+  @import "../styles/global.css";
+</style>

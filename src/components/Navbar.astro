@@ -1,0 +1,258 @@
+<nav id="navbar">
+  <div class="nav-inner">
+    <a href="/" class="logo-link">
+      <img src="/logo.png" alt="SOS-PC" class="logo-img" />
+      <span class="logo-text mono">SOS-PC</span>
+    </a>
+    <ul class="nav-links" id="nav-links-list">
+      <li><a href="/#about" class="nav-link">À propos</a></li>
+      <li><a href="/#services" class="nav-link">Services</a></li>
+      <li><a href="/#diagnostic" class="nav-link">Diagnostic</a></li>
+      <li><a href="/#vitrine" class="nav-link">Portfolio</a></li>
+      <li><a href="/#contact" class="nav-link">Contact</a></li>
+      <li>
+        <a href="/#contact" class="nav-cta mono">Devis →</a>
+      </li>
+    </ul>
+    <div class="nav-right">
+      <button class="theme-btn" id="theme-toggle" aria-label="Changer de thème">
+        <span class="icon-sun">☀</span>
+        <span class="icon-moon">◑</span>
+      </button>
+      <button class="hamburger" id="hamburger-btn" aria-label="Menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<script>
+  const hamburgerBtn = document.getElementById("hamburger-btn");
+  const navLinks = document.getElementById("nav-links-list");
+  const themeToggle = document.getElementById("theme-toggle");
+
+  hamburgerBtn?.addEventListener("click", function () {
+    const isOpen = navLinks!.classList.toggle("open");
+    hamburgerBtn.classList.toggle("open", isOpen);
+    hamburgerBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+  });
+
+  navLinks?.querySelectorAll("a").forEach(function (link) {
+    link.addEventListener("click", function () {
+      navLinks!.classList.remove("open");
+      hamburgerBtn!.classList.remove("open");
+      hamburgerBtn!.setAttribute("aria-expanded", "false");
+    });
+  });
+
+  function setTheme(isDark: boolean) {
+    document.documentElement.classList.toggle("dark", isDark);
+    try {
+      localStorage.setItem("theme", isDark ? "dark" : "light");
+    } catch {}
+  }
+
+  themeToggle?.addEventListener("click", function () {
+    setTheme(!document.documentElement.classList.contains("dark"));
+  });
+
+  var savedTheme = (function () {
+    try { return localStorage.getItem("theme"); } catch { return null; }
+  })();
+  setTheme(savedTheme !== "light");
+
+  var navLinksEls = document.querySelectorAll(".nav-link");
+
+  function updateActiveLink() {
+    var sections = document.querySelectorAll("section[id]");
+    var currentId = "";
+    sections.forEach(function (section) {
+      if (window.scrollY >= (section as HTMLElement).offsetTop - 100) {
+        currentId = section.id;
+      }
+    });
+    navLinksEls.forEach(function (link) {
+      link.classList.toggle("active", (link as HTMLAnchorElement).getAttribute("href") === "/#" + currentId);
+    });
+  }
+
+  window.addEventListener("scroll", updateActiveLink, { passive: true });
+  updateActiveLink();
+</script>
+
+<style>
+  nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    height: var(--navbar-h);
+    background: #1a1b26eb;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  html:not(.dark) nav {
+    background: #f0f4f8eb;
+  }
+
+  .nav-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+  }
+
+  .logo-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    flex-shrink: 0;
+  }
+
+  .logo-img {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+  }
+
+  .logo-text {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--accent-hex);
+  }
+
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    list-style: none;
+    margin-left: auto;
+  }
+
+  .nav-link {
+    display: block;
+    padding: 6px 12px;
+    font-size: 14px;
+    color: var(--text-muted);
+    text-decoration: none;
+    border-radius: var(--radius);
+    transition: color 0.2s, background 0.2s;
+  }
+
+  .nav-link:hover,
+  .nav-link.active {
+    color: var(--text);
+    background: #ffffff0d;
+  }
+
+  html:not(.dark) .nav-link:hover {
+    background: #0000000d;
+  }
+
+  .nav-cta {
+    display: block;
+    padding: 6px 14px;
+    font-size: 13px;
+    color: var(--accent-hex);
+    text-decoration: none;
+    border: 1px solid rgba(0, 212, 170, 0.3);
+    border-radius: var(--radius);
+    transition: all 0.2s;
+    margin-left: 6px;
+  }
+
+  .nav-cta:hover {
+    background: #00d4aa1a;
+    border-color: var(--accent-hex);
+    opacity: 1;
+  }
+
+  .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .theme-btn {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    padding: 6px 10px;
+    color: var(--text-muted);
+    font-size: 14px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+  }
+
+  .theme-btn:hover {
+    color: var(--accent-hex);
+    border-color: var(--accent-hex);
+  }
+
+  html.dark .icon-sun { display: none; }
+  html.dark .icon-moon { display: block; }
+  html:not(.dark) .icon-sun { display: block; }
+  html:not(.dark) .icon-moon { display: none; }
+
+  .hamburger {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+  }
+
+  .hamburger span {
+    display: block;
+    width: 22px;
+    height: 2px;
+    background: var(--text);
+    border-radius: 2px;
+    transition: all 0.3s;
+  }
+
+  .hamburger.open span:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+  }
+  .hamburger.open span:nth-child(2) {
+    opacity: 0;
+  }
+  .hamburger.open span:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+  }
+
+  @media (max-width: 768px) {
+    .hamburger { display: flex; }
+    .nav-links {
+      display: none;
+      position: fixed;
+      top: var(--navbar-h);
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: var(--bg-card);
+      border-top: 1px solid var(--border);
+      flex-direction: column;
+      padding: 1.5rem;
+      gap: 2px;
+      align-items: flex-start;
+      z-index: 99;
+      overflow-y: auto;
+    }
+    .nav-links.open { display: flex; }
+    .nav-link { font-size: 18px; padding: 14px 16px; width: 100%; }
+    .nav-cta { font-size: 15px; padding: 14px 16px; margin-left: 0; width: 100%; margin-top: 8px; }
+  }
+</style>
