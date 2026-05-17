@@ -1,4 +1,5 @@
 [functions]
+  directory = "netlify/functions"
 
   [functions.emails]
   included_files = [
@@ -25,8 +26,14 @@ force = true
   [context.design-alternative]
 
     [context.design-alternative.functions]
+      directory = "netlify/functions"
 
       [context.design-alternative.functions.emails]
       included_files = [
         "./emails/**"
       ]
+
+  [context.design-alternative-v2]
+
+    [context.design-alternative-v2.functions]
+      directory = "netlify/functions"
