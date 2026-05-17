@@ -48,11 +48,42 @@ interface TechInfo {
   version?: string;
 }
 
+interface SecurityHeader {
+  name: string;
+  present: boolean;
+  value?: string;
+  label: string;
+  description: string;
+}
+
+interface SslResult {
+  https: boolean;
+  redirectsToHttps: boolean;
+  headers: SecurityHeader[];
+  score: number; // 0-100
+}
+
+interface SeoCheck {
+  id: string;
+  label: string;
+  present: boolean;
+  value?: string;
+  level: "good" | "warn" | "info";
+  description: string;
+}
+
+interface SeoData {
+  score: number; // 0-100
+  checks: SeoCheck[];
+}
+
 interface AuditResponse {
   url: string;
   finalUrl: string;
   fetchedAt: string;
   techStack: TechInfo[];
+  ssl: SslResult;
+  seo: SeoData;
   mobile: StrategyResult;
   desktop: StrategyResult;
   competitor?: {
@@ -256,7 +287,238 @@ const TECH_PATTERNS: TechPattern[] = [
   { name: "PHP", category: "Serveur", headerKey: "x-powered-by", headerPattern: /PHP\/([0-9.]+)/i, versionCapture: /PHP\/([0-9.]+)/i },
 ];
 
-async function fetchTechStack(url: string): Promise<TechInfo[]> {
+interface PageData {
+  techs: TechInfo[];
+  ssl: SslResult;
+  seo: SeoData;
+}
+
+const SECURITY_HEADERS: Array<{
+  key: string;
+  label: string;
+  description: string;
+}> = [
+  {
+    key: "strict-transport-security",
+    label: "HSTS",
+    description: "Force le navigateur à utiliser HTTPS pour les prochaines visites.",
+  },
+  {
+    key: "content-security-policy",
+    label: "CSP",
+    description: "Limite les sources de scripts et ressources — protection contre le XSS.",
+  },
+  {
+    key: "x-frame-options",
+    label: "X-Frame-Options",
+    description: "Protège contre le clickjacking en empêchant l'intégration en iframe.",
+  },
+  {
+    key: "x-content-type-options",
+    label: "X-Content-Type-Options",
+    description: "Empêche le navigateur de deviner le type MIME d'un fichier.",
+  },
+  {
+    key: "referrer-policy",
+    label: "Referrer-Policy",
+    description: "Contrôle les informations d'origine envoyées aux sites tiers.",
+  },
+  {
+    key: "permissions-policy",
+    label: "Permissions-Policy",
+    description: "Restreint l'accès aux APIs sensibles (caméra, micro, géoloc…).",
+  },
+];
+
+function parseSeoData(html: string, finalUrl: string): SeoData {
+  const checks: SeoCheck[] = [];
+
+  function meta(name: string): string | undefined {
+    const m =
+      html.match(new RegExp(`<meta[^>]+name=["']${name}["'][^>]+content=["']([^"']{1,300})`, "i")) ||
+      html.match(new RegExp(`<meta[^>]+content=["']([^"']{1,300})["'][^>]+name=["']${name}["']`, "i"));
+    return m?.[1]?.trim();
+  }
+
+  function prop(name: string): string | undefined {
+    const m =
+      html.match(new RegExp(`<meta[^>]+property=["']${name}["'][^>]+content=["']([^"']{1,300})`, "i")) ||
+      html.match(new RegExp(`<meta[^>]+content=["']([^"']{1,300})["'][^>]+property=["']${name}["']`, "i"));
+    return m?.[1]?.trim();
+  }
+
+  function link(rel: string): string | undefined {
+    const m = html.match(new RegExp(`<link[^>]+rel=["']${rel}["'][^>]+href=["']([^"']{1,300})`, "i"));
+    return m?.[1]?.trim();
+  }
+
+  // Title
+  const titleM = html.match(/<title[^>]*>([^<]{1,200})<\/title>/i);
+  const title = titleM?.[1]?.trim();
+  checks.push({
+    id: "title",
+    label: "Title",
+    present: !!title,
+    value: title,
+    level: title ? "good" : "warn",
+    description: title ? "Titre de page présent." : "Balise <title> manquante — critique pour le SEO.",
+  });
+
+  // Meta description
+  const desc = meta("description");
+  checks.push({
+    id: "meta-description",
+    label: "Meta description",
+    present: !!desc,
+    value: desc,
+    level: desc ? "good" : "warn",
+    description: desc ? `${desc.length} caractères.` : "Meta description absente — Google génèrera un extrait aléatoire.",
+  });
+
+  // Lang
+  const langM = html.match(/<html[^>]+lang=["']([a-zA-Z-]{2,10})["']/i);
+  const lang = langM?.[1];
+  checks.push({
+    id: "lang",
+    label: "Langue (lang=)",
+    present: !!lang,
+    value: lang,
+    level: lang ? "good" : "warn",
+    description: lang ? `Langue déclarée : ${lang}.` : "Attribut lang manquant sur <html> — pénalise l'indexation multilingue.",
+  });
+
+  // Canonical
+  const canonical = link("canonical");
+  checks.push({
+    id: "canonical",
+    label: "Canonical",
+    present: !!canonical,
+    value: canonical,
+    level: canonical ? "good" : "info",
+    description: canonical ? `URL canonique : ${canonical}.` : "Pas de balise canonical — risque de contenu dupliqué.",
+  });
+
+  // Robots meta
+  const robots = meta("robots");
+  const isBlocked = robots && /noindex/i.test(robots);
+  checks.push({
+    id: "robots",
+    label: "Robots meta",
+    present: !!robots,
+    value: robots,
+    level: isBlocked ? "warn" : robots ? "good" : "info",
+    description: isBlocked
+      ? `⚠ noindex détecté — cette page est exclue de Google (${robots}).`
+      : robots
+        ? `Directive : ${robots}.`
+        : "Pas de meta robots — comportement par défaut (indexation autorisée).",
+  });
+
+  // OpenGraph
+  const ogTitle = prop("og:title");
+  const ogDesc = prop("og:description");
+  const ogImage = prop("og:image");
+  const ogPresent = !!(ogTitle || ogDesc || ogImage);
+  checks.push({
+    id: "opengraph",
+    label: "OpenGraph (og:)",
+    present: ogPresent,
+    value: ogPresent ? [ogTitle && `title`, ogDesc && `description`, ogImage && `image`].filter(Boolean).join(", ") : undefined,
+    level: ogPresent ? "good" : "warn",
+    description: ogPresent
+      ? "Les balises og: sont présentes — le partage sur Facebook/LinkedIn sera correctement prévisualisé."
+      : "og:title / og:description / og:image absents — les partages sur les réseaux sociaux afficheront un aperçu vide.",
+  });
+
+  // Twitter Card
+  const twCard = meta("twitter:card");
+  const twTitle = meta("twitter:title");
+  const twPresent = !!(twCard || twTitle);
+  checks.push({
+    id: "twitter-card",
+    label: "Twitter Card",
+    present: twPresent,
+    value: twCard,
+    level: twPresent ? "good" : "info",
+    description: twPresent
+      ? `Type : ${twCard || "défini"} — les partages Twitter/X seront enrichis.`
+      : "twitter:card absent — aperçu basique sur Twitter/X.",
+  });
+
+  // JSON-LD structured data
+  const jsonLdM = html.match(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]{1,4000}?)<\/script>/i);
+  const jsonLd = jsonLdM?.[1]?.trim();
+  let jsonLdType: string | undefined;
+  if (jsonLd) {
+    try {
+      const parsed = JSON.parse(jsonLd);
+      jsonLdType = parsed["@type"] || (Array.isArray(parsed["@graph"]) ? "Graph" : undefined);
+    } catch {}
+  }
+  checks.push({
+    id: "json-ld",
+    label: "JSON-LD (données structurées)",
+    present: !!jsonLd,
+    value: jsonLdType,
+    level: jsonLd ? "good" : "info",
+    description: jsonLd
+      ? `Type détecté : ${jsonLdType || "présent"} — Google peut afficher des Rich Results.`
+      : "Pas de JSON-LD — aucune chance d'apparaître en Rich Snippet (étoiles, FAQ, recettes…).",
+  });
+
+  // Favicon
+  const favM =
+    html.match(/<link[^>]+rel=["'](?:icon|shortcut icon)["'][^>]+href=["']([^"']{1,200})["']/i) ||
+    html.match(/<link[^>]+href=["']([^"']{1,200})["'][^>]+rel=["'](?:icon|shortcut icon)["']/i);
+  const fav = favM?.[1];
+  checks.push({
+    id: "favicon",
+    label: "Favicon",
+    present: !!fav,
+    value: fav,
+    level: fav ? "good" : "info",
+    description: fav ? "Favicon déclaré dans le HTML." : "Aucun favicon déclaré — onglets et résultats Google sans icône.",
+  });
+
+  const goodCount = checks.filter((c) => c.level === "good").length;
+  const score = Math.round((goodCount / checks.length) * 100);
+
+  return { score, checks };
+}
+
+function buildSslResult(
+  originalUrl: string,
+  finalUrl: string,
+  headers: Record<string, string>
+): SslResult {
+  const https = originalUrl.startsWith("https://");
+  const redirectsToHttps =
+    !originalUrl.startsWith("https://") && finalUrl.startsWith("https://");
+
+  const secHeaders: SecurityHeader[] = SECURITY_HEADERS.map(({ key, label, description }) => {
+    const val = headers[key];
+    return { name: key, label, description, present: !!val, value: val };
+  });
+
+  const presentCount = secHeaders.filter((h) => h.present).length;
+  const httpsBonus = (https || redirectsToHttps) ? 40 : 0;
+  const headersScore = Math.round((presentCount / SECURITY_HEADERS.length) * 60);
+  const score = httpsBonus + headersScore;
+
+  return { https, redirectsToHttps, headers: secHeaders, score };
+}
+
+async function fetchPageData(url: string): Promise<PageData> {
+  const nullSsl: SslResult = {
+    https: url.startsWith("https://"),
+    redirectsToHttps: false,
+    headers: SECURITY_HEADERS.map(({ key, label, description }) => ({
+      name: key, label, description, present: false,
+    })),
+    score: url.startsWith("https://") ? 40 : 0,
+  };
+  const nullSeo: SeoData = { score: 0, checks: [] };
+
   try {
     const res = await fetch(url, {
       signal: AbortSignal.timeout(TECH_FETCH_TIMEOUT_MS),
@@ -269,6 +531,9 @@ async function fetchTechStack(url: string): Promise<TechInfo[]> {
       headers[key.toLowerCase()] = value;
     });
 
+    const finalUrl = res.url || url;
+    const ssl = buildSslResult(url, finalUrl, headers);
+
     const contentType = headers["content-type"] || "";
     let html = "";
     if (contentType.includes("text/html")) {
@@ -277,6 +542,8 @@ async function fetchTechStack(url: string): Promise<TechInfo[]> {
       const bytes = new Uint8Array(buffer.slice(0, 51200));
       html = new TextDecoder("utf-8", { fatal: false }).decode(bytes);
     }
+
+    const seo = html ? parseSeoData(html, finalUrl) : nullSeo;
 
     const detected = new Map<string, TechInfo>();
 
@@ -312,10 +579,10 @@ async function fetchTechStack(url: string): Promise<TechInfo[]> {
       }
     }
 
-    return Array.from(detected.values());
+    return { techs: Array.from(detected.values()), ssl, seo };
   } catch {
-    // Non-fatal — tech detection is best-effort
-    return [];
+    // Non-fatal — best-effort
+    return { techs: [], ssl: nullSsl, seo: nullSeo };
   }
 }
 
@@ -672,7 +939,7 @@ const handler: Handler = async (event: HandlerEvent) => {
     const auditTasks: Promise<any>[] = [
       runStrategyAudit(url, "mobile"),
       runStrategyAudit(url, "desktop"),
-      fetchTechStack(url),
+      fetchPageData(url),
     ];
     if (competitorUrl) {
       auditTasks.push(runStrategyAudit(competitorUrl, "mobile"));
@@ -682,13 +949,15 @@ const handler: Handler = async (event: HandlerEvent) => {
     const results = await Promise.all(auditTasks);
     const mobile = results[0] as PsiCallResult;
     const desktop = results[1] as PsiCallResult;
-    const techStack = results[2] as TechInfo[];
+    const pageData = results[2] as PageData;
 
     const response: AuditResponse = {
       url,
       finalUrl: mobile.finalUrl || desktop.finalUrl || url,
       fetchedAt: new Date().toISOString(),
-      techStack,
+      techStack: pageData.techs,
+      ssl: pageData.ssl,
+      seo: pageData.seo,
       mobile: mobile.result,
       desktop: desktop.result,
     };
