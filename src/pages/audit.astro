@@ -49,6 +49,25 @@ import Footer from "../components/Footer.astro";
                 </button>
               </form>
             </div>
+            <div class="t-line competitor-toggle-line">
+              <button type="button" id="competitor-toggle-btn" class="competitor-toggle-btn">
+                <span id="competitor-toggle-label">+ comparer un concurrent</span>
+              </button>
+            </div>
+
+            <div class="t-line t-competitor-line" id="competitor-line" style="display:none;">
+              <span class="t-prompt" style="color:var(--text-dim)">$</span>
+              <span class="t-cmd" style="color:var(--text-dim)">compare</span>
+              <input
+                id="competitor-url"
+                type="url"
+                name="competitorUrl"
+                placeholder="https://concurrent.fr (optionnel)"
+                autocomplete="off"
+                spellcheck="false"
+                class="audit-input competitor-input"
+              />
+            </div>
 
             <div id="audit-output" class="audit-output" style="display:none;">
               <div class="t-output" id="audit-status">Connexion au serveur d'analyse...</div>
@@ -104,6 +123,20 @@ import Footer from "../components/Footer.astro";
 
         <div class="audit-scores" id="audit-scores"></div>
 
+        <!-- E18 — Stack technique détectée -->
+        <div class="tech-wrap" id="tech-wrap" style="display:none;">
+          <h3 class="audit-section-title mono">// Stack technique détectée</h3>
+          <p class="audit-section-sub">Technologies identifiées automatiquement sur votre site.</p>
+          <div class="tech-badges" id="tech-badges"></div>
+        </div>
+
+        <!-- E2 — Comparaison concurrent -->
+        <div class="competitor-wrap" id="competitor-wrap" style="display:none;">
+          <h3 class="audit-section-title mono">// Comparaison concurrent</h3>
+          <p class="audit-section-sub" id="competitor-sub"></p>
+          <div class="competitor-grid" id="competitor-grid"></div>
+        </div>
+
         <div class="vitals-wrap" id="vitals-wrap" style="display:none;">
           <h3 class="audit-section-title mono">// Core Web Vitals</h3>
           <p class="audit-section-sub">Les métriques que Google utilise pour juger l'expérience de vos visiteurs.</p>
@@ -139,6 +172,10 @@ import Footer from "../components/Footer.astro";
           <button class="btn-primary" id="audit-attach-btn" style="display:none;">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
             Joindre au formulaire de contact
+          </button>
+          <button class="btn-ghost" id="audit-pdf-btn" style="display:none;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+            <span id="audit-pdf-label">Télécharger PDF</span>
           </button>
           <a href="/#contact" class="btn-ghost" id="audit-contact-btn" style="display:none;">
             Refaire mon site avec SOS-PC →
@@ -186,6 +223,17 @@ import Footer from "../components/Footer.astro";
   const budgetMeta = document.getElementById("budget-meta") as HTMLElement;
   const attachBtn = document.getElementById("audit-attach-btn") as HTMLElement;
   const contactBtn = document.getElementById("audit-contact-btn") as HTMLElement;
+  const pdfBtn = document.getElementById("audit-pdf-btn") as HTMLElement;
+  const pdfLabel = document.getElementById("audit-pdf-label") as HTMLElement;
+  const techWrap = document.getElementById("tech-wrap") as HTMLElement;
+  const techBadges = document.getElementById("tech-badges") as HTMLElement;
+  const competitorWrap = document.getElementById("competitor-wrap") as HTMLElement;
+  const competitorGrid = document.getElementById("competitor-grid") as HTMLElement;
+  const competitorSub = document.getElementById("competitor-sub") as HTMLElement;
+  const competitorToggleBtn = document.getElementById("competitor-toggle-btn") as HTMLButtonElement;
+  const competitorToggleLabel = document.getElementById("competitor-toggle-label") as HTMLElement;
+  const competitorLine = document.getElementById("competitor-line") as HTMLElement;
+  const competitorInput = document.getElementById("competitor-url") as HTMLInputElement;
 
   let lastReport: any = null;
   let currentStrategy: Strategy = "mobile";
@@ -427,6 +475,112 @@ import Footer from "../components/Footer.astro";
     budgetCard.style.display = "block";
   }
 
+  competitorToggleBtn.addEventListener("click", () => {
+    const isVisible = competitorLine.style.display !== "none";
+    competitorLine.style.display = isVisible ? "none" : "flex";
+    competitorToggleLabel.textContent = isVisible ? "+ comparer un concurrent" : "− masquer concurrent";
+    if (isVisible) competitorInput.value = "";
+  });
+
+  const TECH_CATEGORY_COLORS: Record<string, string> = {
+    CMS: "#7aa2f7",
+    Framework: "#bb9af7",
+    JS: "#e0af68",
+    CSS: "#2ac3de",
+    Analytics: "#9ece6a",
+    Serveur: "#f7768e",
+    Autre: "#a9b1d6",
+  };
+
+  function renderTechStack(techs: any[]) {
+    if (!techs || techs.length === 0) {
+      techWrap.style.display = "none";
+      return;
+    }
+    techWrap.style.display = "block";
+    techBadges.innerHTML = "";
+    techs.forEach((t: any) => {
+      const color = TECH_CATEGORY_COLORS[t.category] || TECH_CATEGORY_COLORS.Autre;
+      const version = t.version ? ` <span class="tech-version">${escapeHtml(t.version)}</span>` : "";
+      techBadges.innerHTML += `
+        <span class="tech-badge" style="--tech-color:${color}">
+          <span class="tech-cat">${escapeHtml(t.category)}</span>
+          <span class="tech-name">${escapeHtml(t.name)}</span>${version}
+        </span>`;
+    });
+  }
+
+  function renderCompetitor(data: any) {
+    const comp = data.competitor;
+    if (!comp) {
+      competitorWrap.style.display = "none";
+      return;
+    }
+    competitorWrap.style.display = "block";
+    const myUrl = data.finalUrl || data.url || "Votre site";
+    const compUrl = comp.finalUrl || comp.url || "Concurrent";
+    competitorSub.textContent = `${myUrl} vs ${compUrl} — Mobile · Desktop`;
+
+    const SCORE_LABELS_LOCAL = [
+      { key: "performance", label: "Performance", icon: "⚡" },
+      { key: "seo", label: "SEO", icon: "🔍" },
+      { key: "accessibility", label: "Accessibilité", icon: "♿" },
+      { key: "best-practices", label: "Bonnes pratiques", icon: "✓" },
+    ];
+
+    function scoreBadge(pct: number): string {
+      const color = scoreColor(pct);
+      return `<span class="comp-score" style="color:${color};border-color:${color}">${pct}</span>`;
+    }
+
+    function stratRows(myStrat: any, compStrat: any): string {
+      return SCORE_LABELS_LOCAL.map(({ key, label, icon }) => {
+        const myPct = Math.round((myStrat?.scores?.[key] ?? 0) * 100);
+        const cPct = Math.round((compStrat?.scores?.[key] ?? 0) * 100);
+        const myWin = myPct >= cPct;
+        return `
+          <div class="comp-row">
+            <div class="comp-cell comp-cell-you ${myWin ? "comp-winner" : ""}">${scoreBadge(myPct)}</div>
+            <div class="comp-cell comp-label mono">${icon} ${escapeHtml(label)}</div>
+            <div class="comp-cell comp-cell-them ${!myWin ? "comp-winner" : ""}">${scoreBadge(cPct)}</div>
+          </div>`;
+      }).join("");
+    }
+
+    const myOverallM = data.mobile?.scoreOverall ?? 0;
+    const myOverallD = data.desktop?.scoreOverall ?? 0;
+    const cOverallM = comp.mobile?.scoreOverall ?? 0;
+    const cOverallD = comp.desktop?.scoreOverall ?? 0;
+
+    competitorGrid.innerHTML = `
+      <div class="comp-table">
+        <div class="comp-header">
+          <div class="comp-hcell comp-hcell-you mono">📱 Vous</div>
+          <div class="comp-hcell comp-hcell-label mono">Mobile</div>
+          <div class="comp-hcell comp-hcell-them mono">📱 Eux</div>
+        </div>
+        <div class="comp-overall-row">
+          <div class="comp-overall-val ${myOverallM >= cOverallM ? "comp-overall-win" : ""}">${myOverallM}<span class="comp-overall-suffix">/100</span></div>
+          <div class="comp-overall-label mono">Score global</div>
+          <div class="comp-overall-val ${cOverallM > myOverallM ? "comp-overall-win" : ""}">${cOverallM}<span class="comp-overall-suffix">/100</span></div>
+        </div>
+        ${stratRows(data.mobile, comp.mobile)}
+      </div>
+      <div class="comp-table">
+        <div class="comp-header">
+          <div class="comp-hcell comp-hcell-you mono">🖥️ Vous</div>
+          <div class="comp-hcell comp-hcell-label mono">Desktop</div>
+          <div class="comp-hcell comp-hcell-them mono">🖥️ Eux</div>
+        </div>
+        <div class="comp-overall-row">
+          <div class="comp-overall-val ${myOverallD >= cOverallD ? "comp-overall-win" : ""}">${myOverallD}<span class="comp-overall-suffix">/100</span></div>
+          <div class="comp-overall-label mono">Score global</div>
+          <div class="comp-overall-val ${cOverallD > myOverallD ? "comp-overall-win" : ""}">${cOverallD}<span class="comp-overall-suffix">/100</span></div>
+        </div>
+        ${stratRows(data.desktop, comp.desktop)}
+      </div>`;
+  }
+
   function applyStrategy(strategy: Strategy) {
     currentStrategy = strategy;
     stratBtnMobile.classList.toggle("active", strategy === "mobile");
@@ -482,10 +636,14 @@ import Footer from "../components/Footer.astro";
     }, 5000);
 
     try {
+      const competitorVal = competitorInput.value.trim();
+      const body: Record<string, string> = { url };
+      if (competitorVal) body.competitorUrl = competitorVal;
+
       const res = await fetch("/.netlify/functions/audit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url }),
+        body: JSON.stringify(body),
       });
 
       clearInterval(stepTimer);
@@ -503,10 +661,13 @@ import Footer from "../components/Footer.astro";
       renderOverallFromMobile(data);
       renderScreenshots(data);
       renderToggle(data);
+      renderTechStack(data.techStack || []);
+      renderCompetitor(data);
       applyStrategy("mobile");
 
       results.style.display = "block";
       attachBtn.style.display = "inline-flex";
+      pdfBtn.style.display = "inline-flex";
       contactBtn.style.display = "inline-flex";
     } catch (err: any) {
       clearInterval(stepTimer);
@@ -660,6 +821,77 @@ import Footer from "../components/Footer.astro";
     lines.push(sep);
     return lines.join("\n");
   }
+
+  // E10 — PDF download via jsPDF loaded dynamically on click
+  pdfBtn.addEventListener("click", async () => {
+    if (!lastReport) return;
+    pdfLabel.textContent = "Génération…";
+    pdfBtn.setAttribute("disabled", "true");
+
+    try {
+      // Load jsPDF from CDN only when the user clicks — no bundle cost otherwise
+      const { jsPDF } = await import("https://cdn.jsdelivr.net/npm/jspdf@2.5.1/+esm" as any) as any;
+
+      const doc = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" });
+      const pageW = doc.internal.pageSize.getWidth();
+      const margin = 40;
+      const lineH = 13;
+      const maxW = pageW - margin * 2;
+
+      doc.setFont("courier", "normal");
+      doc.setFontSize(8);
+
+      let y = margin;
+
+      function addLine(text: string, indent = 0) {
+        const prefix = " ".repeat(indent);
+        const wrapped = doc.splitTextToSize(prefix + text, maxW);
+        wrapped.forEach((line: string) => {
+          if (y > doc.internal.pageSize.getHeight() - margin) {
+            doc.addPage();
+            y = margin;
+          }
+          doc.text(line, margin, y);
+          y += lineH;
+        });
+      }
+
+      const reportText = buildReport(lastReport);
+      const reportLines = reportText.split("\n");
+
+      // Header — slightly bigger
+      doc.setFontSize(9);
+      addLine(reportLines[0] || "");
+      doc.setFontSize(8);
+      reportLines.slice(1).forEach((line) => addLine(line));
+
+      // Tech stack appendix
+      const techs: any[] = lastReport.techStack || [];
+      if (techs.length > 0) {
+        addLine("");
+        addLine("=".repeat(56));
+        addLine("  STACK TECHNIQUE DÉTECTÉE");
+        addLine("=".repeat(56));
+        addLine("");
+        const grouped: Record<string, string[]> = {};
+        techs.forEach((t: any) => {
+          grouped[t.category] = grouped[t.category] || [];
+          grouped[t.category].push(t.name + (t.version ? ` ${t.version}` : ""));
+        });
+        Object.entries(grouped).forEach(([cat, names]) => {
+          addLine(`  ${cat.padEnd(12)} ${names.join(", ")}`);
+        });
+      }
+
+      const filename = `audit-sos-pc-${new Date().toISOString().slice(0, 10)}.pdf`;
+      doc.save(filename);
+    } catch {
+      alert("Impossible de générer le PDF. Vérifiez votre connexion internet.");
+    } finally {
+      pdfLabel.textContent = "Télécharger PDF";
+      pdfBtn.removeAttribute("disabled");
+    }
+  });
 </script>
 
 <style>
@@ -1378,5 +1610,192 @@ import Footer from "../components/Footer.astro";
     .strategy-toggle { display: flex; width: 100%; }
     .strat-btn { flex: 1; justify-content: center; }
     .frame-mobile { width: 90px; }
+  }
+
+  /* ----- Competitor toggle ----- */
+
+  .competitor-toggle-line {
+    margin-top: 6px;
+  }
+
+  .competitor-toggle-btn {
+    background: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    transition: color 0.15s;
+  }
+
+  .competitor-toggle-btn:hover { color: var(--accent-hex); }
+
+  .competitor-input {
+    color: var(--text-muted) !important;
+  }
+
+  .t-competitor-line {
+    display: none;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    padding-left: 2px;
+    animation: fadeInDown 0.2s ease;
+  }
+
+  @keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ----- Tech stack badges (E18) ----- */
+
+  .tech-wrap { margin-bottom: 2rem; }
+
+  .tech-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .tech-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0;
+    border-radius: 4px;
+    border: 1px solid var(--tech-color, var(--border));
+    overflow: hidden;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    line-height: 1;
+  }
+
+  .tech-cat {
+    background: var(--tech-color, var(--border));
+    color: #1a1b26;
+    padding: 4px 7px;
+    font-weight: 700;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .tech-name {
+    padding: 4px 8px;
+    color: var(--text);
+    background: rgba(255,255,255,0.04);
+  }
+
+  .tech-version {
+    padding: 4px 6px 4px 0;
+    color: var(--text-dim);
+    font-size: 9px;
+  }
+
+  /* ----- Competitor comparison (E2) ----- */
+
+  .competitor-wrap { margin-bottom: 2rem; }
+
+  .competitor-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .comp-table {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+
+  .comp-header {
+    display: grid;
+    grid-template-columns: 1fr 1.4fr 1fr;
+    background: var(--bg-elevated);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .comp-hcell {
+    padding: 10px 12px;
+    font-size: 11px;
+    color: var(--text-muted);
+    text-align: center;
+  }
+
+  .comp-hcell-you  { color: var(--accent-hex); text-align: left; }
+  .comp-hcell-them { color: var(--purple); text-align: right; }
+  .comp-hcell-label { text-align: center; }
+
+  .comp-overall-row {
+    display: grid;
+    grid-template-columns: 1fr 1.4fr 1fr;
+    padding: 14px 12px;
+    border-bottom: 1px solid var(--border);
+    align-items: center;
+  }
+
+  .comp-overall-label {
+    font-size: 10px;
+    color: var(--text-dim);
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .comp-overall-val {
+    font-size: 28px;
+    font-weight: 700;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    line-height: 1;
+  }
+
+  .comp-overall-val:last-child { text-align: right; }
+
+  .comp-overall-win { color: var(--accent-hex) !important; }
+
+  .comp-overall-suffix {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-left: 2px;
+  }
+
+  .comp-row {
+    display: grid;
+    grid-template-columns: 1fr 1.4fr 1fr;
+    padding: 8px 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    align-items: center;
+  }
+
+  .comp-row:last-child { border-bottom: none; }
+
+  .comp-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-align: center;
+  }
+
+  .comp-cell-them { text-align: right; }
+
+  .comp-score {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 3px;
+    border: 1px solid;
+    background: rgba(255,255,255,0.03);
+  }
+
+  .comp-winner .comp-score {
+    background: rgba(0, 212, 170, 0.08);
+  }
+
+  @media (max-width: 760px) {
+    .competitor-grid { grid-template-columns: 1fr; }
   }
 </style>

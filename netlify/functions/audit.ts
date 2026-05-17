@@ -8,6 +8,7 @@ const RATE_LIMIT_MAX = 5;
 const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000;
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 const PSI_TIMEOUT_MS = 45 * 1000;
+const TECH_FETCH_TIMEOUT_MS = 10 * 1000;
 
 type Strategy = "mobile" | "desktop";
 
@@ -41,12 +42,25 @@ interface StrategyResult {
   screenshot?: string;
 }
 
+interface TechInfo {
+  name: string;
+  category: "CMS" | "Framework" | "JS" | "CSS" | "Analytics" | "Serveur" | "Autre";
+  version?: string;
+}
+
 interface AuditResponse {
   url: string;
   finalUrl: string;
   fetchedAt: string;
+  techStack: TechInfo[];
   mobile: StrategyResult;
   desktop: StrategyResult;
+  competitor?: {
+    url: string;
+    finalUrl: string;
+    mobile: StrategyResult;
+    desktop: StrategyResult;
+  };
 }
 
 const FR_TITLES: Record<string, string> = {
@@ -173,6 +187,137 @@ const VITAL_LABELS: Record<string, string> = {
   "total-blocking-time": "TBT — Blocage navigateur",
   "first-contentful-paint": "FCP — Premier contenu",
 };
+
+// ---------------------------------------------------------------------------
+// Tech stack detection — headers + HTML patterns, zero external dependencies
+// ---------------------------------------------------------------------------
+
+interface TechPattern {
+  name: TechInfo["name"];
+  category: TechInfo["category"];
+  headerKey?: string;
+  headerPattern?: RegExp;
+  htmlPattern?: RegExp;
+  versionCapture?: RegExp; // capture group 1 = version
+}
+
+const TECH_PATTERNS: TechPattern[] = [
+  // CMS
+  { name: "WordPress", category: "CMS", htmlPattern: /\/wp-content\/|\/wp-includes\//i, versionCapture: /<meta[^>]+name=["']generator["'][^>]+content=["']WordPress ([0-9.]+)/i },
+  { name: "WordPress", category: "CMS", headerKey: "x-powered-by", headerPattern: /WordPress/i },
+  { name: "Elementor", category: "CMS", htmlPattern: /elementor-/i },
+  { name: "Divi", category: "CMS", htmlPattern: /et_pb_|DiviBuilder/i },
+  { name: "WooCommerce", category: "CMS", htmlPattern: /woocommerce/i },
+  { name: "Shopify", category: "CMS", htmlPattern: /cdn\.shopify\.com|Shopify\.theme/i },
+  { name: "Shopify", category: "CMS", headerKey: "x-shopify-stage", headerPattern: /./ },
+  { name: "Webflow", category: "CMS", htmlPattern: /webflow\.com\/|data-wf-page|data-wf-site/i },
+  { name: "Wix", category: "CMS", htmlPattern: /static\.wixstatic\.com|wix-warmup-data/i },
+  { name: "Squarespace", category: "CMS", htmlPattern: /squarespace\.com\/|static1\.squarespace\.com/i },
+  { name: "Ghost", category: "CMS", headerKey: "x-ghost-cache-status", headerPattern: /./ },
+  { name: "Ghost", category: "CMS", htmlPattern: /<meta[^>]+name=["']generator["'][^>]+content=["']Ghost/i },
+  { name: "Drupal", category: "CMS", htmlPattern: /\/sites\/default\/files\/|Drupal\.settings/i },
+  { name: "Joomla", category: "CMS", htmlPattern: /\/media\/jui\/|Joomla!/i },
+  { name: "TYPO3", category: "CMS", htmlPattern: /typo3temp\/|This website is powered by TYPO3/i },
+  { name: "PrestaShop", category: "CMS", htmlPattern: /prestashop|\/modules\/ps_/i },
+  { name: "Magento", category: "CMS", htmlPattern: /mage\/cookies|Magento_/i },
+  // Frameworks
+  { name: "Next.js", category: "Framework", headerKey: "x-powered-by", headerPattern: /Next\.js/i },
+  { name: "Next.js", category: "Framework", htmlPattern: /__NEXT_DATA__|_next\/static/i },
+  { name: "Nuxt.js", category: "Framework", htmlPattern: /__NUXT__|_nuxt\//i },
+  { name: "Astro", category: "Framework", htmlPattern: /astro-island|data-astro-cid/i },
+  { name: "Gatsby", category: "Framework", htmlPattern: /___gatsby|gatsby-chunk/i },
+  { name: "SvelteKit", category: "Framework", htmlPattern: /__sveltekit|_app\/immutable/i },
+  { name: "Remix", category: "Framework", htmlPattern: /window\.__remixContext/i },
+  // JS libraries
+  { name: "React", category: "JS", htmlPattern: /react(?:\.min)?\.js|__reactFiber|data-reactroot/i },
+  { name: "Vue.js", category: "JS", htmlPattern: /vue(?:\.min)?\.js|__vue_/i },
+  { name: "Angular", category: "JS", htmlPattern: /ng-version=|angular(?:\.min)?\.js/i },
+  { name: "jQuery", category: "JS", htmlPattern: /jquery(?:\.min)?\.js|jQuery\.fn\.jquery/i },
+  { name: "Alpine.js", category: "JS", htmlPattern: /alpinejs|x-data=/i },
+  { name: "Htmx", category: "JS", htmlPattern: /htmx\.org|hx-get=/i },
+  // CSS
+  { name: "Bootstrap", category: "CSS", htmlPattern: /bootstrap(?:\.min)?\.css|class=["'][^"']*\b(?:container|navbar|btn)\b/i },
+  { name: "Tailwind CSS", category: "CSS", htmlPattern: /tailwind(?:css)?(?:\.min)?\.css|class=["'][^"']*(?:flex|grid|text-)/i },
+  { name: "Bulma", category: "CSS", htmlPattern: /bulma(?:\.min)?\.css/i },
+  { name: "Foundation", category: "CSS", htmlPattern: /foundation(?:\.min)?\.css/i },
+  // Analytics / tracking
+  { name: "Google Analytics 4", category: "Analytics", htmlPattern: /gtag\('config'|googletagmanager\.com\/gtag/i },
+  { name: "Google Tag Manager", category: "Analytics", htmlPattern: /googletagmanager\.com\/gtm\.js/i },
+  { name: "Matomo", category: "Analytics", htmlPattern: /matomo\.js|piwik\.js/i },
+  { name: "Hotjar", category: "Analytics", htmlPattern: /hotjar\.com\/|hj\('trigger'/i },
+  { name: "Plausible", category: "Analytics", htmlPattern: /plausible\.io\/js/i },
+  // Serveur / hébergement
+  { name: "Nginx", category: "Serveur", headerKey: "server", headerPattern: /nginx/i },
+  { name: "Apache", category: "Serveur", headerKey: "server", headerPattern: /apache/i },
+  { name: "Cloudflare", category: "Serveur", headerKey: "cf-ray", headerPattern: /./ },
+  { name: "Netlify", category: "Serveur", headerKey: "x-nf-request-id", headerPattern: /./ },
+  { name: "Vercel", category: "Serveur", headerKey: "x-vercel-id", headerPattern: /./ },
+  { name: "OVH", category: "Serveur", headerKey: "server", headerPattern: /LiteSpeed|OVH/i },
+  { name: "PHP", category: "Serveur", headerKey: "x-powered-by", headerPattern: /PHP\/([0-9.]+)/i, versionCapture: /PHP\/([0-9.]+)/i },
+];
+
+async function fetchTechStack(url: string): Promise<TechInfo[]> {
+  try {
+    const res = await fetch(url, {
+      signal: AbortSignal.timeout(TECH_FETCH_TIMEOUT_MS),
+      headers: { "User-Agent": "Mozilla/5.0 (compatible; SOS-PC-Audit/1.0)" },
+      redirect: "follow",
+    });
+
+    const headers: Record<string, string> = {};
+    res.headers.forEach((value, key) => {
+      headers[key.toLowerCase()] = value;
+    });
+
+    const contentType = headers["content-type"] || "";
+    let html = "";
+    if (contentType.includes("text/html")) {
+      // Read at most 50 KB — enough for <head> patterns
+      const buffer = await res.arrayBuffer();
+      const bytes = new Uint8Array(buffer.slice(0, 51200));
+      html = new TextDecoder("utf-8", { fatal: false }).decode(bytes);
+    }
+
+    const detected = new Map<string, TechInfo>();
+
+    for (const pattern of TECH_PATTERNS) {
+      if (detected.has(pattern.name)) continue;
+
+      let matched = false;
+      let version: string | undefined;
+
+      if (pattern.headerKey && pattern.headerPattern) {
+        const headerVal = headers[pattern.headerKey] || "";
+        if (pattern.headerPattern.test(headerVal)) {
+          matched = true;
+          if (pattern.versionCapture) {
+            const m = headerVal.match(pattern.versionCapture);
+            version = m?.[1];
+          }
+        }
+      }
+
+      if (!matched && pattern.htmlPattern && html) {
+        if (pattern.htmlPattern.test(html)) {
+          matched = true;
+          if (pattern.versionCapture) {
+            const m = html.match(pattern.versionCapture);
+            version = m?.[1];
+          }
+        }
+      }
+
+      if (matched) {
+        detected.set(pattern.name, { name: pattern.name, category: pattern.category, version });
+      }
+    }
+
+    return Array.from(detected.values());
+  } catch {
+    // Non-fatal — tech detection is best-effort
+    return [];
+  }
+}
 
 const rateLimitStore = new Map<string, number[]>();
 const cacheStore = new Map<string, { response: AuditResponse; expiresAt: number }>();
@@ -500,11 +645,16 @@ const handler: Handler = async (event: HandlerEvent) => {
   }
 
   let url: string;
+  let competitorUrl: string | null = null;
   try {
     const body = JSON.parse(event.body || "{}");
     url = normalizeUrl(body.url || "");
     if (!url || url.length < 8) throw new Error("URL invalide");
     if (isPrivateUrl(url)) throw new Error("URL privée non autorisée");
+    if (body.competitorUrl) {
+      const raw = normalizeUrl(String(body.competitorUrl));
+      if (!isPrivateUrl(raw) && raw.length >= 8) competitorUrl = raw;
+    }
   } catch (e: any) {
     return { statusCode: 400, body: JSON.stringify({ error: e.message || "URL invalide" }) };
   }
@@ -519,18 +669,40 @@ const handler: Handler = async (event: HandlerEvent) => {
   }
 
   try {
-    const [mobile, desktop] = await Promise.all([
+    const auditTasks: Promise<any>[] = [
       runStrategyAudit(url, "mobile"),
       runStrategyAudit(url, "desktop"),
-    ]);
+      fetchTechStack(url),
+    ];
+    if (competitorUrl) {
+      auditTasks.push(runStrategyAudit(competitorUrl, "mobile"));
+      auditTasks.push(runStrategyAudit(competitorUrl, "desktop"));
+    }
+
+    const results = await Promise.all(auditTasks);
+    const mobile = results[0] as PsiCallResult;
+    const desktop = results[1] as PsiCallResult;
+    const techStack = results[2] as TechInfo[];
 
     const response: AuditResponse = {
       url,
       finalUrl: mobile.finalUrl || desktop.finalUrl || url,
       fetchedAt: new Date().toISOString(),
+      techStack,
       mobile: mobile.result,
       desktop: desktop.result,
     };
+
+    if (competitorUrl) {
+      const compMobile = results[3] as PsiCallResult;
+      const compDesktop = results[4] as PsiCallResult;
+      response.competitor = {
+        url: competitorUrl,
+        finalUrl: compMobile.finalUrl || compDesktop.finalUrl || competitorUrl,
+        mobile: compMobile.result,
+        desktop: compDesktop.result,
+      };
+    }
 
     setCached(url, response);
 
