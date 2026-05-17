@@ -218,7 +218,8 @@ import Footer from "../components/Footer.astro";
   attachBtn.addEventListener("click", () => {
     if (!lastReport) return;
     const text = buildReport(lastReport);
-    window.dispatchEvent(new CustomEvent("sospc:attach-diag", { detail: { text, generated: new Date().toLocaleString("fr-FR"), score: Math.round((lastReport.scores?.performance ?? 0) * 100), issues: lastReport.issues || [], symptoms_user: [] } }));
+    const payload = { text, generated: new Date().toLocaleString("fr-FR"), score: Math.round((lastReport.scores?.performance ?? 0) * 100), issues: lastReport.issues || [], symptoms_user: [] };
+    try { localStorage.setItem("sospc_web_audit_v1", JSON.stringify(payload)); } catch {}
     window.location.href = "/#contact";
   });
 

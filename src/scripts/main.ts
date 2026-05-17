@@ -121,6 +121,22 @@ document.addEventListener("DOMContentLoaded", function () {
   } catch {}
 });
 
+document.addEventListener("DOMContentLoaded", function () {
+  try {
+    const raw = localStorage.getItem("sospc_web_audit_v1");
+    if (!raw) return;
+    const payload = JSON.parse(raw);
+    localStorage.removeItem("sospc_web_audit_v1");
+    attachDiagToForm(payload);
+    const subject = document.querySelector(
+      'input[name="subject"]'
+    ) as HTMLInputElement;
+    if (subject && !subject.value) {
+      subject.value = "Suite audit web SOS-PC du " + (payload.generated || new Date().toLocaleDateString("fr-FR"));
+    }
+  } catch {}
+});
+
 (function () {
   const script = document.createElement("script");
   script.src =
