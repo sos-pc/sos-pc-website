@@ -672,27 +672,44 @@ import Footer from "../components/Footer.astro";
 
   .screenshot-frame {
     position: relative;
-    max-width: 200px;
     width: 100%;
+    max-width: 200px;
+    aspect-ratio: 9 / 16;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    background: #0d0e14;
   }
 
   .screenshot-frame img {
     width: 100%;
-    height: auto;
-    border-radius: var(--radius);
-    border: 1px solid var(--border);
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
     display: block;
-    background: #0d0e14;
+  }
+
+  .screenshot-frame::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 40%;
+    background: linear-gradient(to bottom, transparent, var(--bg-card));
+    pointer-events: none;
   }
 
   .screenshot-label {
     position: absolute;
-    bottom: -22px;
+    bottom: 6px;
     left: 0;
     right: 0;
     text-align: center;
     font-size: 10px;
-    color: var(--text-dim);
+    color: var(--text-muted);
+    z-index: 1;
+    text-shadow: 0 0 4px var(--bg-card);
   }
 
   /* ----- Scores grid ----- */
