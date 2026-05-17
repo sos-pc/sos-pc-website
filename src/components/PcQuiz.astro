@@ -1,0 +1,289 @@
+<div id="pc-quiz" class="pc-quiz">
+  <div class="quiz-header">
+    <div class="section-label">
+      <span class="tag tag-yellow">rapide</span>
+      <span class="mono text-muted">// Évaluation express</span>
+    </div>
+    <h3>Mon PC est-il <span class="teal">obsolète</span> ?</h3>
+    <p class="quiz-sub">3 questions, 10 secondes, zéro installation.</p>
+  </div>
+
+  <div id="quiz-body" class="quiz-body">
+    <div id="quiz-step" class="quiz-step">
+      <p id="quiz-question" class="quiz-question mono"></p>
+      <div id="quiz-options" class="quiz-options"></div>
+    </div>
+    <div class="quiz-progress">
+      <div class="quiz-bar"><div id="quiz-bar-fill" class="quiz-bar-fill"></div></div>
+      <span id="quiz-counter" class="mono quiz-counter"></span>
+    </div>
+  </div>
+
+  <div id="quiz-result" class="quiz-result" style="display:none;">
+    <div id="quiz-verdict-icon" class="quiz-verdict-icon"></div>
+    <p id="quiz-verdict" class="quiz-verdict mono"></p>
+    <p id="quiz-advice" class="quiz-advice"></p>
+    <div class="quiz-actions">
+      <button class="btn-primary" id="quiz-diag-btn" style="display:none;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        Lancer le diagnostic complet
+      </button>
+      <a href="#contact" class="btn-ghost" id="quiz-contact-btn" style="display:none;">Nous consulter</a>
+      <button class="btn-ghost" id="quiz-reset-btn">Recommencer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const QUESTIONS = [
+    {
+      text: "Quel âge a votre PC ?",
+      options: [
+        { label: "Moins de 2 ans", score: 0 },
+        { label: "2 à 5 ans", score: 1 },
+        { label: "5 à 8 ans", score: 2 },
+        { label: "Plus de 8 ans", score: 3 },
+      ],
+    },
+    {
+      text: "Combien de RAM (mémoire vive) ?",
+      options: [
+        { label: "4 Go ou moins", score: 3 },
+        { label: "8 Go", score: 1 },
+        { label: "16 Go ou plus", score: 0 },
+        { label: "Je ne sais pas", score: 2 },
+      ],
+    },
+    {
+      text: "Quel usage principal ?",
+      options: [
+        { label: "Juste internet / email", score: 0 },
+        { label: "Bureautique (Office, etc.)", score: 1 },
+        { label: "Multimédia / jeu", score: 2 },
+        { label: "Pro (dev, montage, 3D)", score: 3 },
+      ],
+    },
+  ];
+
+  const VERDICTS = [
+    { max: 2, icon: "✓", color: "var(--accent-hex)", text: "Votre PC semble en forme", advice: "Pas de signe d'obsolescence critique. Un diagnostic complet peut tout de même révéler des optimisations cachées." },
+    { max: 5, icon: "⚠", color: "var(--yellow)", text: "Un upgrade serait bénéfique", advice: "Votre config montre des signes d'essoufflement. Un ajout de RAM ou un SSD pourrait tout changer. On peut vous conseiller." },
+    { max: 9, icon: "✗", color: "var(--red)", text: "Il est temps de consulter", advice: "Votre matériel cumule plusieurs facteurs de ralentissement. Un diagnostic gratuit vous dira exactement quoi faire." },
+  ];
+
+  let currentStep = 0;
+  let totalScore = 0;
+
+  const body = document.getElementById("quiz-body") as HTMLElement;
+  const resultEl = document.getElementById("quiz-result") as HTMLElement;
+  const questionEl = document.getElementById("quiz-question") as HTMLElement;
+  const optionsEl = document.getElementById("quiz-options") as HTMLElement;
+  const barFill = document.getElementById("quiz-bar-fill") as HTMLElement;
+  const counter = document.getElementById("quiz-counter") as HTMLElement;
+  const verdictIcon = document.getElementById("quiz-verdict-icon") as HTMLElement;
+  const verdictEl = document.getElementById("quiz-verdict") as HTMLElement;
+  const adviceEl = document.getElementById("quiz-advice") as HTMLElement;
+  const diagBtn = document.getElementById("quiz-diag-btn") as HTMLElement;
+  const contactBtn = document.getElementById("quiz-contact-btn") as HTMLElement;
+  const resetBtn = document.getElementById("quiz-reset-btn") as HTMLElement;
+
+  function renderStep() {
+    const q = QUESTIONS[currentStep];
+    questionEl.textContent = `${currentStep + 1}. ${q.text}`;
+    optionsEl.innerHTML = "";
+    q.options.forEach((opt) => {
+      const btn = document.createElement("button");
+      btn.className = "quiz-opt";
+      btn.textContent = opt.label;
+      btn.addEventListener("click", () => selectOption(opt.score));
+      optionsEl.appendChild(btn);
+    });
+    barFill.style.width = `${((currentStep) / QUESTIONS.length) * 100}%`;
+    counter.textContent = `${currentStep + 1} / ${QUESTIONS.length}`;
+  }
+
+  function selectOption(score: number) {
+    totalScore += score;
+    currentStep++;
+    if (currentStep < QUESTIONS.length) {
+      renderStep();
+    } else {
+      showResult();
+    }
+  }
+
+  function showResult() {
+    body.style.display = "none";
+    resultEl.style.display = "block";
+    const verdict = VERDICTS.find((v) => totalScore <= v.max) || VERDICTS[VERDICTS.length - 1];
+    verdictIcon.textContent = verdict.icon;
+    verdictIcon.style.color = verdict.color;
+    verdictIcon.style.borderColor = verdict.color;
+    verdictEl.textContent = verdict.text;
+    verdictEl.style.color = verdict.color;
+    adviceEl.textContent = verdict.advice;
+
+    if (totalScore > 2) {
+      diagBtn.style.display = "inline-flex";
+      contactBtn.style.display = "inline-flex";
+    }
+  }
+
+  diagBtn.addEventListener("click", () => {
+    (window as any).sospcToggle?.();
+  });
+
+  resetBtn.addEventListener("click", () => {
+    currentStep = 0;
+    totalScore = 0;
+    body.style.display = "block";
+    resultEl.style.display = "none";
+    diagBtn.style.display = "none";
+    contactBtn.style.display = "none";
+    renderStep();
+  });
+
+  renderStep();
+</script>
+
+<style>
+  .teal { color: var(--accent-hex); }
+  .text-muted { color: var(--text-muted); }
+
+  .section-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 0.75rem;
+  }
+
+  .pc-quiz {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    margin-top: 2.5rem;
+  }
+
+  .quiz-header h3 {
+    font-size: 1.3rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .quiz-sub {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+  }
+
+  .quiz-body {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .quiz-question {
+    font-size: 14px;
+    color: var(--text);
+    margin-bottom: 12px;
+  }
+
+  .quiz-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .quiz-opt {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    font-size: 13px;
+    color: var(--text);
+    font-family: var(--font-body);
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: left;
+  }
+
+  .quiz-opt:hover {
+    border-color: var(--accent-hex);
+    background: #00d4aa0d;
+    color: var(--accent-hex);
+  }
+
+  .quiz-opt:active {
+    transform: scale(0.97);
+  }
+
+  .quiz-progress {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .quiz-bar {
+    flex: 1;
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .quiz-bar-fill {
+    height: 100%;
+    background: var(--accent-hex);
+    border-radius: 2px;
+    width: 0%;
+    transition: width 0.3s ease;
+  }
+
+  .quiz-counter {
+    font-size: 11px;
+    color: var(--text-dim);
+    flex-shrink: 0;
+  }
+
+  .quiz-result {
+    text-align: center;
+    padding: 1rem 0;
+  }
+
+  .quiz-verdict-icon {
+    font-size: 2.5rem;
+    width: 56px;
+    height: 56px;
+    line-height: 56px;
+    border-radius: 50%;
+    border: 2px solid;
+    display: inline-block;
+    margin-bottom: 12px;
+    font-family: var(--font-mono);
+  }
+
+  .quiz-verdict {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  .quiz-advice {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.6;
+    max-width: 500px;
+    margin: 0 auto 1.5rem;
+  }
+
+  .quiz-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  @media (max-width: 480px) {
+    .quiz-options { grid-template-columns: 1fr; }
+  }
+</style>
