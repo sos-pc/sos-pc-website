@@ -86,6 +86,22 @@
         <label class="mono">message</label>
         <textarea name="message" rows="4" required placeholder="Décrivez votre besoin..."></textarea>
       </div>
+      <div class="form-group">
+        <label class="mono">disponibilité <span class="slot-optional">(optionnel)</span></label>
+        <input type="hidden" name="availability" id="availability-input" />
+        <div class="slot-picker" id="slot-picker">
+          <button type="button" class="slot-btn" data-slot="Lundi matin">Lun. matin</button>
+          <button type="button" class="slot-btn" data-slot="Lundi après-midi">Lun. après-midi</button>
+          <button type="button" class="slot-btn" data-slot="Mardi matin">Mar. matin</button>
+          <button type="button" class="slot-btn" data-slot="Mardi après-midi">Mar. après-midi</button>
+          <button type="button" class="slot-btn" data-slot="Mercredi matin">Mer. matin</button>
+          <button type="button" class="slot-btn" data-slot="Mercredi après-midi">Mer. après-midi</button>
+          <button type="button" class="slot-btn" data-slot="Jeudi matin">Jeu. matin</button>
+          <button type="button" class="slot-btn" data-slot="Jeudi après-midi">Jeu. après-midi</button>
+          <button type="button" class="slot-btn" data-slot="Vendredi matin">Ven. matin</button>
+          <button type="button" class="slot-btn" data-slot="Vendredi après-midi">Ven. après-midi</button>
+        </div>
+      </div>
       <div id="diag-attach-banner" class="diag-attach-banner" style="display:none;">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="dab-icon"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
         <div class="dab-info">
@@ -319,5 +335,71 @@
 
   @media (max-width: 480px) {
     .contact-links { grid-template-columns: 1fr; }
+    .slot-picker { grid-template-columns: 1fr; }
+  }
+
+  .slot-optional {
+    color: var(--text-dim);
+    font-weight: 400;
+    font-size: 10px;
+  }
+
+  .slot-picker {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+
+  .slot-btn {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 7px 10px;
+    font-size: 12px;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+  }
+
+  .slot-btn:hover {
+    border-color: var(--accent-hex);
+    color: var(--text);
+  }
+
+  .slot-btn.selected {
+    background: #00d4aa1a;
+    border-color: var(--accent-hex);
+    color: var(--accent-hex);
+    font-weight: 600;
   }
 </style>
+
+<script>
+  const picker = document.getElementById("slot-picker");
+  const hiddenInput = document.getElementById("availability-input") as HTMLInputElement;
+
+  if (picker && hiddenInput) {
+    const buttons = picker.querySelectorAll(".slot-btn");
+    const selected = new Set<string>();
+
+    function updateHidden() {
+      hiddenInput.value = Array.from(selected).join(", ");
+    }
+
+    buttons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const slot = btn.getAttribute("data-slot") || "";
+        if (selected.has(slot)) {
+          selected.delete(slot);
+          btn.classList.remove("selected");
+        } else {
+          selected.add(slot);
+          btn.classList.add("selected");
+        }
+        updateHidden();
+      });
+    });
+  }
+</script>
