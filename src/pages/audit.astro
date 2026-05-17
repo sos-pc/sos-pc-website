@@ -71,6 +71,9 @@ import Footer from "../components/Footer.astro";
 
             <div id="audit-output" class="audit-output" style="display:none;">
               <div class="t-output" id="audit-status">Connexion au serveur d'analyse...</div>
+              <div class="audit-progress-bar" id="audit-progress-bar">
+                <div class="audit-progress-fill" id="audit-progress-fill"></div>
+              </div>
             </div>
           </div>
         </div>
@@ -128,6 +131,20 @@ import Footer from "../components/Footer.astro";
           <h3 class="audit-section-title mono">// Stack technique détectée</h3>
           <p class="audit-section-sub">Technologies identifiées automatiquement sur votre site.</p>
           <div class="tech-badges" id="tech-badges"></div>
+        </div>
+
+        <!-- E15 — Sécurité SSL / headers -->
+        <div class="ssl-wrap" id="ssl-wrap" style="display:none;">
+          <h3 class="audit-section-title mono">// Sécurité &amp; headers HTTP</h3>
+          <p class="audit-section-sub" id="ssl-sub"></p>
+          <div class="ssl-grid" id="ssl-grid"></div>
+        </div>
+
+        <!-- E17 — SEO étendu -->
+        <div class="seo-ext-wrap" id="seo-ext-wrap" style="display:none;">
+          <h3 class="audit-section-title mono">// SEO étendu</h3>
+          <p class="audit-section-sub" id="seo-ext-sub"></p>
+          <div class="seo-ext-grid" id="seo-ext-grid"></div>
         </div>
 
         <!-- E2 — Comparaison concurrent -->
@@ -197,6 +214,8 @@ import Footer from "../components/Footer.astro";
   const submitLabel = document.getElementById("audit-submit-label") as HTMLElement;
   const output = document.getElementById("audit-output") as HTMLElement;
   const status = document.getElementById("audit-status") as HTMLElement;
+  const progressBar = document.getElementById("audit-progress-bar") as HTMLElement;
+  const progressFill = document.getElementById("audit-progress-fill") as HTMLElement;
   const results = document.getElementById("audit-results") as HTMLElement;
   const scores = document.getElementById("audit-scores") as HTMLElement;
   const issuesWrap = document.getElementById("audit-issues-wrap") as HTMLElement;
@@ -227,6 +246,12 @@ import Footer from "../components/Footer.astro";
   const pdfLabel = document.getElementById("audit-pdf-label") as HTMLElement;
   const techWrap = document.getElementById("tech-wrap") as HTMLElement;
   const techBadges = document.getElementById("tech-badges") as HTMLElement;
+  const sslWrap = document.getElementById("ssl-wrap") as HTMLElement;
+  const sslSub = document.getElementById("ssl-sub") as HTMLElement;
+  const sslGrid = document.getElementById("ssl-grid") as HTMLElement;
+  const seoExtWrap = document.getElementById("seo-ext-wrap") as HTMLElement;
+  const seoExtSub = document.getElementById("seo-ext-sub") as HTMLElement;
+  const seoExtGrid = document.getElementById("seo-ext-grid") as HTMLElement;
   const competitorWrap = document.getElementById("competitor-wrap") as HTMLElement;
   const competitorGrid = document.getElementById("competitor-grid") as HTMLElement;
   const competitorSub = document.getElementById("competitor-sub") as HTMLElement;
@@ -510,6 +535,80 @@ import Footer from "../components/Footer.astro";
     });
   }
 
+  function renderSsl(ssl: any) {
+    if (!ssl) { sslWrap.style.display = "none"; return; }
+    sslWrap.style.display = "block";
+
+    const httpsOk = ssl.https || ssl.redirectsToHttps;
+    const scoreColor = ssl.score >= 70 ? "var(--accent-hex)" : ssl.score >= 40 ? "var(--yellow)" : "var(--red)";
+    const httpsLabel = ssl.https ? "HTTPS actif" : ssl.redirectsToHttps ? "Redirige vers HTTPS" : "HTTP non sécurisé";
+    const presented = (ssl.headers as any[]).filter((h: any) => h.present).length;
+    sslSub.textContent = `${httpsLabel} · ${presented}/${ssl.headers.length} headers de sécurité présents · Score ${ssl.score}/100`;
+
+    sslGrid.innerHTML = "";
+
+    // HTTPS row
+    const httpsState = ssl.https ? "ssl-ok" : ssl.redirectsToHttps ? "ssl-warn" : "ssl-fail";
+    const httpsIcon = ssl.https ? "✓" : ssl.redirectsToHttps ? "⚠" : "✗";
+    sslGrid.innerHTML += `
+      <div class="ssl-row ${httpsState}">
+        <span class="ssl-icon mono">${httpsIcon}</span>
+        <div class="ssl-body">
+          <span class="ssl-name">HTTPS</span>
+          <span class="ssl-desc">${httpsOk ? "La connexion est chiffrée." : "Le site est servi en HTTP — les données transitent en clair."}</span>
+        </div>
+        <span class="ssl-badge mono" style="color:${httpsOk ? "var(--accent-hex)" : "var(--red)"}">${httpsOk ? "OK" : "MANQUANT"}</span>
+      </div>`;
+
+    // Security headers rows
+    (ssl.headers as any[]).forEach((h: any) => {
+      const state = h.present ? "ssl-ok" : "ssl-fail";
+      const icon = h.present ? "✓" : "✗";
+      const badge = h.present ? "OK" : "ABSENT";
+      const badgeColor = h.present ? "var(--accent-hex)" : "var(--red)";
+      sslGrid.innerHTML += `
+        <div class="ssl-row ${state}">
+          <span class="ssl-icon mono">${icon}</span>
+          <div class="ssl-body">
+            <span class="ssl-name mono">${escapeHtml(h.label)}</span>
+            <span class="ssl-desc">${escapeHtml(h.description)}</span>
+            ${h.present && h.value ? `<span class="ssl-value mono">${escapeHtml(h.value.slice(0, 80))}${h.value.length > 80 ? "…" : ""}</span>` : ""}
+          </div>
+          <span class="ssl-badge mono" style="color:${badgeColor}">${badge}</span>
+        </div>`;
+    });
+  }
+
+  function renderSeoExt(seo: any) {
+    if (!seo || !seo.checks || seo.checks.length === 0) {
+      seoExtWrap.style.display = "none";
+      return;
+    }
+    seoExtWrap.style.display = "block";
+
+    const goodCount = seo.checks.filter((c: any) => c.level === "good").length;
+    const scoreColor = seo.score >= 70 ? "var(--accent-hex)" : seo.score >= 40 ? "var(--yellow)" : "var(--red)";
+    seoExtSub.textContent = `${goodCount}/${seo.checks.length} points validés · Score SEO ${seo.score}/100`;
+
+    seoExtGrid.innerHTML = "";
+    seo.checks.forEach((c: any) => {
+      const stateClass = c.level === "good" ? "seo-ok" : c.level === "warn" ? "seo-warn" : "seo-info";
+      const icon = c.level === "good" ? "✓" : c.level === "warn" ? "⚠" : "·";
+      const badgeText = c.level === "good" ? "OK" : c.level === "warn" ? "ABSENT" : "INFO";
+      const badgeColor = c.level === "good" ? "var(--accent-hex)" : c.level === "warn" ? "var(--red)" : "var(--text-dim)";
+      seoExtGrid.innerHTML += `
+        <div class="ssl-row ${stateClass}">
+          <span class="ssl-icon mono">${icon}</span>
+          <div class="ssl-body">
+            <span class="ssl-name mono">${escapeHtml(c.label)}</span>
+            <span class="ssl-desc">${escapeHtml(c.description)}</span>
+            ${c.value ? `<span class="ssl-value mono">${escapeHtml(String(c.value).slice(0, 100))}${String(c.value).length > 100 ? "…" : ""}</span>` : ""}
+          </div>
+          <span class="ssl-badge mono" style="color:${badgeColor}">${badgeText}</span>
+        </div>`;
+    });
+  }
+
   function renderCompetitor(data: any) {
     const comp = data.competitor;
     if (!comp) {
@@ -603,9 +702,49 @@ import Footer from "../components/Footer.astro";
     urlInput.readOnly = loading;
   }
 
-  function showOutput(text: string) {
+  function showOutput(text: string, pct?: number) {
     output.style.display = "block";
     status.textContent = text;
+    if (pct !== undefined) {
+      progressFill.style.width = pct + "%";
+      progressBar.style.display = "block";
+    }
+  }
+
+  function hideProgress() {
+    progressBar.style.display = "none";
+    progressFill.style.width = "0%";
+  }
+
+  // Adaptive loader — messages + progress keyed to real elapsed time.
+  // PSI typically takes 15-45s. We pre-schedule messages at realistic
+  // timestamps and grow the bar to 88% max while waiting.
+  const LOADER_STEPS: { ms: number; text: string; pct: number }[] = [
+    { ms: 0,     text: "Connexion au serveur d'analyse...",  pct: 3  },
+    { ms: 1200,  text: "Résolution DNS et ping...",           pct: 8  },
+    { ms: 3000,  text: "Audit mobile (4G simulé)...",         pct: 18 },
+    { ms: 8000,  text: "Audit desktop (haut débit)...",       pct: 32 },
+    { ms: 14000, text: "Détection de la stack technique...",  pct: 44 },
+    { ms: 19000, text: "Capture des écrans...",               pct: 55 },
+    { ms: 24000, text: "Analyse des Core Web Vitals...",      pct: 66 },
+    { ms: 29000, text: "Audit SEO et accessibilité...",       pct: 76 },
+    { ms: 34000, text: "Compilation du rapport...",           pct: 83 },
+    { ms: 40000, text: "Finalisation...",                     pct: 88 },
+  ];
+
+  function startLoader(): () => void {
+    showOutput(LOADER_STEPS[0].text, LOADER_STEPS[0].pct);
+    const start = Date.now();
+    const timers: ReturnType<typeof setTimeout>[] = [];
+
+    LOADER_STEPS.slice(1).forEach((step) => {
+      const id = setTimeout(() => {
+        showOutput(step.text, step.pct);
+      }, step.ms);
+      timers.push(id);
+    });
+
+    return () => timers.forEach(clearTimeout);
   }
 
   form.addEventListener("submit", async (e) => {
@@ -617,23 +756,8 @@ import Footer from "../components/Footer.astro";
     results.style.display = "none";
     attachBtn.style.display = "none";
     contactBtn.style.display = "none";
-    showOutput("Connexion au serveur d'analyse...");
 
-    const steps = [
-      "Résolution DNS...",
-      "Audit mobile (4G simulé)...",
-      "Audit desktop (haut débit)...",
-      "Capture des écrans...",
-      "Analyse des Core Web Vitals...",
-      "Audit SEO et accessibilité...",
-      "Compilation du rapport...",
-    ];
-
-    let stepIdx = 0;
-    const stepTimer = setInterval(() => {
-      stepIdx++;
-      if (stepIdx < steps.length) status.textContent = steps[stepIdx];
-    }, 5000);
+    const stopLoader = startLoader();
 
     try {
       const competitorVal = competitorInput.value.trim();
@@ -646,7 +770,7 @@ import Footer from "../components/Footer.astro";
         body: JSON.stringify(body),
       });
 
-      clearInterval(stepTimer);
+      stopLoader();
 
       if (!res.ok) {
         const err = await res.json().catch(() => ({ error: "Erreur serveur" }));
@@ -656,12 +780,15 @@ import Footer from "../components/Footer.astro";
       const data = await res.json();
       lastReport = data;
 
-      showOutput(`✓ Analyse terminée pour ${data.finalUrl || url}`);
+      showOutput(`✓ Analyse terminée pour ${data.finalUrl || url}`, 100);
+      setTimeout(hideProgress, 800);
 
       renderOverallFromMobile(data);
       renderScreenshots(data);
       renderToggle(data);
       renderTechStack(data.techStack || []);
+      renderSsl(data.ssl);
+      renderSeoExt(data.seo);
       renderCompetitor(data);
       applyStrategy("mobile");
 
@@ -670,7 +797,8 @@ import Footer from "../components/Footer.astro";
       pdfBtn.style.display = "inline-flex";
       contactBtn.style.display = "inline-flex";
     } catch (err: any) {
-      clearInterval(stepTimer);
+      stopLoader();
+      hideProgress();
       showOutput(`✗ Erreur : ${err.message || "Impossible d'analyser ce site."}`);
     } finally {
       setLoading(false);
@@ -1032,6 +1160,24 @@ import Footer from "../components/Footer.astro";
   }
 
   .t-output { color: var(--text-muted); }
+
+  .audit-progress-bar {
+    display: none;
+    height: 2px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 1px;
+    margin-top: 8px;
+    overflow: hidden;
+  }
+
+  .audit-progress-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--accent-hex);
+    border-radius: 1px;
+    transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 6px var(--accent-hex);
+  }
 
   .audit-results { margin-top: 2.5rem; }
 
@@ -1652,6 +1798,91 @@ import Footer from "../components/Footer.astro";
   /* ----- Tech stack badges (E18) ----- */
 
   .tech-wrap { margin-bottom: 2rem; }
+
+  /* ----- SSL / Security headers (E15) ----- */
+
+  .ssl-wrap { margin-bottom: 2rem; }
+
+  /* ----- SEO étendu (E17) — réutilise les styles ssl-row/badge/body ----- */
+
+  .seo-ext-wrap { margin-bottom: 2rem; }
+
+  .seo-ext-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .seo-ok   { border-left-color: var(--accent-hex); }
+  .seo-warn { border-left-color: var(--red); }
+  .seo-info { border-left-color: var(--text-dim); }
+
+  .seo-ok   .ssl-icon { color: var(--accent-hex); }
+  .seo-warn .ssl-icon { color: var(--red); }
+  .seo-info .ssl-icon { color: var(--text-dim); }
+
+
+  .ssl-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .ssl-row {
+    display: grid;
+    grid-template-columns: 20px 1fr auto;
+    gap: 10px;
+    align-items: start;
+    padding: 10px 14px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-left-width: 3px;
+    border-radius: var(--radius);
+  }
+
+  .ssl-ok   { border-left-color: var(--accent-hex); }
+  .ssl-warn { border-left-color: var(--yellow); }
+  .ssl-fail { border-left-color: var(--red); }
+
+  .ssl-icon { font-size: 13px; margin-top: 1px; flex-shrink: 0; }
+  .ssl-ok   .ssl-icon { color: var(--accent-hex); }
+  .ssl-warn .ssl-icon { color: var(--yellow); }
+  .ssl-fail .ssl-icon { color: var(--red); }
+
+  .ssl-body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .ssl-name { font-size: 12px; font-weight: 600; color: var(--text); }
+
+  .ssl-desc { font-size: 11px; color: var(--text-muted); line-height: 1.5; }
+
+  .ssl-value {
+    font-size: 10px;
+    color: var(--text-dim);
+    word-break: break-all;
+    margin-top: 2px;
+    padding: 2px 6px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 3px;
+    border: 1px solid var(--border);
+  }
+
+  .ssl-badge {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 3px 7px;
+    border-radius: 3px;
+    border: 1px solid currentColor;
+    white-space: nowrap;
+    align-self: start;
+    flex-shrink: 0;
+  }
 
   .tech-badges {
     display: flex;
