@@ -137,6 +137,40 @@ document.addEventListener("DOMContentLoaded", function () {
   } catch {}
 });
 
+document.addEventListener("DOMContentLoaded", function () {
+  try {
+    const raw = localStorage.getItem("sospc_quiz_result_v1");
+    if (!raw) return;
+    const payload = JSON.parse(raw);
+    localStorage.removeItem("sospc_quiz_result_v1");
+    const subject = document.querySelector(
+      'input[name="subject"]'
+    ) as HTMLInputElement;
+    if (subject && !subject.value) {
+      subject.value = "Évaluation PC — " + (payload.verdict || "résultat quiz");
+    }
+    const message = document.querySelector(
+      'textarea[name="message"]'
+    ) as HTMLTextAreaElement;
+    if (message && !message.value) {
+      const lines = [
+        "Résultat du quiz d'obsolescence PC :",
+        "",
+        "Verdict : " + (payload.verdict || "?"),
+        "Score : " + (payload.score ?? "?") + "/9",
+        "",
+        "Réponses :",
+      ];
+      (payload.answers || []).forEach((a: string, i: number) => {
+        lines.push("  " + (i + 1) + ". " + a);
+      });
+      lines.push("");
+      lines.push("Conseil : " + (payload.advice || ""));
+      message.value = lines.join("\n");
+    }
+  } catch {}
+});
+
 (function () {
   const script = document.createElement("script");
   script.src =
