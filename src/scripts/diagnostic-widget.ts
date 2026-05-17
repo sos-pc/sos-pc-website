@@ -588,6 +588,11 @@ function analyzeData() {
 };
 
 document.addEventListener("DOMContentLoaded", function () {
+  // Guard: this script is loaded globally via Layout.astro, but the widget
+  // markup is only rendered on pages that include <DiagnosticWidget />.
+  // On other pages (e.g. /audit), bail out so we don't dereference null nodes.
+  if (!document.getElementById("sospc-widget")) return;
+
   initDrag();
   restorePosition();
 
