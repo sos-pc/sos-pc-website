@@ -12,6 +12,9 @@ import type { Handler, HandlerEvent } from "@netlify/functions";
 const JOB_STORE = "audit-jobs";
 const JOB_ID_PATTERN = /^[a-f0-9]{32}$/;
 
+const BLOBS_SITE_ID = process.env.BLOBS_SITE_ID;
+const BLOBS_TOKEN = process.env.BLOBS_TOKEN;
+
 function corsHeaders(): Record<string, string> {
   return {
     "Access-Control-Allow-Origin": "*",
@@ -30,8 +33,11 @@ function jsonResponse(statusCode: number, body: unknown) {
 }
 
 async function getJobStore() {
+  if (!BLOBS_SITE_ID || !BLOBS_TOKEN) {
+    throw new Error("BLOBS_SITE_ID or BLOBS_TOKEN env var is missing");
+  }
   const { getStore } = await import("@netlify/blobs");
-  return getStore(JOB_STORE);
+  return getStore({ name: JOB_STORE, siteID: BLOBS_SITE_ID, token: BLOBS_TOKEN });
 }
 
 const handler: Handler = async (event: HandlerEvent) => {

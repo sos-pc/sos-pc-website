@@ -25,6 +25,12 @@ const JOB_STORE = "audit-jobs";
 const JOB_TTL_MS = 15 * 60 * 1000;
 const BG_TRIGGER_TIMEOUT_MS = 5 * 1000;
 
+// Netlify Functions v1 does not auto-inject Blobs context — we pass siteID
+// and token explicitly. These env vars are configured in the Netlify
+// dashboard (Site settings → Environment variables).
+const BLOBS_SITE_ID = process.env.BLOBS_SITE_ID;
+const BLOBS_TOKEN = process.env.BLOBS_TOKEN;
+
 function getClientIp(event: HandlerEvent): string {
   const headers = event.headers || {};
   return (
@@ -63,8 +69,11 @@ function jsonResponse(statusCode: number, body: unknown, extraHeaders: Record<st
 // Lazy-load the blobs SDK so any module-level error surfaces as a clean
 // 500 inside the handler rather than crashing the function at cold start.
 async function getJobStore() {
+  if (!BLOBS_SITE_ID || !BLOBS_TOKEN) {
+    throw new Error("BLOBS_SITE_ID or BLOBS_TOKEN env var is missing");
+  }
   const { getStore } = await import("@netlify/blobs");
-  return getStore(JOB_STORE);
+  return getStore({ name: JOB_STORE, siteID: BLOBS_SITE_ID, token: BLOBS_TOKEN });
 }
 
 const handler: Handler = async (event: HandlerEvent) => {
@@ -113,9 +122,10 @@ const handler: Handler = async (event: HandlerEvent) => {
       store = await getJobStore();
     } catch (err: any) {
       console.error("getStore failed", err);
-      return jsonResponse(500, {
-        error: "Stockage des jobs indisponible. Vérifiez la configuration Netlify Blobs.",
-      });
+      const detail = !BLOBS_SITE_ID || !BLOBS_TOKEN
+        ? "BLOBS_SITE_ID et BLOBS_TOKEN doivent être configurés dans les variables d'environnement Netlify."
+        : "Stockage des jobs indisponible.";
+      return jsonResponse(500, { error: detail });
     }
 
     const jobId = generateJobId();

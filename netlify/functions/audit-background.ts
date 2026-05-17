@@ -10,6 +10,9 @@ import { runFullAudit, setCached } from "./_audit-core.js";
 
 const JOB_STORE = "audit-jobs";
 
+const BLOBS_SITE_ID = process.env.BLOBS_SITE_ID;
+const BLOBS_TOKEN = process.env.BLOBS_TOKEN;
+
 interface JobPayload {
   jobId: string;
   url: string;
@@ -23,8 +26,11 @@ function isJobPayload(value: unknown): value is JobPayload {
 }
 
 async function getJobStore() {
+  if (!BLOBS_SITE_ID || !BLOBS_TOKEN) {
+    throw new Error("BLOBS_SITE_ID or BLOBS_TOKEN env var is missing");
+  }
   const { getStore } = await import("@netlify/blobs");
-  return getStore(JOB_STORE);
+  return getStore({ name: JOB_STORE, siteID: BLOBS_SITE_ID, token: BLOBS_TOKEN });
 }
 
 const handler: Handler = async (event: HandlerEvent) => {
