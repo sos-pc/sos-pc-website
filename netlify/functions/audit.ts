@@ -24,6 +24,7 @@ interface Issue {
   id: string;
   title: string;
   description: string;
+  impact: string;
   level: "error" | "warning";
   category: string;
   effort: "easy" | "medium" | "hard";
@@ -100,6 +101,43 @@ const FR_DESCRIPTIONS: Record<string, string> = {
   "uses-text-compression": "Vos fichiers texte (HTML, CSS, JS) ne sont pas compressés. La compression réduit leur taille de 60-80%.",
   "modern-image-formats": "Vos images sont en JPEG/PNG. Les formats WebP ou AVIF sont 30-50% plus légers à qualité égale.",
   "tap-targets": "Sur mobile, certains boutons ou liens sont trop petits ou trop proches les uns des autres.",
+};
+
+const BUSINESS_IMPACT: Record<string, string> = {
+  "largest-contentful-paint": "Selon Google, 1 visiteur sur 2 quitte un site mobile s'il met plus de 3 secondes à s'afficher.",
+  "first-contentful-paint": "Au-delà de 3 secondes d'attente, le taux d'abandon double.",
+  "total-blocking-time": "Si la page ne répond pas en 1 seconde, l'utilisateur pense qu'elle est cassée et part.",
+  "cumulative-layout-shift": "Les visiteurs cliquent par erreur, remplissent mal les formulaires, et finissent par fuir.",
+  "speed-index": "Un site qui semble lent perd la confiance du visiteur dans les 3 premières secondes.",
+  "interactive": "Tant que la page n'est pas interactive, chaque clic ignoré est un client potentiel perdu.",
+  "color-contrast": "1 français sur 5 a des troubles de la vision. Un texte illisible = clients exclus.",
+  "image-alt": "Sans alt, vos images sont invisibles pour Google et les lecteurs d'écran.",
+  "meta-description": "Sans description, Google met un extrait aléatoire — vous perdez le contrôle de votre vitrine sur les résultats de recherche.",
+  "document-title": "Sans titre, votre site apparaît comme « Page sans titre » dans les onglets et les résultats Google.",
+  "render-blocking-resources": "Le visiteur voit une page blanche pendant que les fichiers se chargent. Effet désastreux sur mobile.",
+  "uses-text-compression": "Vos pages prennent 3 à 5 fois plus de bande passante que nécessaire — pénalise le mobile rural et le SEO.",
+  "modern-image-formats": "Vos visiteurs téléchargent 30-50% de données en trop juste pour vos images.",
+  "tap-targets": "Vos clients ratent le bouton « Réserver » ou « Acheter » et abandonnent.",
+  "viewport": "Sans viewport, votre site apparaît minuscule sur mobile — illisible sans zoom.",
+  "uses-https": "Chrome et Firefox marquent votre site « Non sécurisé » dans la barre d'adresse. Effet rédhibitoire.",
+  "is-on-https": "Chrome et Firefox marquent votre site « Non sécurisé » dans la barre d'adresse. Effet rédhibitoire.",
+  "uses-responsive-images": "Vos visiteurs mobile chargent des images désktop — gaspillage de data et lenteur.",
+  "unused-javascript": "Du code inutile ralentit chaque chargement, surtout sur mobile 4G.",
+  "unused-css-rules": "Du CSS inutile ralentit le rendu de la page sans bénéfice.",
+  "unminified-javascript": "Vos fichiers JS pèsent 30 à 50% de plus que nécessaire.",
+  "unminified-css": "Vos fichiers CSS pèsent 30 à 50% de plus que nécessaire.",
+  "uses-long-cache-ttl": "Sans cache long, chaque visiteur retéléchage tout — perte de temps et de bande passante.",
+  "uses-optimized-images": "Vos images font perdre des secondes de chargement à chaque visiteur.",
+  "offscreen-images": "Vous chargez des images que personne ne verra — gaspillage qui ralentit l'affichage du contenu visible.",
+  "third-party-summary": "Les scripts tiers (analytics, pubs, chats) ralentissent votre site sans que vos visiteurs en bénéficient.",
+  "dom-size": "Une page trop complexe rame sur les mobiles bas de gamme — exclut une partie de votre audience.",
+  "bootup-time": "Trop de JavaScript = page qui rame, surtout sur smartphones de plus de 3 ans.",
+  "html-has-lang": "Sans langue déclarée, Google et les traducteurs automatiques ne savent pas comment indexer votre site.",
+  "link-name": "Les lecteurs d'écran annoncent « lien lien lien » — vos clients mal-voyants sont perdus.",
+  "button-name": "Vos boutons sans intitulé sont invisibles aux lecteurs d'écran — clients potentiels exclus.",
+  "robots-txt": "Un robots.txt cassé peut empêcher Google d'indexer votre site entier.",
+  "canonical": "Une URL canonique mal configurée peut diluer votre référencement Google.",
+  "hreflang": "Une balise hreflang invalide brouille l'indexation multi-langue chez Google.",
 };
 
 const EFFORT_BY_CATEGORY: Record<string, Issue["effort"]> = {
@@ -202,11 +240,12 @@ function truncateAtWord(text: string, max: number): string {
   return (lastSpace > max * 0.6 ? cut.slice(0, lastSpace) : cut).trimEnd() + "…";
 }
 
-function frenchize(id: string, fallbackTitle: string, fallbackDesc: string): { title: string; description: string } {
+function frenchize(id: string, fallbackTitle: string, fallbackDesc: string): { title: string; description: string; impact: string } {
   const title = FR_TITLES[id] || fallbackTitle;
   const cleanDesc = stripMarkdownLinks(fallbackDesc || "");
   const description = FR_DESCRIPTIONS[id] || truncateAtWord(cleanDesc, DESCRIPTION_MAX_CHARS);
-  return { title, description };
+  const impact = BUSINESS_IMPACT[id] || "";
+  return { title, description, impact };
 }
 
 function inferEffort(id: string, title: string): Issue["effort"] {
@@ -264,7 +303,7 @@ function extractIssues(categories: any, audits: any): Issue[] {
     if (score === null || score === undefined || score >= 0.9) continue;
 
     const level: Issue["level"] = score < 0.5 ? "error" : "warning";
-    const { title, description } = frenchize(
+    const { title, description, impact } = frenchize(
       ref.id,
       audit.title || ref.id,
       audit.displayValue || audit.description || ""
@@ -274,6 +313,7 @@ function extractIssues(categories: any, audits: any): Issue[] {
       id: ref.id,
       title,
       description,
+      impact,
       level,
       category: inferCategory(ref.id, categoryRefs),
       effort: inferEffort(ref.id, audit.title || ""),

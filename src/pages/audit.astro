@@ -304,6 +304,7 @@ import Footer from "../components/Footer.astro";
               <span class="qw-tag mono" style="color:${effort.color};border-color:${effort.color}">effort ${effort.label}</span>
             </div>
             <span class="qw-desc">${escapeHtml(item.description || "")}</span>
+            ${item.impact ? `<span class="qw-impact"><span class="impact-icon mono">→</span> ${escapeHtml(item.impact)}</span>` : ""}
             <span class="qw-cat mono">${escapeHtml(item.category || "")}</span>
           </div>
         </div>`;
@@ -333,6 +334,7 @@ import Footer from "../components/Footer.astro";
               <span class="issue-effort mono" style="color:${effort.color};border-color:${effort.color}">${effort.label}</span>
             </div>
             <span class="issue-desc">${escapeHtml(item.description || "")}</span>
+            ${item.impact ? `<span class="issue-impact"><span class="impact-icon mono">→</span> ${escapeHtml(item.impact)}</span>` : ""}
           </div>
         </div>`;
     });
@@ -462,6 +464,7 @@ import Footer from "../components/Footer.astro";
         const lvl = i.level === "error" ? "[CRITIQUE]" : "[ATTENTION]";
         lines.push(`${lvl} ${i.title}  (${i.category || "—"} · effort ${i.effort})`);
         if (i.description) lines.push(`           ${i.description}`);
+        if (i.impact) lines.push(`           → ${i.impact}`);
         lines.push("");
       });
     }
@@ -1067,6 +1070,26 @@ import Footer from "../components/Footer.astro";
     color: var(--text-dim);
     text-transform: uppercase;
     letter-spacing: 0.06em;
+  }
+
+  .qw-impact,
+  .issue-impact {
+    font-size: 12px;
+    color: var(--accent-hex);
+    line-height: 1.5;
+    font-style: italic;
+    background: rgba(0, 212, 170, 0.06);
+    border-left: 2px solid var(--accent-hex);
+    padding: 6px 10px;
+    border-radius: 0 var(--radius) var(--radius) 0;
+    margin-top: 4px;
+  }
+
+  .impact-icon {
+    color: var(--accent-hex);
+    font-style: normal;
+    font-weight: 700;
+    margin-right: 4px;
   }
 
   /* ----- All issues ----- */
