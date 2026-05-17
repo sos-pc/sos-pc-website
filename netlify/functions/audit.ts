@@ -7,6 +7,9 @@ const DESCRIPTION_MAX_CHARS = 200;
 const RATE_LIMIT_MAX = 5;
 const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000;
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+const PSI_TIMEOUT_MS = 45 * 1000;
+
+type Strategy = "mobile" | "desktop";
 
 interface VitalMetric {
   id: string;
@@ -27,21 +30,22 @@ interface Issue {
   weight: number;
 }
 
-interface AuditResult {
-  url: string;
-  finalUrl: string;
-  fetchedAt: string;
+interface StrategyResult {
   scores: Record<string, number>;
   scoreOverall: number;
   vitals: VitalMetric[];
   issues: Issue[];
   quickWins: Issue[];
-  summary: {
-    critical: number;
-    warning: number;
-    passed: number;
-  };
+  summary: { critical: number; warning: number; passed: number };
   screenshot?: string;
+}
+
+interface AuditResponse {
+  url: string;
+  finalUrl: string;
+  fetchedAt: string;
+  mobile: StrategyResult;
+  desktop: StrategyResult;
 }
 
 const FR_TITLES: Record<string, string> = {
@@ -133,7 +137,7 @@ const VITAL_LABELS: Record<string, string> = {
 };
 
 const rateLimitStore = new Map<string, number[]>();
-const cacheStore = new Map<string, { result: AuditResult; expiresAt: number }>();
+const cacheStore = new Map<string, { response: AuditResponse; expiresAt: number }>();
 
 function normalizeUrl(raw: string): string {
   let url = raw.trim();
@@ -170,18 +174,18 @@ function checkRateLimit(ip: string): boolean {
   return true;
 }
 
-function getCached(url: string): AuditResult | null {
+function getCached(url: string): AuditResponse | null {
   const entry = cacheStore.get(url);
   if (!entry) return null;
   if (Date.now() > entry.expiresAt) {
     cacheStore.delete(url);
     return null;
   }
-  return entry.result;
+  return entry.response;
 }
 
-function setCached(url: string, result: AuditResult): void {
-  cacheStore.set(url, { result, expiresAt: Date.now() + CACHE_TTL_MS });
+function setCached(url: string, response: AuditResponse): void {
+  cacheStore.set(url, { response, expiresAt: Date.now() + CACHE_TTL_MS });
 }
 
 function stripMarkdownLinks(text: string): string {
@@ -336,7 +340,7 @@ function computeOverallScore(scores: Record<string, number>): number {
   return totalWeight > 0 ? Math.round((total / totalWeight) * 100) : 0;
 }
 
-function summarize(issues: Issue[], audits: any): AuditResult["summary"] {
+function summarize(issues: Issue[], audits: any): StrategyResult["summary"] {
   const passed = Object.values(audits as any[]).filter((a: any) => a.score === 1).length;
   return {
     critical: issues.filter((i) => i.level === "error").length,
@@ -361,6 +365,69 @@ function getClientIp(event: HandlerEvent): string {
     ((headers["x-forwarded-for"] as string) || "").split(",")[0].trim() ||
     "unknown"
   );
+}
+
+interface PsiCallResult {
+  result: StrategyResult;
+  finalUrl: string;
+}
+
+async function runStrategyAudit(url: string, strategy: Strategy): Promise<PsiCallResult> {
+  if (!API_KEY) throw new Error("PAGESPEED_API_KEY not configured");
+
+  const categories = ["performance", "seo", "accessibility", "best-practices"];
+  const params = new URLSearchParams({
+    url,
+    key: API_KEY,
+    strategy,
+    locale: "fr",
+  });
+  categories.forEach((c) => params.append("category", c));
+
+  const psiUrl = `${PSI_BASE}?${params.toString()}`;
+  const res = await fetch(psiUrl, { signal: AbortSignal.timeout(PSI_TIMEOUT_MS) });
+
+  if (!res.ok) {
+    const errBody = await res.text();
+    let errMsg = `Erreur API ${res.status}`;
+    try {
+      errMsg = JSON.parse(errBody)?.error?.message || errMsg;
+    } catch {}
+    throw new Error(errMsg);
+  }
+
+  const data = await res.json();
+  const lhr = data.lighthouseResult;
+  if (!lhr || !lhr.categories) {
+    throw new Error("Réponse invalide de l'API PageSpeed");
+  }
+
+  const scores: Record<string, number> = {};
+  for (const [key, cat] of Object.entries(lhr.categories) as [string, any][]) {
+    scores[key] = cat.score ?? 0;
+  }
+
+  const audits = lhr.audits || {};
+  const issues = extractIssues(lhr.categories, audits);
+  const vitals = extractVitals(audits);
+  const summary = summarize(issues, audits);
+  const quickWins = pickQuickWins(issues);
+  const screenshot =
+    lhr.fullPageScreenshot?.screenshot?.data ||
+    lhr.audits?.["final-screenshot"]?.details?.data;
+
+  return {
+    finalUrl: lhr.finalUrl || url,
+    result: {
+      scores,
+      scoreOverall: computeOverallScore(scores),
+      vitals,
+      issues,
+      quickWins,
+      summary,
+      screenshot: typeof screenshot === "string" ? screenshot : undefined,
+    },
+  };
 }
 
 const handler: Handler = async (event: HandlerEvent) => {
@@ -412,64 +479,29 @@ const handler: Handler = async (event: HandlerEvent) => {
   }
 
   try {
-    const categories = ["performance", "seo", "accessibility", "best-practices"];
-    const params = new URLSearchParams({
+    const [mobile, desktop] = await Promise.all([
+      runStrategyAudit(url, "mobile"),
+      runStrategyAudit(url, "desktop"),
+    ]);
+
+    const response: AuditResponse = {
       url,
-      key: API_KEY,
-      strategy: "mobile",
-      locale: "fr",
-    });
-    categories.forEach((c) => params.append("category", c));
-
-    const psiUrl = `${PSI_BASE}?${params.toString()}`;
-    const res = await fetch(psiUrl, { signal: AbortSignal.timeout(45000) });
-
-    if (!res.ok) {
-      const errBody = await res.text();
-      let errMsg = `Erreur API ${res.status}`;
-      try {
-        errMsg = JSON.parse(errBody)?.error?.message || errMsg;
-      } catch {}
-      return { statusCode: 502, body: JSON.stringify({ error: errMsg }) };
-    }
-
-    const data = await res.json();
-    const lhr = data.lighthouseResult;
-    if (!lhr || !lhr.categories) {
-      return { statusCode: 502, body: JSON.stringify({ error: "Réponse invalide de l'API PageSpeed" }) };
-    }
-
-    const scores: Record<string, number> = {};
-    for (const [key, cat] of Object.entries(lhr.categories) as [string, any][]) {
-      scores[key] = cat.score ?? 0;
-    }
-
-    const audits = lhr.audits || {};
-    const issues = extractIssues(lhr.categories, audits);
-    const vitals = extractVitals(audits);
-    const summary = summarize(issues, audits);
-    const quickWins = pickQuickWins(issues);
-    const screenshot = lhr.fullPageScreenshot?.screenshot?.data || lhr.audits?.["final-screenshot"]?.details?.data;
-
-    const result: AuditResult = {
-      url,
-      finalUrl: lhr.finalUrl || url,
+      finalUrl: mobile.finalUrl || desktop.finalUrl || url,
       fetchedAt: new Date().toISOString(),
-      scores,
-      scoreOverall: computeOverallScore(scores),
-      vitals,
-      issues,
-      quickWins,
-      summary,
-      screenshot: typeof screenshot === "string" ? screenshot : undefined,
+      mobile: mobile.result,
+      desktop: desktop.result,
     };
 
-    setCached(url, result);
+    setCached(url, response);
 
     return {
       statusCode: 200,
-      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*", "X-Cache": "MISS" },
-      body: JSON.stringify(result),
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+        "X-Cache": "MISS",
+      },
+      body: JSON.stringify(response),
     };
   } catch (err: any) {
     const message =
