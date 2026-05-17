@@ -122,6 +122,19 @@ import Footer from "../components/Footer.astro";
           <div id="audit-issues" class="audit-issues"></div>
         </div>
 
+        <div class="budget-card" id="budget-card" style="display:none;">
+          <div class="budget-header">
+            <span class="mono budget-label">// Estimation budget de correction</span>
+          </div>
+          <div class="budget-body">
+            <div class="budget-amount">
+              <span class="budget-range mono" id="budget-range">—</span>
+              <span class="budget-meta mono" id="budget-meta">—</span>
+            </div>
+            <p class="budget-note">Fourchette indicative basée sur les tarifs SOS-PC. Le devis final dépend de la complexité de votre site et des priorités retenues.</p>
+          </div>
+        </div>
+
         <div class="audit-actions">
           <button class="btn-primary" id="audit-attach-btn" style="display:none;">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
@@ -168,6 +181,9 @@ import Footer from "../components/Footer.astro";
   const stratBtnDesktop = document.getElementById("strat-btn-desktop") as HTMLButtonElement;
   const stratScoreMobile = document.getElementById("strat-score-mobile") as HTMLElement;
   const stratScoreDesktop = document.getElementById("strat-score-desktop") as HTMLElement;
+  const budgetCard = document.getElementById("budget-card") as HTMLElement;
+  const budgetRange = document.getElementById("budget-range") as HTMLElement;
+  const budgetMeta = document.getElementById("budget-meta") as HTMLElement;
   const attachBtn = document.getElementById("audit-attach-btn") as HTMLElement;
   const contactBtn = document.getElementById("audit-contact-btn") as HTMLElement;
 
@@ -186,6 +202,29 @@ import Footer from "../components/Footer.astro";
     medium: { label: "moyen", color: "var(--yellow)" },
     hard: { label: "important", color: "var(--purple)" },
   };
+
+  // Indicative price ranges per effort level (EUR).
+  // Adjust these constants to match your actual offer.
+  const EFFORT_PRICE: Record<string, { min: number; max: number }> = {
+    easy: { min: 50, max: 150 },
+    medium: { min: 200, max: 500 },
+    hard: { min: 600, max: 1200 },
+  };
+
+  function computeBudget(items: any[]): { min: number; max: number; count: number } {
+    let min = 0;
+    let max = 0;
+    items.forEach((i) => {
+      const range = EFFORT_PRICE[i.effort] || EFFORT_PRICE.medium;
+      min += range.min;
+      max += range.max;
+    });
+    return { min, max, count: items.length };
+  }
+
+  function formatEur(n: number): string {
+    return new Intl.NumberFormat("fr-FR").format(n) + " €";
+  }
 
   function scoreColor(score: number): string {
     if (score >= 90) return "var(--accent-hex)";
@@ -206,16 +245,53 @@ import Footer from "../components/Footer.astro";
     return div.innerHTML;
   }
 
+  function animateScore(target: HTMLElement, from: number, to: number, duration: number) {
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduceMotion) {
+      target.textContent = String(to);
+      return;
+    }
+    const start = performance.now();
+    const ease = (t: number) => 1 - Math.pow(1 - t, 3);
+    function tick(now: number) {
+      const elapsed = now - start;
+      const progress = Math.min(1, elapsed / duration);
+      const value = Math.round(from + (to - from) * ease(progress));
+      target.textContent = String(value);
+      if (progress < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+
+  function animateRing(ring: HTMLElement, from: number, to: number, duration: number) {
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduceMotion) {
+      ring.style.setProperty("--pct", String(to));
+      return;
+    }
+    const start = performance.now();
+    const ease = (t: number) => 1 - Math.pow(1 - t, 3);
+    function tick(now: number) {
+      const elapsed = now - start;
+      const progress = Math.min(1, elapsed / duration);
+      const value = from + (to - from) * ease(progress);
+      ring.style.setProperty("--pct", String(value));
+      if (progress < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+
   function renderOverallFromMobile(data: any) {
     const mobile = data.mobile;
     const score = mobile?.scoreOverall ?? 0;
     const color = scoreColor(score);
-    overallRing.style.setProperty("--pct", String(score));
     overallRing.style.setProperty("--color", color);
-    overallVal.textContent = String(score);
     overallVal.style.color = color;
     overallVerdict.textContent = verdictFor(score);
     overallVerdict.style.color = color;
+
+    animateScore(overallVal, 0, score, 1500);
+    animateRing(overallRing, 0, score, 1500);
 
     const s = mobile?.summary || { critical: 0, warning: 0, passed: 0 };
     const parts: string[] = [];
@@ -340,6 +416,17 @@ import Footer from "../components/Footer.astro";
     });
   }
 
+  function renderBudget(items: any[]) {
+    if (!items || items.length === 0) {
+      budgetCard.style.display = "none";
+      return;
+    }
+    const { min, max, count } = computeBudget(items);
+    budgetRange.textContent = `${formatEur(min)} — ${formatEur(max)}`;
+    budgetMeta.textContent = `pour corriger ${count} problème${count > 1 ? "s" : ""}`;
+    budgetCard.style.display = "block";
+  }
+
   function applyStrategy(strategy: Strategy) {
     currentStrategy = strategy;
     stratBtnMobile.classList.toggle("active", strategy === "mobile");
@@ -350,6 +437,7 @@ import Footer from "../components/Footer.astro";
     renderVitals(strat?.vitals || []);
     renderQuickWins(strat?.quickWins || []);
     renderIssues(strat?.issues || []);
+    renderBudget(strat?.issues || []);
   }
 
   stratBtnMobile.addEventListener("click", () => applyStrategy("mobile"));
@@ -467,6 +555,9 @@ import Footer from "../components/Footer.astro";
         if (i.impact) lines.push(`           → ${i.impact}`);
         lines.push("");
       });
+      const budget = computeBudget(strat.issues);
+      lines.push(`BUDGET ESTIMÉ : ${formatEur(budget.min)} — ${formatEur(budget.max)}  (${budget.count} corrections)`);
+      lines.push("");
     }
     return lines;
   }
@@ -1090,6 +1181,56 @@ import Footer from "../components/Footer.astro";
     font-style: normal;
     font-weight: 700;
     margin-right: 4px;
+  }
+
+  /* ----- Budget card ----- */
+
+  .budget-card {
+    background: linear-gradient(135deg, rgba(0, 212, 170, 0.12), transparent 70%);
+    border: 1px solid rgba(0, 212, 170, 0.4);
+    border-radius: var(--radius-lg);
+    padding: 20px 24px;
+    margin-bottom: 2rem;
+  }
+
+  .budget-header {
+    margin-bottom: 12px;
+  }
+
+  .budget-label {
+    font-size: 11px;
+    color: var(--accent-hex);
+    letter-spacing: 0.05em;
+  }
+
+  .budget-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .budget-amount {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+
+  .budget-range {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .budget-meta {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  .budget-note {
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.5;
   }
 
   /* ----- All issues ----- */
