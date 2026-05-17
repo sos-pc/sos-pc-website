@@ -2,7 +2,6 @@
 
 <script>
   const canvas = document.getElementById("ascii-background-canvas") as HTMLCanvasElement;
-  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   if (canvas) {
     const ctx = canvas.getContext("2d");
     if (ctx) {
@@ -169,7 +168,6 @@
       }
 
       window.addEventListener("mousemove", (e) => {
-        if (reduceMotion) return;
         mouseX = e.clientX;
         mouseY = e.clientY;
         mouseInside = true;
@@ -189,11 +187,7 @@
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(() => {
           resizeCanvas();
-          if (reduceMotion) {
-            draw();
-          } else {
-            mouseDirty = true;
-          }
+          mouseDirty = true;
         }, 250);
       });
 
@@ -204,30 +198,22 @@
             updateThemeColors();
             if (JSON.stringify(currentAsciiColors) !== prev) {
               initGrid();
-              if (reduceMotion) {
-                draw();
-              } else {
-                mouseDirty = true;
-              }
+              mouseDirty = true;
             }
             break;
           }
         }
       }).observe(document.documentElement, { attributes: true });
 
-      if (reduceMotion) {
-        draw();
-      } else {
-        document.addEventListener("visibilitychange", () => {
-          if (document.hidden) {
-            stopLoop();
-          } else {
-            lastRefreshTime = performance.now();
-            startLoop();
-          }
-        });
-        startLoop();
-      }
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden) {
+          stopLoop();
+        } else {
+          lastRefreshTime = performance.now();
+          startLoop();
+        }
+      });
+      startLoop();
     }
   }
 </script>
