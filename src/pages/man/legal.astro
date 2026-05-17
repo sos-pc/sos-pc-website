@@ -1,0 +1,284 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import AsciiBackground from "../../components/AsciiBackground.astro";
+import Navbar from "../../components/Navbar.astro";
+import Footer from "../../components/Footer.astro";
+
+const lastUpdated = "17 mai 2026";
+---
+
+<Layout title="man legal — SOS-PC" description="Mentions légales et politique de confidentialité de SOS-PC.">
+  <AsciiBackground />
+  <Navbar />
+  <main>
+    <article class="manpage">
+      <header class="man-header">
+        <span class="mono">LEGAL(1)</span>
+        <span class="mono">SOS-PC Manual</span>
+        <span class="mono">LEGAL(1)</span>
+      </header>
+
+      <section class="man-section">
+        <h2 class="man-h">NAME</h2>
+        <p>legal — mentions légales, politique de confidentialité et conditions d'utilisation du site sos-pc.click.</p>
+      </section>
+
+      <section class="man-section">
+        <h2 class="man-h">SYNOPSIS</h2>
+        <pre class="man-pre">sos-pc legal [--mentions] [--rgpd] [--cookies] [--cgu]</pre>
+        <p class="man-note">Cette page regroupe l'ensemble des informations légales requises par la loi française pour la confiance dans l'économie numérique (LCEN) et le règlement général sur la protection des données (RGPD).</p>
+      </section>
+
+      <section class="man-section" id="editeur">
+        <h2 class="man-h">EDITEUR</h2>
+        <pre class="man-pre">Editeur          : SOS-PC
+Responsable      : [À COMPLÉTER — prénom + nom]
+Statut           : Auto-entrepreneur
+SIRET            : [À COMPLÉTER]
+TVA intracom.    : Non applicable (art. 293 B du CGI,
+                   franchise en base auto-entrepreneur)
+Adresse          : [À COMPLÉTER — adresse fiscale]
+                   04700 Le Castellet, France
+Téléphone        : 07 69 56 14 91
+Email            : sos.pc.04@gmail.com
+Directeur publi. : [À COMPLÉTER]</pre>
+      </section>
+
+      <section class="man-section" id="hebergement">
+        <h2 class="man-h">HEBERGEMENT</h2>
+        <pre class="man-pre">Hébergeur : Netlify, Inc.
+Adresse   : 512 2nd Street, Suite 200
+            San Francisco, CA 94107
+            United States
+Site web  : https://www.netlify.com</pre>
+        <p>Le site est servi via le CDN mondial de Netlify. Les données techniques de connexion (logs serveur) sont conservées par l'hébergeur conformément à sa propre politique.</p>
+      </section>
+
+      <section class="man-section" id="rgpd">
+        <h2 class="man-h">DONNEES PERSONNELLES</h2>
+        <p>Conformément au Règlement (UE) 2016/679 (RGPD) et à la loi Informatique et Libertés, vous disposez de droits sur vos données personnelles : accès, rectification, effacement, opposition, limitation et portabilité.</p>
+
+        <h3 class="man-h3">Données collectées</h3>
+        <pre class="man-pre">FORMULAIRE DE CONTACT
+  - nom              (saisi volontairement)
+  - email            (saisi volontairement)
+  - sujet            (saisi volontairement)
+  - message          (saisi volontairement)
+  - rapport diag.    (joint volontairement, si disponible)
+
+DIAGNOSTIC PC (script PowerShell, optionnel)
+  - configuration matérielle (CPU, RAM, GPU, disques)
+  - état système (OS, mises à jour, sécurité, perfs)
+  - événements système 7 derniers jours
+  - liste logiciels installés
+  AUCUN fichier personnel n'est lu ni transmis.
+  AUCUN historique de navigation n'est collecté.
+
+NAVIGATION
+  - aucune analytics tierce activée
+  - aucun cookie traceur déposé
+  - aucun pixel publicitaire</pre>
+
+        <h3 class="man-h3">Finalités</h3>
+        <pre class="man-pre">- répondre à votre demande de contact
+- établir un devis
+- diagnostiquer un problème technique
+- vous recontacter dans le cadre de votre demande</pre>
+
+        <h3 class="man-h3">Conservation</h3>
+        <pre class="man-pre">Messages de contact          : 3 ans après le dernier échange
+Rapports de diagnostic       : supprimés après 30 jours côté
+                               serveur ; conservés localement
+                               (votre navigateur) jusqu'à
+                               effacement manuel
+Données client (devis signé) : 10 ans (obligation comptable)</pre>
+
+        <h3 class="man-h3">Destinataires</h3>
+        <pre class="man-pre">- SOS-PC (responsable de traitement)
+- Netlify Forms (sous-traitant, hébergement formulaire)
+- aucun transfert commercial à des tiers</pre>
+
+        <h3 class="man-h3">Exercer vos droits</h3>
+        <p>Pour toute demande relative à vos données : <a href="mailto:sos.pc.04@gmail.com">sos.pc.04@gmail.com</a>. Réponse sous 30 jours maximum. En cas de réponse insatisfaisante, vous pouvez saisir la <a href="https://www.cnil.fr/fr/plaintes" target="_blank" rel="noopener">CNIL</a>.</p>
+      </section>
+
+      <section class="man-section" id="cookies">
+        <h2 class="man-h">COOKIES &amp; STOCKAGE LOCAL</h2>
+        <p>Le site n'utilise <strong>aucun cookie traceur ni publicitaire</strong>. Aucun consentement n'est donc requis. Seuls trois éléments sont stockés <em>localement</em> dans votre navigateur (non transmis à nos serveurs) :</p>
+        <pre class="man-pre">localStorage:
+  theme                         préférence dark/light
+  sospc_diagnostic_v1           dernier rapport de diag PC
+  sospc_position_v1             position du widget flottant
+
+sessionStorage:
+  sospc_cover_dismissed_session_v1   page d'accueil masquée</pre>
+        <p>Vous pouvez les supprimer à tout moment via les outils de votre navigateur ou en mode navigation privée.</p>
+      </section>
+
+      <section class="man-section" id="propriete">
+        <h2 class="man-h">PROPRIETE INTELLECTUELLE</h2>
+        <p>L'ensemble du site (textes, graphismes, logo, code source) est la propriété de SOS-PC, sauf mentions contraires. Toute reproduction, même partielle, est interdite sans autorisation écrite préalable.</p>
+        <p>Les marques tierces citées (Windows, Jellyfin, Discord, Telegram, LinkedIn, etc.) appartiennent à leurs propriétaires respectifs.</p>
+      </section>
+
+      <section class="man-section" id="responsabilite">
+        <h2 class="man-h">RESPONSABILITE</h2>
+        <p>Les informations diffusées sur le site sont fournies à titre indicatif. SOS-PC s'efforce de les maintenir à jour mais ne peut garantir l'exactitude, la complétude ou l'actualité de leur contenu.</p>
+        <p>L'outil de diagnostic PC fournit une analyse automatisée à valeur informative. Il ne se substitue pas à une intervention technique humaine et ne saurait engager la responsabilité de SOS-PC pour les actions entreprises sur sa seule base.</p>
+      </section>
+
+      <section class="man-section" id="contact">
+        <h2 class="man-h">CONTACT</h2>
+        <p>Pour toute question relative à ces mentions :</p>
+        <pre class="man-pre">Email     : sos.pc.04@gmail.com
+Téléphone : 07 69 56 14 91
+Courrier  : [À COMPLÉTER]
+            04700 Le Castellet, France</pre>
+      </section>
+
+      <section class="man-section">
+        <h2 class="man-h">SEE ALSO</h2>
+        <p>
+          <a href="/">sos-pc(1)</a> ·
+          <a href="/#diagnostic">diagnostic(1)</a> ·
+          <a href="https://www.cnil.fr" target="_blank" rel="noopener">cnil(7)</a> ·
+          <a href="https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000000801164" target="_blank" rel="noopener">lcen(7)</a>
+        </p>
+      </section>
+
+      <footer class="man-footer">
+        <span class="mono">SOS-PC</span>
+        <span class="mono">Last updated: {lastUpdated}</span>
+        <span class="mono">LEGAL(1)</span>
+      </footer>
+    </article>
+  </main>
+  <Footer />
+</Layout>
+
+<style>
+  main {
+    padding-top: calc(var(--navbar-h) + 2rem);
+    padding-bottom: 4rem;
+    max-width: 820px;
+  }
+
+  .manpage {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--text);
+  }
+
+  .man-header,
+  .man-footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    flex-wrap: wrap;
+  }
+
+  .man-footer {
+    border-bottom: none;
+    border-top: 1px solid var(--border);
+    margin-top: 3rem;
+  }
+
+  .man-section {
+    margin: 2.5rem 0;
+  }
+
+  .man-h {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--accent-hex);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px dashed var(--border);
+  }
+
+  .man-h3 {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 1.5rem 0 0.5rem;
+    padding-left: 1ch;
+    border-left: 2px solid var(--accent-hex);
+  }
+
+  .manpage p {
+    color: var(--text-muted);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.7;
+    margin: 0.75rem 0;
+    padding-left: 1.5rem;
+  }
+
+  .manpage p strong {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .manpage p em {
+    color: var(--accent-hex);
+    font-style: normal;
+  }
+
+  .manpage a {
+    color: var(--accent-hex);
+    text-decoration: underline;
+    text-decoration-color: rgba(0, 212, 170, 0.3);
+    text-underline-offset: 3px;
+    transition: text-decoration-color 0.2s;
+  }
+
+  .manpage a:hover {
+    text-decoration-color: var(--accent-hex);
+    opacity: 1;
+  }
+
+  .man-note {
+    color: var(--text-dim);
+    font-size: 13px;
+    font-style: italic;
+  }
+
+  .man-pre {
+    background: #0d0e14;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    margin: 0.75rem 0 0.75rem 1.5rem;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.65;
+    color: var(--text);
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  html:not(.dark) .man-pre {
+    background: var(--bg-elevated);
+  }
+
+  @media (max-width: 600px) {
+    main {
+      padding-top: calc(var(--navbar-h) + 1rem);
+    }
+    .manpage p { padding-left: 0; }
+    .man-pre { margin-left: 0; }
+    .man-header,
+    .man-footer { font-size: 10px; }
+  }
+</style>
