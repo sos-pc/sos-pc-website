@@ -73,6 +73,7 @@
 
   let currentStep = 0;
   let totalScore = 0;
+  let selectedOptions: number[] = [];
 
   const body = document.getElementById("quiz-body") as HTMLElement;
   const resultEl = document.getElementById("quiz-result") as HTMLElement;
@@ -91,19 +92,20 @@
     const q = QUESTIONS[currentStep];
     questionEl.textContent = `${currentStep + 1}. ${q.text}`;
     optionsEl.innerHTML = "";
-    q.options.forEach((opt) => {
+    q.options.forEach((opt, idx) => {
       const btn = document.createElement("button");
       btn.className = "quiz-opt";
       btn.textContent = opt.label;
-      btn.addEventListener("click", () => selectOption(opt.score));
+      btn.addEventListener("click", () => selectOption(opt.score, idx));
       optionsEl.appendChild(btn);
     });
     barFill.style.width = `${((currentStep) / QUESTIONS.length) * 100}%`;
     counter.textContent = `${currentStep + 1} / ${QUESTIONS.length}`;
   }
 
-  function selectOption(score: number) {
+  function selectOption(score: number, optIndex: number) {
     totalScore += score;
+    selectedOptions.push(optIndex);
     currentStep++;
     if (currentStep < QUESTIONS.length) {
       renderStep();
@@ -133,9 +135,25 @@
     (window as any).sospcToggle?.();
   });
 
+  contactBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+    const verdict = VERDICTS.find((v) => totalScore <= v.max) || VERDICTS[VERDICTS.length - 1];
+    const answers = QUESTIONS.map((q, i) => q.options.find((_, idx) => idx === selectedOptions[i])?.label || "?");
+    const payload = {
+      score: totalScore,
+      verdict: verdict.text,
+      advice: verdict.advice,
+      answers,
+      generated: new Date().toLocaleString("fr-FR"),
+    };
+    try { localStorage.setItem("sospc_quiz_result_v1", JSON.stringify(payload)); } catch {}
+    document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" });
+  });
+
   resetBtn.addEventListener("click", () => {
     currentStep = 0;
     totalScore = 0;
+    selectedOptions = [];
     body.style.display = "block";
     resultEl.style.display = "none";
     diagBtn.style.display = "none";
