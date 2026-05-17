@@ -1,0 +1,543 @@
+---
+import Layout from "../layouts/Layout.astro";
+import AsciiBackground from "../components/AsciiBackground.astro";
+import Navbar from "../components/Navbar.astro";
+import Footer from "../components/Footer.astro";
+---
+
+<Layout title="Audit Web — SOS-PC" description="Analysez gratuitement les performances, le SEO et l'accessibilité de votre site web en 15 secondes.">
+  <AsciiBackground />
+  <Navbar />
+  <main id="main-content">
+    <section class="audit-section">
+      <div class="section-label">
+        <span class="tag tag-blue">outil</span>
+        <span class="mono text-muted">// Audit Web gratuit</span>
+      </div>
+
+      <div class="audit-header">
+        <h1>Audit <span class="teal">Web</span> gratuit</h1>
+        <p>Analysez les performances, le SEO, l'accessibilité et les bonnes pratiques de votre site en 15 secondes. Rapport détaillé inclus.</p>
+      </div>
+
+      <div class="audit-input-wrap">
+        <div class="audit-terminal">
+          <div class="terminal-bar">
+            <span class="t-dot red"></span>
+            <span class="t-dot yellow"></span>
+            <span class="t-dot green"></span>
+            <span class="t-title">audit-web.sh — bash</span>
+          </div>
+          <div class="terminal-body">
+            <div class="t-line">
+              <span class="t-prompt">$</span>
+              <span class="t-cmd">audit</span>
+              <form id="audit-form" class="audit-form">
+                <input
+                  id="audit-url"
+                  type="url"
+                  name="url"
+                  placeholder="https://votre-site.fr"
+                  required
+                  autocomplete="url"
+                  spellcheck="false"
+                  class="audit-input"
+                />
+                <button type="submit" class="audit-submit" id="audit-submit-btn">
+                  <span id="audit-submit-label">Analyser</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                </button>
+              </form>
+            </div>
+
+            <div id="audit-output" class="audit-output" style="display:none;">
+              <div class="t-output" id="audit-status">Connexion au serveur d'analyse...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="audit-results" class="audit-results" style="display:none;">
+        <div class="audit-scores" id="audit-scores"></div>
+
+        <div class="audit-issues-wrap">
+          <h2 class="audit-issues-title mono">Problèmes détectés</h2>
+          <div id="audit-issues" class="audit-issues"></div>
+        </div>
+
+        <div class="audit-actions">
+          <button class="btn-primary" id="audit-attach-btn" style="display:none;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+            Joindre au formulaire de contact
+          </button>
+          <a href="/#contact" class="btn-ghost" id="audit-contact-btn" style="display:none;">
+            Refaire mon site avec SOS-PC →
+          </a>
+        </div>
+      </div>
+
+    </section>
+  </main>
+  <Footer />
+</Layout>
+
+<script>
+  const form = document.getElementById("audit-form") as HTMLFormElement;
+  const urlInput = document.getElementById("audit-url") as HTMLInputElement;
+  const submitBtn = document.getElementById("audit-submit-btn") as HTMLButtonElement;
+  const submitLabel = document.getElementById("audit-submit-label") as HTMLElement;
+  const output = document.getElementById("audit-output") as HTMLElement;
+  const status = document.getElementById("audit-status") as HTMLElement;
+  const results = document.getElementById("audit-results") as HTMLElement;
+  const scores = document.getElementById("audit-scores") as HTMLElement;
+  const issues = document.getElementById("audit-issues") as HTMLElement;
+  const attachBtn = document.getElementById("audit-attach-btn") as HTMLElement;
+  const contactBtn = document.getElementById("audit-contact-btn") as HTMLElement;
+
+  let lastReport: any = null;
+
+  const SCORE_LABELS = [
+    { key: "performance", label: "Performance", icon: "⚡" },
+    { key: "seo", label: "SEO", icon: "🔍" },
+    { key: "accessibility", label: "Accessibilité", icon: "♿" },
+    { key: "best-practices", label: "Bonnes pratiques", icon: "✓" },
+  ];
+
+  function scoreColor(score: number): string {
+    if (score >= 90) return "var(--accent-hex)";
+    if (score >= 50) return "var(--yellow)";
+    return "var(--red)";
+  }
+
+  function renderScores(data: Record<string, number>) {
+    scores.innerHTML = "";
+    SCORE_LABELS.forEach(({ key, label, icon }) => {
+      const val = data[key] ?? 0;
+      const pct = Math.round(val * 100);
+      const color = scoreColor(pct);
+      scores.innerHTML += `
+        <div class="score-card">
+          <div class="score-ring" style="--pct:${pct};--color:${color}">
+            <span class="score-val" style="color:${color}">${pct}</span>
+          </div>
+          <span class="score-label mono">${icon} ${label}</span>
+        </div>`;
+    });
+  }
+
+  function renderIssues(items: { title: string; description: string; level: string }[]) {
+    issues.innerHTML = "";
+    if (!items.length) {
+      issues.innerHTML = '<p class="no-issues mono">✓ Aucun problème majeur détecté.</p>';
+      return;
+    }
+    items.forEach((item) => {
+      const lvl = item.level === "error" ? "err" : item.level === "warning" ? "warn" : "ok";
+      const icon = lvl === "err" ? "✗" : lvl === "warn" ? "⚠" : "✓";
+      issues.innerHTML += `
+        <div class="issue-item issue-${lvl}">
+          <span class="issue-icon mono">${icon}</span>
+          <div class="issue-body">
+            <span class="issue-title">${item.title}</span>
+            <span class="issue-desc">${item.description}</span>
+          </div>
+        </div>`;
+    });
+  }
+
+  function setLoading(loading: boolean) {
+    submitBtn.disabled = loading;
+    submitLabel.textContent = loading ? "Analyse..." : "Analyser";
+    urlInput.readOnly = loading;
+  }
+
+  function showOutput(text: string) {
+    output.style.display = "block";
+    status.textContent = text;
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const url = urlInput.value.trim();
+    if (!url) return;
+
+    setLoading(true);
+    results.style.display = "none";
+    attachBtn.style.display = "none";
+    contactBtn.style.display = "none";
+    showOutput("Connexion au serveur d'analyse...");
+
+    try {
+      const steps = [
+        "Résolution DNS...",
+        "Chargement de la page...",
+        "Analyse des performances...",
+        "Vérification SEO...",
+        "Scan accessibilité...",
+        "Compilation du rapport...",
+      ];
+
+      let stepIdx = 0;
+      const stepTimer = setInterval(() => {
+        stepIdx++;
+        if (stepIdx < steps.length) {
+          status.textContent = steps[stepIdx];
+        }
+      }, 2000);
+
+      const res = await fetch("/.netlify/functions/audit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url }),
+      });
+
+      clearInterval(stepTimer);
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: "Erreur serveur" }));
+        throw new Error(err.error || `Erreur ${res.status}`);
+      }
+
+      const data = await res.json();
+      lastReport = data;
+
+      showOutput(`✓ Analyse terminée pour ${data.url || url}`);
+      renderScores(data.scores || {});
+      renderIssues(data.issues || []);
+
+      results.style.display = "block";
+      attachBtn.style.display = "inline-flex";
+      contactBtn.style.display = "inline-flex";
+    } catch (err: any) {
+      showOutput(`✗ Erreur : ${err.message || "Impossible d'analyser ce site."}`);
+    } finally {
+      setLoading(false);
+    }
+  });
+
+  attachBtn.addEventListener("click", () => {
+    if (!lastReport) return;
+    const text = buildReport(lastReport);
+    window.dispatchEvent(new CustomEvent("sospc:attach-diag", { detail: { text, generated: new Date().toLocaleString("fr-FR"), score: Math.round((lastReport.scores?.performance ?? 0) * 100), issues: lastReport.issues || [], symptoms_user: [] } }));
+    window.location.href = "/#contact";
+  });
+
+  function buildReport(data: any): string {
+    const lines: string[] = [];
+    const sep = "=".repeat(52);
+    lines.push(sep);
+    lines.push("  RAPPORT AUDIT WEB — SOS-PC");
+    lines.push("  " + new Date().toLocaleString("fr-FR"));
+    lines.push("  URL : " + (data.url || "?"));
+    lines.push(sep);
+    lines.push("");
+
+    SCORE_LABELS.forEach(({ key, label }) => {
+      const pct = Math.round((data.scores?.[key] ?? 0) * 100);
+      const bar = "#".repeat(Math.round(pct / 10)) + "-".repeat(10 - Math.round(pct / 10));
+      lines.push(`${label.padEnd(18)} [${bar}] ${pct}/100`);
+    });
+    lines.push("");
+
+    if (data.issues?.length) {
+      lines.push("-".repeat(52));
+      lines.push("PROBLÈMES DÉTECTÉS (" + data.issues.length + ")");
+      lines.push("-".repeat(52));
+      data.issues.forEach((i: any) => {
+        const lvl = i.level === "error" ? "[CRITIQUE]" : i.level === "warning" ? "[ATTENTION]" : "[OK]";
+        lines.push(`${lvl} ${i.title}`);
+        if (i.description) lines.push(`         ${i.description}`);
+        lines.push("");
+      });
+    }
+
+    lines.push(sep);
+    lines.push("  Rapport SOS-PC — sos-pc.click/audit");
+    lines.push(sep);
+    return lines.join("\n");
+  }
+</script>
+
+<style>
+  .teal { color: var(--accent-hex); }
+  .text-muted { color: var(--text-muted); }
+
+  .section-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 1rem;
+  }
+
+  .audit-section {
+    padding: calc(var(--navbar-h) + 3rem) 0 5rem;
+  }
+
+  .audit-header {
+    margin-bottom: 2.5rem;
+  }
+
+  .audit-header h1 {
+    font-size: clamp(2rem, 4vw, 2.8rem);
+    margin-bottom: 0.75rem;
+  }
+
+  .audit-header p {
+    color: var(--text-muted);
+    font-size: 16px;
+    line-height: 1.7;
+    max-width: 600px;
+  }
+
+  .audit-terminal {
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    box-shadow: 0 0 30px #0006;
+  }
+
+  .terminal-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--bg-elevated);
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .t-dot { width: 12px; height: 12px; border-radius: 50%; }
+  .t-dot.red { background: #f7768e; }
+  .t-dot.yellow { background: #e0af68; }
+  .t-dot.green { background: #00d4aa; }
+
+  .t-title {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-left: 8px;
+  }
+
+  .terminal-body {
+    background: #0d0e14;
+    padding: 20px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.8;
+  }
+
+  .t-line {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .t-prompt { color: var(--accent-hex); font-weight: 600; }
+  .t-cmd { color: var(--text); }
+
+  .audit-form {
+    display: flex;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .audit-input {
+    flex: 1;
+    min-width: 0;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    padding: 4px 8px;
+    font-size: 13px;
+    color: var(--accent-hex);
+    font-family: var(--font-mono);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .audit-input:focus {
+    border-color: var(--accent-hex);
+  }
+
+  .audit-input::placeholder {
+    color: var(--text-dim);
+  }
+
+  .audit-submit {
+    background: var(--accent-hex);
+    color: #1a1b26;
+    border: none;
+    border-radius: var(--radius);
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: var(--font-mono);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+
+  .audit-submit:hover {
+    box-shadow: 0 0 12px #00d4aa66;
+  }
+
+  .audit-submit:disabled {
+    background: var(--border);
+    color: var(--text-dim);
+    cursor: wait;
+    box-shadow: none;
+  }
+
+  .audit-output {
+    margin-top: 12px;
+    padding-left: 16px;
+  }
+
+  .t-output {
+    color: var(--text-muted);
+  }
+
+  .audit-results {
+    margin-top: 2.5rem;
+  }
+
+  .audit-scores {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 2rem;
+  }
+
+  .score-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    transition: border-color 0.2s;
+  }
+
+  .score-card:hover {
+    border-color: var(--color, var(--accent-hex));
+  }
+
+  .score-ring {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: conic-gradient(
+      var(--color) calc(var(--pct) * 1%),
+      var(--border) calc(var(--pct) * 1%)
+    );
+    position: relative;
+  }
+
+  .score-ring::before {
+    content: "";
+    position: absolute;
+    inset: 5px;
+    border-radius: 50%;
+    background: var(--bg-card);
+  }
+
+  .score-val {
+    position: relative;
+    font-size: 18px;
+    font-weight: 700;
+    font-family: var(--font-mono);
+  }
+
+  .score-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-align: center;
+  }
+
+  .audit-issues-wrap {
+    margin-bottom: 2rem;
+  }
+
+  .audit-issues-title {
+    font-size: 14px;
+    color: var(--text);
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px dashed var(--border);
+  }
+
+  .audit-issues {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .issue-item {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 10px 14px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    transition: border-color 0.2s;
+  }
+
+  .issue-err { border-left: 3px solid var(--red); }
+  .issue-warn { border-left: 3px solid var(--yellow); }
+  .issue-ok { border-left: 3px solid var(--accent-hex); }
+
+  .issue-icon { flex-shrink: 0; font-size: 14px; }
+  .issue-err .issue-icon { color: var(--red); }
+  .issue-warn .issue-icon { color: var(--yellow); }
+  .issue-ok .issue-icon { color: var(--accent-hex); }
+
+  .issue-body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .issue-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .issue-desc {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  .no-issues {
+    color: var(--accent-hex);
+    font-size: 13px;
+    padding: 12px;
+  }
+
+  .audit-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  @media (max-width: 768px) {
+    .audit-scores { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 480px) {
+    .audit-scores { grid-template-columns: 1fr 1fr; }
+    .t-line { flex-direction: column; align-items: flex-start; }
+    .audit-form { width: 100%; }
+  }
+</style>
