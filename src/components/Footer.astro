@@ -1,3 +1,58 @@
 <footer>
-  <p><span class="mono">© 2026</span> SOS-PC — Tous droits réservés</p>
+  <div class="footer-inner">
+    <p class="footer-line"><span class="mono">© 2026</span> SOS-PC — Tous droits réservés</p>
+    <nav class="footer-links" aria-label="Liens légaux">
+      <a href="/man/legal" class="mono">man legal</a>
+    </nav>
+  </div>
 </footer>
+
+<style>
+  footer {
+    position: relative;
+    z-index: 1;
+  }
+
+  .footer-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1.75rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .footer-line {
+    margin: 0;
+    color: var(--text-dim);
+    font-size: 13px;
+    font-family: var(--font-mono);
+  }
+
+  .footer-links {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .footer-links a {
+    color: var(--text-muted);
+    font-size: 12px;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .footer-links a:hover {
+    color: var(--accent-hex);
+    opacity: 1;
+  }
+
+  @media (max-width: 600px) {
+    .footer-inner {
+      flex-direction: column;
+      text-align: center;
+    }
+  }
+</style>
