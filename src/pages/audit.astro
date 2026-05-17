@@ -747,6 +747,52 @@ import Footer from "../components/Footer.astro";
     return () => timers.forEach(clearTimeout);
   }
 
+  const POLL_INTERVAL_MS = 2000;
+  const POLL_MAX_ATTEMPTS = 90; // 90 * 2s = 3 min hard ceiling on the client.
+
+  function sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  async function pollAuditStatus(jobId: string): Promise<any> {
+    for (let attempt = 0; attempt < POLL_MAX_ATTEMPTS; attempt++) {
+      await sleep(POLL_INTERVAL_MS);
+      const res = await fetch(`/.netlify/functions/audit-status?id=${encodeURIComponent(jobId)}`);
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: "Erreur serveur" }));
+        throw new Error(err.error || `Erreur ${res.status}`);
+      }
+      const job = await res.json();
+      if (job.status === "done") return job.result;
+      if (job.status === "error") throw new Error(job.error || "Erreur inconnue");
+      // status === "pending" → keep polling
+    }
+    throw new Error("L'analyse prend trop de temps (timeout 3 min). Réessayez.");
+  }
+
+  async function runAudit(url: string, competitorUrl: string | null): Promise<any> {
+    const body: Record<string, string> = { url };
+    if (competitorUrl) body.competitorUrl = competitorUrl;
+
+    const res = await fetch("/.netlify/functions/audit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: "Erreur serveur" }));
+      throw new Error(err.error || `Erreur ${res.status}`);
+    }
+
+    const initial = await res.json();
+    if (initial.status === "done") return initial.result;
+    if (initial.status === "pending" && initial.jobId) {
+      return pollAuditStatus(initial.jobId);
+    }
+    throw new Error("Réponse inattendue du serveur d'audit.");
+  }
+
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const url = urlInput.value.trim();
@@ -761,23 +807,9 @@ import Footer from "../components/Footer.astro";
 
     try {
       const competitorVal = competitorInput.value.trim();
-      const body: Record<string, string> = { url };
-      if (competitorVal) body.competitorUrl = competitorVal;
-
-      const res = await fetch("/.netlify/functions/audit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
+      const data = await runAudit(url, competitorVal || null);
 
       stopLoader();
-
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ error: "Erreur serveur" }));
-        throw new Error(err.error || `Erreur ${res.status}`);
-      }
-
-      const data = await res.json();
       lastReport = data;
 
       showOutput(`✓ Analyse terminée pour ${data.finalUrl || url}`, 100);
