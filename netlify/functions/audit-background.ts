@@ -1,11 +1,12 @@
 import type { Handler, HandlerEvent } from "@netlify/functions";
-import { getStore } from "@netlify/blobs";
 import { runFullAudit, setCached } from "./_audit-core.js";
 
 // Background function — runs up to 15 minutes on the credit-based plan.
 // Triggered by audit.ts via an internal fetch. Reads the jobId from the
 // body, executes the full audit, and writes the result back into the
 // blob store under the same jobId. The poll endpoint reads from there.
+//
+// Defensive design: lazy-load blobs SDK; never throw out of the handler.
 
 const JOB_STORE = "audit-jobs";
 
@@ -21,50 +22,73 @@ function isJobPayload(value: unknown): value is JobPayload {
   return typeof v.jobId === "string" && typeof v.url === "string";
 }
 
+async function getJobStore() {
+  const { getStore } = await import("@netlify/blobs");
+  return getStore(JOB_STORE);
+}
+
 const handler: Handler = async (event: HandlerEvent) => {
-  if (event.httpMethod !== "POST") {
-    return { statusCode: 405, body: "Method not allowed" };
-  }
-
-  let payload: unknown;
   try {
-    payload = JSON.parse(event.body || "{}");
-  } catch {
-    return { statusCode: 400, body: "Invalid JSON" };
-  }
+    if (event.httpMethod !== "POST") {
+      return { statusCode: 405, body: "Method not allowed" };
+    }
 
-  if (!isJobPayload(payload)) {
-    return { statusCode: 400, body: "Invalid payload" };
-  }
+    let payload: unknown;
+    try {
+      payload = JSON.parse(event.body || "{}");
+    } catch {
+      return { statusCode: 400, body: "Invalid JSON" };
+    }
 
-  const { jobId, url, competitorUrl } = payload;
-  const store = getStore(JOB_STORE);
+    if (!isJobPayload(payload)) {
+      return { statusCode: 400, body: "Invalid payload" };
+    }
 
-  try {
-    const result = await runFullAudit(url, competitorUrl);
-    // Mirror successful results into the in-memory hot cache so subsequent
-    // requests for the same URL skip the polling round-trip entirely.
-    setCached(url, result);
+    const { jobId, url, competitorUrl } = payload;
 
-    await store.setJSON(jobId, {
-      status: "done",
-      result,
-      finishedAt: Date.now(),
-    });
+    let store;
+    try {
+      store = await getJobStore();
+    } catch (err) {
+      // No blob store means we cannot communicate the result back. Log and
+      // exit; the client will eventually time out.
+      console.error("audit-background: getStore failed", err);
+      return { statusCode: 500, body: "Blob store unavailable" };
+    }
+
+    try {
+      const result = await runFullAudit(url, competitorUrl);
+      // Mirror successful results into the in-memory hot cache so subsequent
+      // requests for the same URL skip the polling round-trip entirely.
+      setCached(url, result);
+
+      await store.setJSON(jobId, {
+        status: "done",
+        result,
+        finishedAt: Date.now(),
+      });
+    } catch (err: any) {
+      const message =
+        err?.name === "TimeoutError"
+          ? "Le site met trop de temps à répondre (timeout 45s)"
+          : err?.message || "Erreur interne pendant l'analyse";
+      try {
+        await store.setJSON(jobId, {
+          status: "error",
+          error: message,
+          finishedAt: Date.now(),
+        });
+      } catch (writeErr) {
+        console.error("audit-background: failed to record error", writeErr);
+      }
+    }
+
+    // Background functions ignore the response body but Netlify expects 200.
+    return { statusCode: 200, body: "" };
   } catch (err: any) {
-    const message =
-      err?.name === "TimeoutError"
-        ? "Le site met trop de temps à répondre (timeout 45s)"
-        : err?.message || "Erreur interne pendant l'analyse";
-    await store.setJSON(jobId, {
-      status: "error",
-      error: message,
-      finishedAt: Date.now(),
-    });
+    console.error("audit-background handler crashed", err);
+    return { statusCode: 500, body: "Internal error" };
   }
-
-  // Background functions ignore the response body but Netlify expects 200.
-  return { statusCode: 200, body: "" };
 };
 
 export { handler };
