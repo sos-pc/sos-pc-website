@@ -2,7 +2,8 @@
 
 <script>
   const canvas = document.getElementById("ascii-background-canvas") as HTMLCanvasElement;
-  if (canvas) {
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (canvas && !reduceMotion) {
     const ctx = canvas.getContext("2d");
     if (ctx) {
       const chars = [".", ":", "-", "|", "*", "+", "~"];

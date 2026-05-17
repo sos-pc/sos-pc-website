@@ -1,5 +1,7 @@
 import "./diagnostic-widget.ts";
 
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
 const observer = new IntersectionObserver(
   (entries) => {
     entries.forEach((entry) => {
@@ -13,25 +15,27 @@ const observer = new IntersectionObserver(
   { threshold: 0.05 }
 );
 
-document
-  .querySelectorAll(
-    ".service-card-new, .portfolio-card, .info-card, .stat"
-  )
-  .forEach((el, idx) => {
-    const rect = el.getBoundingClientRect();
-    const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
-    if (!isVisible) {
-      (el as HTMLElement).style.opacity = "0";
-      (el as HTMLElement).style.transform = "translateY(20px)";
-      (el as HTMLElement).style.transition =
-        "opacity 0.4s ease " +
-        Math.min(idx * 0.02, 0.1) +
-        "s, transform 0.4s ease " +
-        Math.min(idx * 0.02, 0.1) +
-        "s";
-      observer.observe(el);
-    }
-  });
+if (!reduceMotion) {
+  document
+    .querySelectorAll(
+      ".service-card-new, .portfolio-card, .info-card, .stat"
+    )
+    .forEach((el, idx) => {
+      const rect = el.getBoundingClientRect();
+      const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
+      if (!isVisible) {
+        (el as HTMLElement).style.opacity = "0";
+        (el as HTMLElement).style.transform = "translateY(20px)";
+        (el as HTMLElement).style.transition =
+          "opacity 0.4s ease " +
+          Math.min(idx * 0.02, 0.1) +
+          "s, transform 0.4s ease " +
+          Math.min(idx * 0.02, 0.1) +
+          "s";
+        observer.observe(el);
+      }
+    });
+}
 
 function formatDiagMeta(data: any) {
   const parts: string[] = [];
