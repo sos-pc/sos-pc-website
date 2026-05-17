@@ -132,7 +132,14 @@ document.addEventListener("DOMContentLoaded", function () {
       'input[name="subject"]'
     ) as HTMLInputElement;
     if (subject && !subject.value) {
-      subject.value = "Suite audit web SOS-PC du " + (payload.generated || new Date().toLocaleDateString("fr-FR"));
+      const urlPart = payload.url ? ` (${payload.url})` : "";
+      subject.value = "Suite audit web SOS-PC du " + (payload.generated || new Date().toLocaleDateString("fr-FR")) + urlPart;
+    }
+    const message = document.querySelector(
+      'textarea[name="message"]'
+    ) as HTMLTextAreaElement;
+    if (message && !message.value && payload.message) {
+      message.value = payload.message;
     }
   } catch {}
 });

@@ -519,18 +519,60 @@ import Footer from "../components/Footer.astro";
   attachBtn.addEventListener("click", () => {
     if (!lastReport) return;
     const text = buildReport(lastReport);
+    const message = buildHumanMessage(lastReport);
     const payload = {
       text,
+      message,
       generated: new Date().toLocaleString("fr-FR"),
       score: lastReport.mobile?.scoreOverall ?? 0,
       issues: lastReport.mobile?.issues || [],
       symptoms_user: [],
+      url: lastReport.finalUrl || lastReport.url || "",
     };
     try {
       localStorage.setItem("sospc_web_audit_v1", JSON.stringify(payload));
     } catch {}
     window.location.href = "/#contact";
   });
+
+  function buildHumanMessage(data: any): string {
+    const lines: string[] = [];
+    const url = data.finalUrl || data.url || "";
+    const mScore = data.mobile?.scoreOverall ?? 0;
+    const dScore = data.desktop?.scoreOverall ?? 0;
+    const mSummary = data.mobile?.summary || { critical: 0, warning: 0 };
+    const dSummary = data.desktop?.summary || { critical: 0, warning: 0 };
+    const mIssues = data.mobile?.issues || [];
+    const dIssues = data.desktop?.issues || [];
+
+    lines.push(`Bonjour,`);
+    lines.push("");
+    lines.push(`J'ai utilisé l'outil d'audit de SOS-PC sur ${url} et j'aimerais discuter des corrections possibles.`);
+    lines.push("");
+    lines.push(`Résultat de l'audit :`);
+    lines.push(`  • Score mobile  : ${mScore}/100 (${verdictFor(mScore)})`);
+    lines.push(`  • Score desktop : ${dScore}/100 (${verdictFor(dScore)})`);
+    lines.push(`  • ${mSummary.critical || 0} problème(s) critique(s) sur mobile, ${dSummary.critical || 0} sur desktop`);
+
+    const allIssues = [...mIssues, ...dIssues];
+    if (allIssues.length > 0) {
+      const budget = computeBudget(mIssues.length >= dIssues.length ? mIssues : dIssues);
+      lines.push(`  • Budget estimé pour corrections : ${formatEur(budget.min)} — ${formatEur(budget.max)}`);
+    }
+
+    const criticals = mIssues.filter((i: any) => i.level === "error").slice(0, 3);
+    if (criticals.length > 0) {
+      lines.push("");
+      lines.push("Principaux problèmes critiques (mobile) :");
+      criticals.forEach((c: any) => {
+        lines.push(`  • ${c.title}`);
+      });
+    }
+
+    lines.push("");
+    lines.push(`Merci de me recontacter pour discuter d'un devis.`);
+    return lines.join("\n");
+  }
 
   function buildScoresLines(label: string, strat: any): string[] {
     const lines: string[] = [];
