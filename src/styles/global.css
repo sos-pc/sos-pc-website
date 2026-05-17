@@ -803,8 +803,6 @@ body.cover-active #sospc-widget {
     animation: none !important;
   }
 
-  /* Make sure the ASCII background is invisible (the canvas script also stops itself) */
-  #ascii-background-canvas {
-    display: none !important;
-  }
+  /* The ASCII background stays visible as a static grid; the canvas
+     script renders a single frame instead of animating. */
 }

@@ -3,7 +3,7 @@
 <script>
   const canvas = document.getElementById("ascii-background-canvas") as HTMLCanvasElement;
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (canvas && !reduceMotion) {
+  if (canvas) {
     const ctx = canvas.getContext("2d");
     if (ctx) {
       const chars = [".", ":", "-", "|", "*", "+", "~"];
@@ -22,6 +22,10 @@
       let grid: { char: string; color: string }[][] = [];
       let lastRefreshTime = 0;
       let mouseX = -Infinity, mouseY = -Infinity;
+
+      let mouseDirty = false;
+      let mouseInside = false;
+      let rafId: number | null = null;
 
       function hexToRgb(hex: string) {
         const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -95,24 +99,30 @@
         ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
         if (!grid || grid.length === 0) return;
         const isDark = document.documentElement.classList.contains("dark");
+        const haloActive = mouseInside;
+        const r2 = mouseInfluenceRadius * mouseInfluenceRadius;
+
         for (let y = 0; y < rows; y++) {
           for (let x = 0; x < cols; x++) {
             if (!grid[y] || !grid[y][x]) continue;
             const cell = grid[y][x];
-            const cellCenterX = x * fontSize + fontSize / 2;
-            const cellCenterY = y * fontSize + fontSize / 2;
-            const dist = Math.sqrt(Math.pow(cellCenterX - mouseX, 2) + Math.pow(cellCenterY - mouseY, 2));
             let color = cell.color;
-            if (dist < mouseInfluenceRadius) {
-              const proximity = 1 - dist / mouseInfluenceRadius;
-              const effect = Math.pow(proximity, 2);
-              const baseColor = cell.color;
-              if (isDark) {
-                color = brightenColor(baseColor, effect * darkModeBrighten);
-              } else {
-                color = darkenColor(baseColor, effect * lightModeDarken);
+
+            if (haloActive) {
+              const dx = x * fontSize + fontSize / 2 - mouseX;
+              const dy = y * fontSize + fontSize / 2 - mouseY;
+              const d2 = dx * dx + dy * dy;
+              if (d2 < r2) {
+                const proximity = 1 - Math.sqrt(d2) / mouseInfluenceRadius;
+                const effect = proximity * proximity;
+                if (isDark) {
+                  color = brightenColor(cell.color, effect * darkModeBrighten);
+                } else {
+                  color = darkenColor(cell.color, effect * lightModeDarken);
+                }
               }
             }
+
             ctx.fillStyle = color;
             ctx.fillText(cell.char, x * fontSize, y * fontSize);
           }
@@ -133,24 +143,58 @@
         }
       }
 
-      function animate(timestamp: number) {
-        if (timestamp - lastRefreshTime > refreshInterval) {
+      function tick(timestamp: number) {
+        const churnDue = timestamp - lastRefreshTime > refreshInterval;
+        if (churnDue) {
           updateChars();
           lastRefreshTime = timestamp;
         }
-        draw();
-        requestAnimationFrame(animate);
+        if (churnDue || mouseDirty) {
+          draw();
+          mouseDirty = false;
+        }
+        rafId = requestAnimationFrame(tick);
       }
 
-      window.addEventListener("mousemove", (e) => { mouseX = e.clientX; mouseY = e.clientY; });
-      window.addEventListener("mouseout", () => { mouseX = -Infinity; mouseY = -Infinity; });
+      function startLoop() {
+        if (rafId !== null) return;
+        rafId = requestAnimationFrame(tick);
+      }
+
+      function stopLoop() {
+        if (rafId !== null) {
+          cancelAnimationFrame(rafId);
+          rafId = null;
+        }
+      }
+
+      window.addEventListener("mousemove", (e) => {
+        if (reduceMotion) return;
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+        mouseInside = true;
+        mouseDirty = true;
+      });
+      window.addEventListener("mouseout", () => {
+        if (mouseInside) mouseDirty = true;
+        mouseInside = false;
+        mouseX = -Infinity;
+        mouseY = -Infinity;
+      });
 
       resizeCanvas();
 
       let resizeTimer: ReturnType<typeof setTimeout>;
       window.addEventListener("resize", () => {
         clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(() => { resizeCanvas(); }, 250);
+        resizeTimer = setTimeout(() => {
+          resizeCanvas();
+          if (reduceMotion) {
+            draw();
+          } else {
+            mouseDirty = true;
+          }
+        }, 250);
       });
 
       new MutationObserver((mutations) => {
@@ -158,13 +202,32 @@
           if (m.type === "attributes" && m.attributeName === "class") {
             const prev = JSON.stringify(currentAsciiColors);
             updateThemeColors();
-            if (JSON.stringify(currentAsciiColors) !== prev) initGrid();
+            if (JSON.stringify(currentAsciiColors) !== prev) {
+              initGrid();
+              if (reduceMotion) {
+                draw();
+              } else {
+                mouseDirty = true;
+              }
+            }
             break;
           }
         }
       }).observe(document.documentElement, { attributes: true });
 
-      requestAnimationFrame(animate);
+      if (reduceMotion) {
+        draw();
+      } else {
+        document.addEventListener("visibilitychange", () => {
+          if (document.hidden) {
+            stopLoop();
+          } else {
+            lastRefreshTime = performance.now();
+            startLoop();
+          }
+        });
+        startLoop();
+      }
     }
   }
 </script>
