@@ -5,7 +5,7 @@ import Navbar from "../components/Navbar.astro";
 import Footer from "../components/Footer.astro";
 ---
 
-<Layout title="Audit Web — SOS-PC" description="Analysez gratuitement les performances, le SEO et l'accessibilité de votre site web en 15 secondes.">
+<Layout title="Audit Web — SOS-PC" description="Analysez gratuitement les performances, le SEO et l'accessibilité de votre site web en 30 secondes. Rapport détaillé en français.">
   <AsciiBackground />
   <Navbar />
   <main id="main-content">
@@ -17,7 +17,7 @@ import Footer from "../components/Footer.astro";
 
       <div class="audit-header">
         <h1>Audit <span class="teal">Web</span> gratuit</h1>
-        <p>Analysez les performances, le SEO, l'accessibilité et les bonnes pratiques de votre site en 15 secondes. Rapport détaillé inclus.</p>
+        <p>Analysez les performances, le SEO, l'accessibilité et les bonnes pratiques de votre site. Rapport détaillé en français, prêt à transmettre.</p>
       </div>
 
       <div class="audit-input-wrap">
@@ -58,10 +58,43 @@ import Footer from "../components/Footer.astro";
       </div>
 
       <div id="audit-results" class="audit-results" style="display:none;">
+
+        <div class="audit-overview">
+          <div class="overall-card">
+            <div class="overall-ring" id="overall-ring">
+              <span class="overall-val" id="overall-val">—</span>
+              <span class="overall-suffix mono">/100</span>
+            </div>
+            <div class="overall-meta">
+              <h2 id="overall-verdict" class="overall-verdict mono">Analyse</h2>
+              <p id="overall-summary" class="overall-summary"></p>
+            </div>
+          </div>
+          <div class="overall-screenshot" id="overall-screenshot" style="display:none;">
+            <div class="screenshot-frame">
+              <img id="screenshot-img" alt="Aperçu mobile du site" />
+              <span class="screenshot-label mono">// vu sur mobile</span>
+            </div>
+          </div>
+        </div>
+
         <div class="audit-scores" id="audit-scores"></div>
 
-        <div class="audit-issues-wrap">
-          <h2 class="audit-issues-title mono">Problèmes détectés</h2>
+        <div class="vitals-wrap" id="vitals-wrap" style="display:none;">
+          <h3 class="audit-section-title mono">// Core Web Vitals</h3>
+          <p class="audit-section-sub">Les métriques que Google utilise pour juger l'expérience de vos visiteurs.</p>
+          <div class="vitals-grid" id="vitals-grid"></div>
+        </div>
+
+        <div class="quickwins-wrap" id="quickwins-wrap" style="display:none;">
+          <h3 class="audit-section-title mono">// Quick wins</h3>
+          <p class="audit-section-sub">Actions rapides à fort impact pour faire grimper votre score.</p>
+          <div class="quickwins-list" id="quickwins-list"></div>
+        </div>
+
+        <div class="audit-issues-wrap" id="audit-issues-wrap">
+          <h3 class="audit-section-title mono">// Tous les problèmes détectés</h3>
+          <p class="audit-section-sub" id="issues-sub"></p>
           <div id="audit-issues" class="audit-issues"></div>
         </div>
 
@@ -90,7 +123,19 @@ import Footer from "../components/Footer.astro";
   const status = document.getElementById("audit-status") as HTMLElement;
   const results = document.getElementById("audit-results") as HTMLElement;
   const scores = document.getElementById("audit-scores") as HTMLElement;
+  const issuesWrap = document.getElementById("audit-issues-wrap") as HTMLElement;
   const issues = document.getElementById("audit-issues") as HTMLElement;
+  const issuesSub = document.getElementById("issues-sub") as HTMLElement;
+  const quickwinsWrap = document.getElementById("quickwins-wrap") as HTMLElement;
+  const quickwinsList = document.getElementById("quickwins-list") as HTMLElement;
+  const vitalsWrap = document.getElementById("vitals-wrap") as HTMLElement;
+  const vitalsGrid = document.getElementById("vitals-grid") as HTMLElement;
+  const overallRing = document.getElementById("overall-ring") as HTMLElement;
+  const overallVal = document.getElementById("overall-val") as HTMLElement;
+  const overallVerdict = document.getElementById("overall-verdict") as HTMLElement;
+  const overallSummary = document.getElementById("overall-summary") as HTMLElement;
+  const screenshotWrap = document.getElementById("overall-screenshot") as HTMLElement;
+  const screenshotImg = document.getElementById("screenshot-img") as HTMLImageElement;
   const attachBtn = document.getElementById("audit-attach-btn") as HTMLElement;
   const contactBtn = document.getElementById("audit-contact-btn") as HTMLElement;
 
@@ -103,10 +148,56 @@ import Footer from "../components/Footer.astro";
     { key: "best-practices", label: "Bonnes pratiques", icon: "✓" },
   ];
 
+  const EFFORT_LABELS: Record<string, { label: string; color: string }> = {
+    easy: { label: "facile", color: "var(--accent-hex)" },
+    medium: { label: "moyen", color: "var(--yellow)" },
+    hard: { label: "important", color: "var(--purple)" },
+  };
+
   function scoreColor(score: number): string {
     if (score >= 90) return "var(--accent-hex)";
     if (score >= 50) return "var(--yellow)";
     return "var(--red)";
+  }
+
+  function verdictFor(score: number): string {
+    if (score >= 90) return "Excellent";
+    if (score >= 70) return "Correct";
+    if (score >= 50) return "À optimiser";
+    return "Critique";
+  }
+
+  function escapeHtml(s: string): string {
+    const div = document.createElement("div");
+    div.textContent = s;
+    return div.innerHTML;
+  }
+
+  function renderOverall(data: any) {
+    const score = data.scoreOverall ?? 0;
+    const color = scoreColor(score);
+    overallRing.style.setProperty("--pct", String(score));
+    overallRing.style.setProperty("--color", color);
+    overallVal.textContent = String(score);
+    overallVal.style.color = color;
+    overallVerdict.textContent = verdictFor(score);
+    overallVerdict.style.color = color;
+
+    const s = data.summary || { critical: 0, warning: 0, passed: 0 };
+    const parts: string[] = [];
+    if (s.critical) parts.push(`${s.critical} problème${s.critical > 1 ? "s" : ""} critique${s.critical > 1 ? "s" : ""}`);
+    if (s.warning) parts.push(`${s.warning} amélioration${s.warning > 1 ? "s" : ""} possible${s.warning > 1 ? "s" : ""}`);
+    if (s.passed) parts.push(`${s.passed} test${s.passed > 1 ? "s" : ""} réussi${s.passed > 1 ? "s" : ""}`);
+    overallSummary.textContent = parts.length ? parts.join(" · ") : "Tous les tests sont passés.";
+  }
+
+  function renderScreenshot(data: any) {
+    if (!data.screenshot) {
+      screenshotWrap.style.display = "none";
+      return;
+    }
+    screenshotImg.src = data.screenshot;
+    screenshotWrap.style.display = "block";
   }
 
   function renderScores(data: Record<string, number>) {
@@ -125,21 +216,72 @@ import Footer from "../components/Footer.astro";
     });
   }
 
-  function renderIssues(items: { title: string; description: string; level: string }[]) {
-    issues.innerHTML = "";
-    if (!items.length) {
-      issues.innerHTML = '<p class="no-issues mono">✓ Aucun problème majeur détecté.</p>';
+  function renderVitals(vitals: any[]) {
+    if (!vitals || vitals.length === 0) {
+      vitalsWrap.style.display = "none";
       return;
     }
-    items.forEach((item) => {
+    vitalsWrap.style.display = "block";
+    vitalsGrid.innerHTML = "";
+    vitals.forEach((v: any) => {
+      const ratingClass = v.rating === "good" ? "vital-good" : v.rating === "needs-improvement" ? "vital-warn" : "vital-poor";
+      const ratingLabel = v.rating === "good" ? "Bon" : v.rating === "needs-improvement" ? "À améliorer" : "Mauvais";
+      vitalsGrid.innerHTML += `
+        <div class="vital-card ${ratingClass}">
+          <span class="vital-label mono">${escapeHtml(v.label)}</span>
+          <span class="vital-value">${escapeHtml(v.value)}</span>
+          <span class="vital-rating mono">${ratingLabel}</span>
+        </div>`;
+    });
+  }
+
+  function renderQuickWins(items: any[]) {
+    if (!items || items.length === 0) {
+      quickwinsWrap.style.display = "none";
+      return;
+    }
+    quickwinsWrap.style.display = "block";
+    quickwinsList.innerHTML = "";
+    items.forEach((item: any, idx: number) => {
+      const effort = EFFORT_LABELS[item.effort] || EFFORT_LABELS.medium;
+      quickwinsList.innerHTML += `
+        <div class="qw-item">
+          <span class="qw-num mono">${idx + 1}</span>
+          <div class="qw-body">
+            <div class="qw-head">
+              <span class="qw-title">${escapeHtml(item.title)}</span>
+              <span class="qw-tag mono" style="color:${effort.color};border-color:${effort.color}">effort ${effort.label}</span>
+            </div>
+            <span class="qw-desc">${escapeHtml(item.description || "")}</span>
+            <span class="qw-cat mono">${escapeHtml(item.category || "")}</span>
+          </div>
+        </div>`;
+    });
+  }
+
+  function renderIssues(items: any[]) {
+    issues.innerHTML = "";
+    if (!items || !items.length) {
+      issuesWrap.style.display = "none";
+      return;
+    }
+    issuesWrap.style.display = "block";
+    issuesSub.textContent = `${items.length} audit${items.length > 1 ? "s" : ""} ayant échoué, triés par sévérité.`;
+
+    items.forEach((item: any) => {
       const lvl = item.level === "error" ? "err" : item.level === "warning" ? "warn" : "ok";
       const icon = lvl === "err" ? "✗" : lvl === "warn" ? "⚠" : "✓";
+      const effort = EFFORT_LABELS[item.effort] || EFFORT_LABELS.medium;
       issues.innerHTML += `
         <div class="issue-item issue-${lvl}">
           <span class="issue-icon mono">${icon}</span>
           <div class="issue-body">
-            <span class="issue-title">${item.title}</span>
-            <span class="issue-desc">${item.description}</span>
+            <div class="issue-head">
+              <span class="issue-title">${escapeHtml(item.title)}</span>
+              <span class="issue-cat mono">${escapeHtml(item.category || "")}</span>
+              <span class="issue-effort mono" style="color:${effort.color};border-color:${effort.color}">${effort.label}</span>
+            </div>
+            <span class="issue-desc">${escapeHtml(item.description || "")}</span>
           </div>
         </div>`;
     });
@@ -167,24 +309,22 @@ import Footer from "../components/Footer.astro";
     contactBtn.style.display = "none";
     showOutput("Connexion au serveur d'analyse...");
 
+    const steps = [
+      "Résolution DNS...",
+      "Chargement de la page (mobile, 4G simulé)...",
+      "Mesure du temps de chargement...",
+      "Analyse des Core Web Vitals...",
+      "Audit SEO et accessibilité...",
+      "Compilation du rapport...",
+    ];
+
+    let stepIdx = 0;
+    const stepTimer = setInterval(() => {
+      stepIdx++;
+      if (stepIdx < steps.length) status.textContent = steps[stepIdx];
+    }, 4000);
+
     try {
-      const steps = [
-        "Résolution DNS...",
-        "Chargement de la page...",
-        "Analyse des performances...",
-        "Vérification SEO...",
-        "Scan accessibilité...",
-        "Compilation du rapport...",
-      ];
-
-      let stepIdx = 0;
-      const stepTimer = setInterval(() => {
-        stepIdx++;
-        if (stepIdx < steps.length) {
-          status.textContent = steps[stepIdx];
-        }
-      }, 2000);
-
       const res = await fetch("/.netlify/functions/audit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -201,14 +341,20 @@ import Footer from "../components/Footer.astro";
       const data = await res.json();
       lastReport = data;
 
-      showOutput(`✓ Analyse terminée pour ${data.url || url}`);
+      showOutput(`✓ Analyse terminée pour ${data.finalUrl || url}`);
+
+      renderOverall(data);
+      renderScreenshot(data);
       renderScores(data.scores || {});
+      renderVitals(data.vitals || []);
+      renderQuickWins(data.quickWins || []);
       renderIssues(data.issues || []);
 
       results.style.display = "block";
       attachBtn.style.display = "inline-flex";
       contactBtn.style.display = "inline-flex";
     } catch (err: any) {
+      clearInterval(stepTimer);
       showOutput(`✗ Erreur : ${err.message || "Impossible d'analyser ce site."}`);
     } finally {
       setLoading(false);
@@ -218,36 +364,80 @@ import Footer from "../components/Footer.astro";
   attachBtn.addEventListener("click", () => {
     if (!lastReport) return;
     const text = buildReport(lastReport);
-    const payload = { text, generated: new Date().toLocaleString("fr-FR"), score: Math.round((lastReport.scores?.performance ?? 0) * 100), issues: lastReport.issues || [], symptoms_user: [] };
-    try { localStorage.setItem("sospc_web_audit_v1", JSON.stringify(payload)); } catch {}
+    const payload = {
+      text,
+      generated: new Date().toLocaleString("fr-FR"),
+      score: lastReport.scoreOverall ?? 0,
+      issues: lastReport.issues || [],
+      symptoms_user: [],
+    };
+    try {
+      localStorage.setItem("sospc_web_audit_v1", JSON.stringify(payload));
+    } catch {}
     window.location.href = "/#contact";
   });
 
   function buildReport(data: any): string {
     const lines: string[] = [];
-    const sep = "=".repeat(52);
+    const sep = "=".repeat(56);
+    const dash = "-".repeat(56);
+
     lines.push(sep);
     lines.push("  RAPPORT AUDIT WEB — SOS-PC");
     lines.push("  " + new Date().toLocaleString("fr-FR"));
-    lines.push("  URL : " + (data.url || "?"));
+    lines.push("  URL : " + (data.finalUrl || data.url || "?"));
     lines.push(sep);
     lines.push("");
 
+    const overall = data.scoreOverall ?? 0;
+    lines.push(`SCORE GLOBAL : ${overall}/100  (${verdictFor(overall)})`);
+    const s = data.summary || {};
+    if (s.critical || s.warning) {
+      lines.push(`  ${s.critical || 0} critique(s) · ${s.warning || 0} amélioration(s) possible(s)`);
+    }
+    lines.push("");
+
+    lines.push(dash);
+    lines.push("SCORES PAR CATÉGORIE");
+    lines.push(dash);
     SCORE_LABELS.forEach(({ key, label }) => {
       const pct = Math.round((data.scores?.[key] ?? 0) * 100);
-      const bar = "#".repeat(Math.round(pct / 10)) + "-".repeat(10 - Math.round(pct / 10));
-      lines.push(`${label.padEnd(18)} [${bar}] ${pct}/100`);
+      const filled = Math.round(pct / 5);
+      const bar = "#".repeat(filled) + "-".repeat(20 - filled);
+      lines.push(`${label.padEnd(18)} [${bar}] ${String(pct).padStart(3, " ")}/100`);
     });
     lines.push("");
 
-    if (data.issues?.length) {
-      lines.push("-".repeat(52));
-      lines.push("PROBLÈMES DÉTECTÉS (" + data.issues.length + ")");
-      lines.push("-".repeat(52));
+    if (data.vitals && data.vitals.length) {
+      lines.push(dash);
+      lines.push("CORE WEB VITALS (perçu mobile)");
+      lines.push(dash);
+      data.vitals.forEach((v: any) => {
+        const ratingLabel = v.rating === "good" ? "BON" : v.rating === "needs-improvement" ? "À AMÉLIORER" : "MAUVAIS";
+        lines.push(`  ${v.label.padEnd(35)} ${v.value.padStart(8)}  [${ratingLabel}]`);
+      });
+      lines.push("");
+    }
+
+    if (data.quickWins && data.quickWins.length) {
+      lines.push(dash);
+      lines.push("ACTIONS RAPIDES (Quick wins)");
+      lines.push(dash);
+      data.quickWins.forEach((q: any, idx: number) => {
+        lines.push(`  ${idx + 1}. ${q.title}  [effort ${q.effort}]`);
+        if (q.description) lines.push(`     ${q.description}`);
+        lines.push("");
+      });
+    }
+
+    if (data.issues && data.issues.length) {
+      lines.push(dash);
+      lines.push(`PROBLÈMES DÉTECTÉS (${data.issues.length})`);
+      lines.push(dash);
       data.issues.forEach((i: any) => {
-        const lvl = i.level === "error" ? "[CRITIQUE]" : i.level === "warning" ? "[ATTENTION]" : "[OK]";
-        lines.push(`${lvl} ${i.title}`);
-        if (i.description) lines.push(`         ${i.description}`);
+        const lvl = i.level === "error" ? "[CRITIQUE]" : "[ATTENTION]";
+        lines.push(`${lvl} ${i.title}  (${i.category || "—"} · effort ${i.effort})`);
+        if (i.description) lines.push(`           ${i.description}`);
         lines.push("");
       });
     }
@@ -357,13 +547,8 @@ import Footer from "../components/Footer.astro";
     transition: border-color 0.2s;
   }
 
-  .audit-input:focus {
-    border-color: var(--accent-hex);
-  }
-
-  .audit-input::placeholder {
-    color: var(--text-dim);
-  }
+  .audit-input:focus { border-color: var(--accent-hex); }
+  .audit-input::placeholder { color: var(--text-dim); }
 
   .audit-submit {
     background: var(--accent-hex);
@@ -382,9 +567,7 @@ import Footer from "../components/Footer.astro";
     flex-shrink: 0;
   }
 
-  .audit-submit:hover {
-    box-shadow: 0 0 12px #00d4aa66;
-  }
+  .audit-submit:hover { box-shadow: 0 0 12px #00d4aa66; }
 
   .audit-submit:disabled {
     background: var(--border);
@@ -398,13 +581,121 @@ import Footer from "../components/Footer.astro";
     padding-left: 16px;
   }
 
-  .t-output {
-    color: var(--text-muted);
+  .t-output { color: var(--text-muted); }
+
+  .audit-results { margin-top: 2.5rem; }
+
+  /* ----- Overview (overall score + screenshot) ----- */
+
+  .audit-overview {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 2rem;
+    align-items: stretch;
   }
 
-  .audit-results {
-    margin-top: 2.5rem;
+  .overall-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 28px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
   }
+
+  .overall-ring {
+    --pct: 0;
+    --color: var(--accent-hex);
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    background: conic-gradient(
+      var(--color) calc(var(--pct) * 1%),
+      var(--border) calc(var(--pct) * 1%)
+    );
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    position: relative;
+    flex-direction: column;
+  }
+
+  .overall-ring::before {
+    content: "";
+    position: absolute;
+    inset: 8px;
+    border-radius: 50%;
+    background: var(--bg-card);
+  }
+
+  .overall-val {
+    position: relative;
+    font-size: 32px;
+    font-weight: 700;
+    font-family: var(--font-mono);
+    line-height: 1;
+  }
+
+  .overall-suffix {
+    position: relative;
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 2px;
+  }
+
+  .overall-meta { flex: 1; min-width: 0; }
+
+  .overall-verdict {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .overall-summary {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  .overall-screenshot {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .screenshot-frame {
+    position: relative;
+    max-width: 200px;
+    width: 100%;
+  }
+
+  .screenshot-frame img {
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    display: block;
+    background: #0d0e14;
+  }
+
+  .screenshot-label {
+    position: absolute;
+    bottom: -22px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+
+  /* ----- Scores grid ----- */
 
   .audit-scores {
     display: grid;
@@ -417,7 +708,7 @@ import Footer from "../components/Footer.astro";
     background: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
-    padding: 20px 16px;
+    padding: 18px 14px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -425,13 +716,11 @@ import Footer from "../components/Footer.astro";
     transition: border-color 0.2s;
   }
 
-  .score-card:hover {
-    border-color: var(--color, var(--accent-hex));
-  }
+  .score-card:hover { border-color: var(--color, var(--accent-hex)); }
 
   .score-ring {
-    width: 64px;
-    height: 64px;
+    width: 60px;
+    height: 60px;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -453,7 +742,7 @@ import Footer from "../components/Footer.astro";
 
   .score-val {
     position: relative;
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 700;
     font-family: var(--font-mono);
   }
@@ -464,17 +753,149 @@ import Footer from "../components/Footer.astro";
     text-align: center;
   }
 
-  .audit-issues-wrap {
-    margin-bottom: 2rem;
+  /* ----- Section titles ----- */
+
+  .audit-section-title {
+    font-size: 14px;
+    color: var(--accent-hex);
+    margin-bottom: 0.25rem;
+    letter-spacing: 0.03em;
   }
 
-  .audit-issues-title {
-    font-size: 14px;
-    color: var(--text);
-    margin-bottom: 12px;
-    padding-bottom: 8px;
-    border-bottom: 1px dashed var(--border);
+  .audit-section-sub {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
   }
+
+  /* ----- Vitals ----- */
+
+  .vitals-wrap { margin-bottom: 2rem; }
+
+  .vitals-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+
+  .vital-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-left-width: 3px;
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .vital-good { border-left-color: var(--accent-hex); }
+  .vital-warn { border-left-color: var(--yellow); }
+  .vital-poor { border-left-color: var(--red); }
+
+  .vital-label {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .vital-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    font-family: var(--font-mono);
+  }
+
+  .vital-rating {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .vital-good .vital-rating { color: var(--accent-hex); }
+  .vital-warn .vital-rating { color: var(--yellow); }
+  .vital-poor .vital-rating { color: var(--red); }
+
+  /* ----- Quick wins ----- */
+
+  .quickwins-wrap { margin-bottom: 2rem; }
+
+  .quickwins-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .qw-item {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 14px 16px;
+    background: linear-gradient(90deg, #00d4aa14, transparent 80%);
+    border: 1px solid rgba(0, 212, 170, 0.3);
+    border-radius: var(--radius);
+  }
+
+  .qw-num {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--accent-hex);
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #00d4aa1a;
+    border: 1px solid var(--accent-hex);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .qw-body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .qw-head {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .qw-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .qw-tag {
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 3px;
+    border: 1px solid;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .qw-desc {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  .qw-cat {
+    font-size: 10px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  /* ----- All issues ----- */
+
+  .audit-issues-wrap { margin-bottom: 2rem; }
 
   .audit-issues {
     display: flex;
@@ -484,28 +905,36 @@ import Footer from "../components/Footer.astro";
 
   .issue-item {
     display: flex;
-    gap: 10px;
+    gap: 12px;
     align-items: flex-start;
-    padding: 10px 14px;
+    padding: 12px 14px;
     background: var(--bg-card);
     border: 1px solid var(--border);
+    border-left-width: 3px;
     border-radius: var(--radius);
     transition: border-color 0.2s;
   }
 
-  .issue-err { border-left: 3px solid var(--red); }
-  .issue-warn { border-left: 3px solid var(--yellow); }
-  .issue-ok { border-left: 3px solid var(--accent-hex); }
+  .issue-err { border-left-color: var(--red); }
+  .issue-warn { border-left-color: var(--yellow); }
 
   .issue-icon { flex-shrink: 0; font-size: 14px; }
   .issue-err .issue-icon { color: var(--red); }
   .issue-warn .issue-icon { color: var(--yellow); }
-  .issue-ok .issue-icon { color: var(--accent-hex); }
 
   .issue-body {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 4px;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .issue-head {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
   }
 
   .issue-title {
@@ -514,30 +943,54 @@ import Footer from "../components/Footer.astro";
     color: var(--text);
   }
 
+  .issue-cat,
+  .issue-effort {
+    font-size: 9px;
+    padding: 1px 6px;
+    border-radius: 3px;
+    border: 1px solid;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .issue-cat {
+    color: var(--text-dim);
+    border-color: var(--border);
+  }
+
   .issue-desc {
     font-size: 12px;
     color: var(--text-muted);
-    line-height: 1.5;
+    line-height: 1.55;
   }
 
-  .no-issues {
-    color: var(--accent-hex);
-    font-size: 13px;
-    padding: 12px;
-  }
+  /* ----- Actions ----- */
 
   .audit-actions {
     display: flex;
     gap: 12px;
     flex-wrap: wrap;
+    margin-top: 1rem;
   }
 
-  @media (max-width: 768px) {
+  /* ----- Responsive ----- */
+
+  @media (max-width: 900px) {
+    .audit-overview { grid-template-columns: 1fr; }
+    .vitals-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 640px) {
     .audit-scores { grid-template-columns: repeat(2, 1fr); }
+    .overall-card {
+      flex-direction: column;
+      text-align: center;
+      gap: 16px;
+    }
   }
 
   @media (max-width: 480px) {
-    .audit-scores { grid-template-columns: 1fr 1fr; }
+    .vitals-grid { grid-template-columns: 1fr 1fr; }
     .t-line { flex-direction: column; align-items: flex-start; }
     .audit-form { width: 100%; }
   }
