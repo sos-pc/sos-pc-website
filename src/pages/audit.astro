@@ -5,7 +5,7 @@ import Navbar from "../components/Navbar.astro";
 import Footer from "../components/Footer.astro";
 ---
 
-<Layout title="Audit Web — SOS-PC" description="Analysez gratuitement les performances, le SEO et l'accessibilité de votre site web en 30 secondes. Rapport détaillé en français.">
+<Layout title="Audit Web — SOS-PC" description="Analysez gratuitement les performances, le SEO et l'accessibilité de votre site web sur mobile et desktop. Rapport détaillé en français.">
   <AsciiBackground />
   <Navbar />
   <main id="main-content">
@@ -17,7 +17,7 @@ import Footer from "../components/Footer.astro";
 
       <div class="audit-header">
         <h1>Audit <span class="teal">Web</span> gratuit</h1>
-        <p>Analysez les performances, le SEO, l'accessibilité et les bonnes pratiques de votre site. Rapport détaillé en français, prêt à transmettre.</p>
+        <p>Analysez les performances, le SEO, l'accessibilité et les bonnes pratiques de votre site sur mobile <em>et</em> desktop. Rapport détaillé en français, prêt à transmettre.</p>
       </div>
 
       <div class="audit-input-wrap">
@@ -68,14 +68,38 @@ import Footer from "../components/Footer.astro";
             <div class="overall-meta">
               <h2 id="overall-verdict" class="overall-verdict mono">Analyse</h2>
               <p id="overall-summary" class="overall-summary"></p>
+              <p class="overall-mobile-note mono">// score Google de référence (mobile)</p>
             </div>
           </div>
-          <div class="overall-screenshot" id="overall-screenshot" style="display:none;">
-            <div class="screenshot-frame">
-              <img id="screenshot-img" alt="Aperçu mobile du site" />
-              <span class="screenshot-label mono">// vu sur mobile</span>
+
+          <div class="screenshots-card">
+            <div class="screenshots-header mono">// aperçu du site</div>
+            <div class="screenshots-grid">
+              <div class="screenshot-slot screenshot-mobile" id="screenshot-mobile-slot" style="display:none;">
+                <div class="screenshot-frame frame-mobile">
+                  <img id="screenshot-mobile-img" alt="Aperçu mobile du site" />
+                </div>
+                <span class="screenshot-label mono">📱 mobile</span>
+              </div>
+              <div class="screenshot-slot screenshot-desktop" id="screenshot-desktop-slot" style="display:none;">
+                <div class="screenshot-frame frame-desktop">
+                  <img id="screenshot-desktop-img" alt="Aperçu desktop du site" />
+                </div>
+                <span class="screenshot-label mono">🖥️ desktop</span>
+              </div>
             </div>
           </div>
+        </div>
+
+        <div class="strategy-toggle" id="strategy-toggle">
+          <button type="button" class="strat-btn active" data-strategy="mobile" id="strat-btn-mobile">
+            📱 Mobile
+            <span class="strat-score mono" id="strat-score-mobile">—</span>
+          </button>
+          <button type="button" class="strat-btn" data-strategy="desktop" id="strat-btn-desktop">
+            🖥️ Desktop
+            <span class="strat-score mono" id="strat-score-desktop">—</span>
+          </button>
         </div>
 
         <div class="audit-scores" id="audit-scores"></div>
@@ -115,6 +139,8 @@ import Footer from "../components/Footer.astro";
 </Layout>
 
 <script>
+  type Strategy = "mobile" | "desktop";
+
   const form = document.getElementById("audit-form") as HTMLFormElement;
   const urlInput = document.getElementById("audit-url") as HTMLInputElement;
   const submitBtn = document.getElementById("audit-submit-btn") as HTMLButtonElement;
@@ -134,12 +160,19 @@ import Footer from "../components/Footer.astro";
   const overallVal = document.getElementById("overall-val") as HTMLElement;
   const overallVerdict = document.getElementById("overall-verdict") as HTMLElement;
   const overallSummary = document.getElementById("overall-summary") as HTMLElement;
-  const screenshotWrap = document.getElementById("overall-screenshot") as HTMLElement;
-  const screenshotImg = document.getElementById("screenshot-img") as HTMLImageElement;
+  const mobileSlot = document.getElementById("screenshot-mobile-slot") as HTMLElement;
+  const desktopSlot = document.getElementById("screenshot-desktop-slot") as HTMLElement;
+  const mobileImg = document.getElementById("screenshot-mobile-img") as HTMLImageElement;
+  const desktopImg = document.getElementById("screenshot-desktop-img") as HTMLImageElement;
+  const stratBtnMobile = document.getElementById("strat-btn-mobile") as HTMLButtonElement;
+  const stratBtnDesktop = document.getElementById("strat-btn-desktop") as HTMLButtonElement;
+  const stratScoreMobile = document.getElementById("strat-score-mobile") as HTMLElement;
+  const stratScoreDesktop = document.getElementById("strat-score-desktop") as HTMLElement;
   const attachBtn = document.getElementById("audit-attach-btn") as HTMLElement;
   const contactBtn = document.getElementById("audit-contact-btn") as HTMLElement;
 
   let lastReport: any = null;
+  let currentStrategy: Strategy = "mobile";
 
   const SCORE_LABELS = [
     { key: "performance", label: "Performance", icon: "⚡" },
@@ -173,8 +206,9 @@ import Footer from "../components/Footer.astro";
     return div.innerHTML;
   }
 
-  function renderOverall(data: any) {
-    const score = data.scoreOverall ?? 0;
+  function renderOverallFromMobile(data: any) {
+    const mobile = data.mobile;
+    const score = mobile?.scoreOverall ?? 0;
     const color = scoreColor(score);
     overallRing.style.setProperty("--pct", String(score));
     overallRing.style.setProperty("--color", color);
@@ -183,7 +217,7 @@ import Footer from "../components/Footer.astro";
     overallVerdict.textContent = verdictFor(score);
     overallVerdict.style.color = color;
 
-    const s = data.summary || { critical: 0, warning: 0, passed: 0 };
+    const s = mobile?.summary || { critical: 0, warning: 0, passed: 0 };
     const parts: string[] = [];
     if (s.critical) parts.push(`${s.critical} problème${s.critical > 1 ? "s" : ""} critique${s.critical > 1 ? "s" : ""}`);
     if (s.warning) parts.push(`${s.warning} amélioration${s.warning > 1 ? "s" : ""} possible${s.warning > 1 ? "s" : ""}`);
@@ -191,19 +225,36 @@ import Footer from "../components/Footer.astro";
     overallSummary.textContent = parts.length ? parts.join(" · ") : "Tous les tests sont passés.";
   }
 
-  function renderScreenshot(data: any) {
-    if (!data.screenshot) {
-      screenshotWrap.style.display = "none";
-      return;
+  function renderScreenshots(data: any) {
+    const m = data.mobile?.screenshot;
+    const d = data.desktop?.screenshot;
+    if (m) {
+      mobileImg.src = m;
+      mobileSlot.style.display = "flex";
+    } else {
+      mobileSlot.style.display = "none";
     }
-    screenshotImg.src = data.screenshot;
-    screenshotWrap.style.display = "block";
+    if (d) {
+      desktopImg.src = d;
+      desktopSlot.style.display = "flex";
+    } else {
+      desktopSlot.style.display = "none";
+    }
   }
 
-  function renderScores(data: Record<string, number>) {
+  function renderToggle(data: any) {
+    const mScore = data.mobile?.scoreOverall ?? 0;
+    const dScore = data.desktop?.scoreOverall ?? 0;
+    stratScoreMobile.textContent = mScore + "/100";
+    stratScoreDesktop.textContent = dScore + "/100";
+    stratScoreMobile.style.color = scoreColor(mScore);
+    stratScoreDesktop.style.color = scoreColor(dScore);
+  }
+
+  function renderScores(strat: any) {
     scores.innerHTML = "";
     SCORE_LABELS.forEach(({ key, label, icon }) => {
-      const val = data[key] ?? 0;
+      const val = strat?.scores?.[key] ?? 0;
       const pct = Math.round(val * 100);
       const color = scoreColor(pct);
       scores.innerHTML += `
@@ -287,6 +338,21 @@ import Footer from "../components/Footer.astro";
     });
   }
 
+  function applyStrategy(strategy: Strategy) {
+    currentStrategy = strategy;
+    stratBtnMobile.classList.toggle("active", strategy === "mobile");
+    stratBtnDesktop.classList.toggle("active", strategy === "desktop");
+    if (!lastReport) return;
+    const strat = strategy === "mobile" ? lastReport.mobile : lastReport.desktop;
+    renderScores(strat);
+    renderVitals(strat?.vitals || []);
+    renderQuickWins(strat?.quickWins || []);
+    renderIssues(strat?.issues || []);
+  }
+
+  stratBtnMobile.addEventListener("click", () => applyStrategy("mobile"));
+  stratBtnDesktop.addEventListener("click", () => applyStrategy("desktop"));
+
   function setLoading(loading: boolean) {
     submitBtn.disabled = loading;
     submitLabel.textContent = loading ? "Analyse..." : "Analyser";
@@ -311,8 +377,9 @@ import Footer from "../components/Footer.astro";
 
     const steps = [
       "Résolution DNS...",
-      "Chargement de la page (mobile, 4G simulé)...",
-      "Mesure du temps de chargement...",
+      "Audit mobile (4G simulé)...",
+      "Audit desktop (haut débit)...",
+      "Capture des écrans...",
       "Analyse des Core Web Vitals...",
       "Audit SEO et accessibilité...",
       "Compilation du rapport...",
@@ -322,7 +389,7 @@ import Footer from "../components/Footer.astro";
     const stepTimer = setInterval(() => {
       stepIdx++;
       if (stepIdx < steps.length) status.textContent = steps[stepIdx];
-    }, 4000);
+    }, 5000);
 
     try {
       const res = await fetch("/.netlify/functions/audit", {
@@ -343,12 +410,10 @@ import Footer from "../components/Footer.astro";
 
       showOutput(`✓ Analyse terminée pour ${data.finalUrl || url}`);
 
-      renderOverall(data);
-      renderScreenshot(data);
-      renderScores(data.scores || {});
-      renderVitals(data.vitals || []);
-      renderQuickWins(data.quickWins || []);
-      renderIssues(data.issues || []);
+      renderOverallFromMobile(data);
+      renderScreenshots(data);
+      renderToggle(data);
+      applyStrategy("mobile");
 
       results.style.display = "block";
       attachBtn.style.display = "inline-flex";
@@ -367,8 +432,8 @@ import Footer from "../components/Footer.astro";
     const payload = {
       text,
       generated: new Date().toLocaleString("fr-FR"),
-      score: lastReport.scoreOverall ?? 0,
-      issues: lastReport.issues || [],
+      score: lastReport.mobile?.scoreOverall ?? 0,
+      issues: lastReport.mobile?.issues || [],
       symptoms_user: [],
     };
     try {
@@ -376,6 +441,44 @@ import Footer from "../components/Footer.astro";
     } catch {}
     window.location.href = "/#contact";
   });
+
+  function buildScoresLines(label: string, strat: any): string[] {
+    const lines: string[] = [];
+    lines.push(`SCORES ${label.toUpperCase()}`);
+    SCORE_LABELS.forEach(({ key, label: l }) => {
+      const pct = Math.round((strat?.scores?.[key] ?? 0) * 100);
+      const filled = Math.round(pct / 5);
+      const bar = "#".repeat(filled) + "-".repeat(20 - filled);
+      lines.push(`  ${l.padEnd(18)} [${bar}] ${String(pct).padStart(3, " ")}/100`);
+    });
+    return lines;
+  }
+
+  function buildIssuesLines(strat: any): string[] {
+    const lines: string[] = [];
+    if (strat?.issues?.length) {
+      lines.push(`PROBLÈMES DÉTECTÉS (${strat.issues.length})`);
+      strat.issues.forEach((i: any) => {
+        const lvl = i.level === "error" ? "[CRITIQUE]" : "[ATTENTION]";
+        lines.push(`${lvl} ${i.title}  (${i.category || "—"} · effort ${i.effort})`);
+        if (i.description) lines.push(`           ${i.description}`);
+        lines.push("");
+      });
+    }
+    return lines;
+  }
+
+  function buildVitalsLines(strat: any): string[] {
+    const lines: string[] = [];
+    if (strat?.vitals?.length) {
+      lines.push("CORE WEB VITALS");
+      strat.vitals.forEach((v: any) => {
+        const ratingLabel = v.rating === "good" ? "BON" : v.rating === "needs-improvement" ? "À AMÉLIORER" : "MAUVAIS";
+        lines.push(`  ${v.label.padEnd(35)} ${v.value.padStart(8)}  [${ratingLabel}]`);
+      });
+    }
+    return lines;
+  }
 
   function buildReport(data: any): string {
     const lines: string[] = [];
@@ -389,58 +492,32 @@ import Footer from "../components/Footer.astro";
     lines.push(sep);
     lines.push("");
 
-    const overall = data.scoreOverall ?? 0;
-    lines.push(`SCORE GLOBAL : ${overall}/100  (${verdictFor(overall)})`);
-    const s = data.summary || {};
-    if (s.critical || s.warning) {
-      lines.push(`  ${s.critical || 0} critique(s) · ${s.warning || 0} amélioration(s) possible(s)`);
-    }
+    const mScore = data.mobile?.scoreOverall ?? 0;
+    const dScore = data.desktop?.scoreOverall ?? 0;
+    lines.push(`SCORE GLOBAL`);
+    lines.push(`  Mobile  : ${mScore}/100  (${verdictFor(mScore)})`);
+    lines.push(`  Desktop : ${dScore}/100  (${verdictFor(dScore)})`);
     lines.push("");
 
     lines.push(dash);
-    lines.push("SCORES PAR CATÉGORIE");
-    lines.push(dash);
-    SCORE_LABELS.forEach(({ key, label }) => {
-      const pct = Math.round((data.scores?.[key] ?? 0) * 100);
-      const filled = Math.round(pct / 5);
-      const bar = "#".repeat(filled) + "-".repeat(20 - filled);
-      lines.push(`${label.padEnd(18)} [${bar}] ${String(pct).padStart(3, " ")}/100`);
-    });
+    buildScoresLines("mobile", data.mobile).forEach((l) => lines.push(l));
+    lines.push("");
+    buildScoresLines("desktop", data.desktop).forEach((l) => lines.push(l));
     lines.push("");
 
-    if (data.vitals && data.vitals.length) {
-      lines.push(dash);
-      lines.push("CORE WEB VITALS (perçu mobile)");
-      lines.push(dash);
-      data.vitals.forEach((v: any) => {
-        const ratingLabel = v.rating === "good" ? "BON" : v.rating === "needs-improvement" ? "À AMÉLIORER" : "MAUVAIS";
-        lines.push(`  ${v.label.padEnd(35)} ${v.value.padStart(8)}  [${ratingLabel}]`);
-      });
-      lines.push("");
-    }
+    lines.push(dash);
+    lines.push("MOBILE");
+    lines.push(dash);
+    buildVitalsLines(data.mobile).forEach((l) => lines.push(l));
+    lines.push("");
+    buildIssuesLines(data.mobile).forEach((l) => lines.push(l));
 
-    if (data.quickWins && data.quickWins.length) {
-      lines.push(dash);
-      lines.push("ACTIONS RAPIDES (Quick wins)");
-      lines.push(dash);
-      data.quickWins.forEach((q: any, idx: number) => {
-        lines.push(`  ${idx + 1}. ${q.title}  [effort ${q.effort}]`);
-        if (q.description) lines.push(`     ${q.description}`);
-        lines.push("");
-      });
-    }
-
-    if (data.issues && data.issues.length) {
-      lines.push(dash);
-      lines.push(`PROBLÈMES DÉTECTÉS (${data.issues.length})`);
-      lines.push(dash);
-      data.issues.forEach((i: any) => {
-        const lvl = i.level === "error" ? "[CRITIQUE]" : "[ATTENTION]";
-        lines.push(`${lvl} ${i.title}  (${i.category || "—"} · effort ${i.effort})`);
-        if (i.description) lines.push(`           ${i.description}`);
-        lines.push("");
-      });
-    }
+    lines.push(dash);
+    lines.push("DESKTOP");
+    lines.push(dash);
+    buildVitalsLines(data.desktop).forEach((l) => lines.push(l));
+    lines.push("");
+    buildIssuesLines(data.desktop).forEach((l) => lines.push(l));
 
     lines.push(sep);
     lines.push("  Rapport SOS-PC — sos-pc.click/audit");
@@ -478,6 +555,11 @@ import Footer from "../components/Footer.astro";
     font-size: 16px;
     line-height: 1.7;
     max-width: 600px;
+  }
+
+  .audit-header em {
+    font-style: normal;
+    color: var(--accent-hex);
   }
 
   .audit-terminal {
@@ -585,11 +667,11 @@ import Footer from "../components/Footer.astro";
 
   .audit-results { margin-top: 2.5rem; }
 
-  /* ----- Overview (overall score + screenshot) ----- */
+  /* ----- Overview (overall score + screenshots) ----- */
 
   .audit-overview {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1.2fr;
     gap: 24px;
     margin-bottom: 2rem;
     align-items: stretch;
@@ -658,27 +740,69 @@ import Footer from "../components/Footer.astro";
     font-size: 13px;
     color: var(--text-muted);
     line-height: 1.6;
+    margin-bottom: 8px;
   }
 
-  .overall-screenshot {
+  .overall-mobile-note {
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+
+  /* Screenshots */
+
+  .screenshots-card {
     background: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
-    padding: 16px;
+    padding: 16px 18px 18px;
     display: flex;
-    align-items: center;
-    justify-content: center;
+    flex-direction: column;
+    gap: 12px;
   }
+
+  .screenshots-header {
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.05em;
+  }
+
+  .screenshots-grid {
+    display: flex;
+    gap: 14px;
+    align-items: flex-end;
+    justify-content: center;
+    flex: 1;
+  }
+
+  .screenshot-slot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .screenshot-mobile { flex: 0 0 auto; }
+  .screenshot-desktop { flex: 1 1 auto; min-width: 0; max-width: 320px; }
 
   .screenshot-frame {
     position: relative;
-    width: 100%;
-    max-width: 200px;
-    aspect-ratio: 9 / 16;
     border-radius: var(--radius);
     border: 1px solid var(--border);
     overflow: hidden;
     background: #0d0e14;
+    width: 100%;
+  }
+
+  .frame-mobile {
+    aspect-ratio: 9 / 16;
+    width: 110px;
+    border-radius: 14px;
+    border-width: 2px;
+  }
+
+  .frame-desktop {
+    aspect-ratio: 16 / 10;
+    width: 100%;
   }
 
   .screenshot-frame img {
@@ -695,21 +819,56 @@ import Footer from "../components/Footer.astro";
     bottom: 0;
     left: 0;
     right: 0;
-    height: 40%;
-    background: linear-gradient(to bottom, transparent, var(--bg-card));
+    height: 30%;
+    background: linear-gradient(to bottom, transparent, rgba(13, 14, 20, 0.7));
     pointer-events: none;
   }
 
   .screenshot-label {
-    position: absolute;
-    bottom: 6px;
-    left: 0;
-    right: 0;
-    text-align: center;
-    font-size: 10px;
+    font-size: 11px;
     color: var(--text-muted);
-    z-index: 1;
-    text-shadow: 0 0 4px var(--bg-card);
+    letter-spacing: 0.05em;
+  }
+
+  /* ----- Strategy toggle ----- */
+
+  .strategy-toggle {
+    display: inline-flex;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 4px;
+    margin-bottom: 1.5rem;
+    gap: 4px;
+  }
+
+  .strat-btn {
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-body);
+    transition: all 0.15s;
+  }
+
+  .strat-btn:hover { color: var(--text); }
+
+  .strat-btn.active {
+    background: var(--bg-elevated);
+    color: var(--text);
+    box-shadow: 0 0 0 1px var(--accent-hex);
+  }
+
+  .strat-score {
+    font-size: 11px;
+    font-weight: 700;
   }
 
   /* ----- Scores grid ----- */
@@ -1010,5 +1169,8 @@ import Footer from "../components/Footer.astro";
     .vitals-grid { grid-template-columns: 1fr 1fr; }
     .t-line { flex-direction: column; align-items: flex-start; }
     .audit-form { width: 100%; }
+    .strategy-toggle { display: flex; width: 100%; }
+    .strat-btn { flex: 1; justify-content: center; }
+    .frame-mobile { width: 90px; }
   }
 </style>
