@@ -75,7 +75,7 @@ const handler: Handler = async (event: HandlerEvent) => {
     } catch (err: any) {
       const message =
         err?.name === "TimeoutError"
-          ? "Le site met trop de temps à répondre (timeout 45s)"
+          ? "Le site met trop de temps à répondre (timeout 90s)"
           : err?.message || "Erreur interne pendant l'analyse";
       try {
         await store.setJSON(jobId, {

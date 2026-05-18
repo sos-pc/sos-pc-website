@@ -608,19 +608,21 @@ import Footer from "../components/Footer.astro";
   }
 
   // Adaptive loader — messages + progress keyed to real elapsed time.
-  // PSI typically takes 15-45s. We pre-schedule messages at realistic
-  // timestamps and grow the bar to 88% max while waiting.
+  // PSI typically takes 15-90s. Heavy WordPress sites can hit 60-80s.
+  // We pre-schedule messages at realistic timestamps and grow the bar
+  // to 88% max while waiting for the server response.
   const LOADER_STEPS: { ms: number; text: string; pct: number }[] = [
-    { ms: 0,     text: "Connexion au serveur d'analyse...",  pct: 3  },
-    { ms: 1200,  text: "Résolution DNS et ping...",           pct: 8  },
-    { ms: 3000,  text: "Audit mobile (4G simulé)...",         pct: 18 },
-    { ms: 8000,  text: "Audit desktop (haut débit)...",       pct: 32 },
-    { ms: 14000, text: "Détection de la stack technique...",  pct: 44 },
-    { ms: 19000, text: "Capture des écrans...",               pct: 55 },
-    { ms: 24000, text: "Analyse des Core Web Vitals...",      pct: 66 },
-    { ms: 29000, text: "Audit SEO et accessibilité...",       pct: 76 },
-    { ms: 34000, text: "Compilation du rapport...",           pct: 83 },
-    { ms: 40000, text: "Finalisation...",                     pct: 88 },
+    { ms: 0,     text: "Connexion au serveur d'analyse...",   pct: 3  },
+    { ms: 1200,  text: "Résolution DNS et ping...",            pct: 8  },
+    { ms: 3000,  text: "Audit mobile (4G simulé)...",          pct: 16 },
+    { ms: 10000, text: "Audit desktop (haut débit)...",        pct: 28 },
+    { ms: 18000, text: "Détection de la stack technique...",   pct: 40 },
+    { ms: 26000, text: "Capture des écrans...",                pct: 50 },
+    { ms: 36000, text: "Analyse des Core Web Vitals...",       pct: 60 },
+    { ms: 46000, text: "Audit SEO et accessibilité...",        pct: 70 },
+    { ms: 58000, text: "Site complexe, audit approfondi...",   pct: 78 },
+    { ms: 70000, text: "Compilation du rapport...",            pct: 84 },
+    { ms: 82000, text: "Finalisation...",                      pct: 88 },
   ];
 
   function startLoader(): () => void {
@@ -639,7 +641,7 @@ import Footer from "../components/Footer.astro";
   }
 
   const POLL_INTERVAL_MS = 2000;
-  const POLL_MAX_ATTEMPTS = 90; // 90 * 2s = 3 min hard ceiling on the client.
+  const POLL_MAX_ATTEMPTS = 180; // 180 * 2s = 6 min hard ceiling on the client.
 
   function sleep(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
@@ -658,7 +660,7 @@ import Footer from "../components/Footer.astro";
       if (job.status === "error") throw new Error(job.error || "Erreur inconnue");
       // status === "pending" → keep polling
     }
-    throw new Error("L'analyse prend trop de temps (timeout 3 min). Réessayez.");
+    throw new Error("L'analyse prend trop de temps (timeout 6 min). Réessayez.");
   }
 
   async function runAudit(url: string): Promise<any> {

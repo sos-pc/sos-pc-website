@@ -10,7 +10,7 @@ const DESCRIPTION_MAX_CHARS = 200;
 const RATE_LIMIT_MAX = 5;
 const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000;
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
-const PSI_TIMEOUT_MS = 45 * 1000;
+const PSI_TIMEOUT_MS = 90 * 1000;
 const TECH_FETCH_TIMEOUT_MS = 10 * 1000;
 
 type Strategy = "mobile" | "desktop";
