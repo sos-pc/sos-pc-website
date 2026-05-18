@@ -16,7 +16,6 @@ const BLOBS_TOKEN = process.env.BLOBS_TOKEN;
 interface JobPayload {
   jobId: string;
   url: string;
-  competitorUrl: string | null;
 }
 
 function isJobPayload(value: unknown): value is JobPayload {
@@ -50,7 +49,7 @@ const handler: Handler = async (event: HandlerEvent) => {
       return { statusCode: 400, body: "Invalid payload" };
     }
 
-    const { jobId, url, competitorUrl } = payload;
+    const { jobId, url } = payload;
 
     let store;
     try {
@@ -63,7 +62,7 @@ const handler: Handler = async (event: HandlerEvent) => {
     }
 
     try {
-      const result = await runFullAudit(url, competitorUrl);
+      const result = await runFullAudit(url);
       // Mirror successful results into the in-memory hot cache so subsequent
       // requests for the same URL skip the polling round-trip entirely.
       setCached(url, result);

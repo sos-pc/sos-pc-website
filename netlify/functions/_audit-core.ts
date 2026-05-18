@@ -89,12 +89,6 @@ interface AuditResponse {
   seo: SeoData;
   mobile: StrategyResult;
   desktop: StrategyResult;
-  competitor?: {
-    url: string;
-    finalUrl: string;
-    mobile: StrategyResult;
-    desktop: StrategyResult;
-  };
 }
 
 const FR_TITLES: Record<string, string> = {
@@ -881,23 +875,14 @@ async function runStrategyAudit(url: string, strategy: Strategy): Promise<PsiCal
 // Caching is the responsibility of the caller (entry function).
 // ---------------------------------------------------------------------------
 
-async function runFullAudit(url: string, competitorUrl: string | null): Promise<AuditResponse> {
-  const auditTasks: Promise<any>[] = [
+async function runFullAudit(url: string): Promise<AuditResponse> {
+  const [mobile, desktop, pageData] = await Promise.all([
     runStrategyAudit(url, "mobile"),
     runStrategyAudit(url, "desktop"),
     fetchPageData(url),
-  ];
-  if (competitorUrl) {
-    auditTasks.push(runStrategyAudit(competitorUrl, "mobile"));
-    auditTasks.push(runStrategyAudit(competitorUrl, "desktop"));
-  }
+  ]);
 
-  const results = await Promise.all(auditTasks);
-  const mobile = results[0] as PsiCallResult;
-  const desktop = results[1] as PsiCallResult;
-  const pageData = results[2] as PageData;
-
-  const response: AuditResponse = {
+  return {
     url,
     finalUrl: mobile.finalUrl || desktop.finalUrl || url,
     fetchedAt: new Date().toISOString(),
@@ -907,19 +892,6 @@ async function runFullAudit(url: string, competitorUrl: string | null): Promise<
     mobile: mobile.result,
     desktop: desktop.result,
   };
-
-  if (competitorUrl) {
-    const compMobile = results[3] as PsiCallResult;
-    const compDesktop = results[4] as PsiCallResult;
-    response.competitor = {
-      url: competitorUrl,
-      finalUrl: compMobile.finalUrl || compDesktop.finalUrl || competitorUrl,
-      mobile: compMobile.result,
-      desktop: compDesktop.result,
-    };
-  }
-
-  return response;
 }
 
 export type { AuditResponse, StrategyResult, Issue, VitalMetric, TechInfo, SslResult, SeoData };

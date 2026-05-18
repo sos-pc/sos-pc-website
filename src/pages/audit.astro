@@ -49,25 +49,6 @@ import Footer from "../components/Footer.astro";
                 </button>
               </form>
             </div>
-            <div class="t-line competitor-toggle-line">
-              <button type="button" id="competitor-toggle-btn" class="competitor-toggle-btn">
-                <span id="competitor-toggle-label">+ comparer un concurrent</span>
-              </button>
-            </div>
-
-            <div class="t-line t-competitor-line" id="competitor-line" style="display:none;">
-              <span class="t-prompt" style="color:var(--text-dim)">$</span>
-              <span class="t-cmd" style="color:var(--text-dim)">compare</span>
-              <input
-                id="competitor-url"
-                type="url"
-                name="competitorUrl"
-                placeholder="https://concurrent.fr (optionnel)"
-                autocomplete="off"
-                spellcheck="false"
-                class="audit-input competitor-input"
-              />
-            </div>
 
             <div id="audit-output" class="audit-output" style="display:none;">
               <div class="t-output" id="audit-status">Connexion au serveur d'analyse...</div>
@@ -147,12 +128,7 @@ import Footer from "../components/Footer.astro";
           <div class="seo-ext-grid" id="seo-ext-grid"></div>
         </div>
 
-        <!-- E2 — Comparaison concurrent -->
-        <div class="competitor-wrap" id="competitor-wrap" style="display:none;">
-          <h3 class="audit-section-title mono">// Comparaison concurrent</h3>
-          <p class="audit-section-sub" id="competitor-sub"></p>
-          <div class="competitor-grid" id="competitor-grid"></div>
-        </div>
+        <!-- E2 — Comparaison concurrent (retirée) -->
 
         <div class="vitals-wrap" id="vitals-wrap" style="display:none;">
           <h3 class="audit-section-title mono">// Core Web Vitals</h3>
@@ -252,13 +228,6 @@ import Footer from "../components/Footer.astro";
   const seoExtWrap = document.getElementById("seo-ext-wrap") as HTMLElement;
   const seoExtSub = document.getElementById("seo-ext-sub") as HTMLElement;
   const seoExtGrid = document.getElementById("seo-ext-grid") as HTMLElement;
-  const competitorWrap = document.getElementById("competitor-wrap") as HTMLElement;
-  const competitorGrid = document.getElementById("competitor-grid") as HTMLElement;
-  const competitorSub = document.getElementById("competitor-sub") as HTMLElement;
-  const competitorToggleBtn = document.getElementById("competitor-toggle-btn") as HTMLButtonElement;
-  const competitorToggleLabel = document.getElementById("competitor-toggle-label") as HTMLElement;
-  const competitorLine = document.getElementById("competitor-line") as HTMLElement;
-  const competitorInput = document.getElementById("competitor-url") as HTMLInputElement;
 
   let lastReport: any = null;
   let currentStrategy: Strategy = "mobile";
@@ -500,13 +469,6 @@ import Footer from "../components/Footer.astro";
     budgetCard.style.display = "block";
   }
 
-  competitorToggleBtn.addEventListener("click", () => {
-    const isVisible = competitorLine.style.display !== "none";
-    competitorLine.style.display = isVisible ? "none" : "flex";
-    competitorToggleLabel.textContent = isVisible ? "+ comparer un concurrent" : "− masquer concurrent";
-    if (isVisible) competitorInput.value = "";
-  });
-
   const TECH_CATEGORY_COLORS: Record<string, string> = {
     CMS: "#7aa2f7",
     Framework: "#bb9af7",
@@ -609,77 +571,6 @@ import Footer from "../components/Footer.astro";
     });
   }
 
-  function renderCompetitor(data: any) {
-    const comp = data.competitor;
-    if (!comp) {
-      competitorWrap.style.display = "none";
-      return;
-    }
-    competitorWrap.style.display = "block";
-    const myUrl = data.finalUrl || data.url || "Votre site";
-    const compUrl = comp.finalUrl || comp.url || "Concurrent";
-    competitorSub.textContent = `${myUrl} vs ${compUrl} — Mobile · Desktop`;
-
-    const SCORE_LABELS_LOCAL = [
-      { key: "performance", label: "Performance", icon: "⚡" },
-      { key: "seo", label: "SEO", icon: "🔍" },
-      { key: "accessibility", label: "Accessibilité", icon: "♿" },
-      { key: "best-practices", label: "Bonnes pratiques", icon: "✓" },
-    ];
-
-    function scoreBadge(pct: number): string {
-      const color = scoreColor(pct);
-      return `<span class="comp-score" style="color:${color};border-color:${color}">${pct}</span>`;
-    }
-
-    function stratRows(myStrat: any, compStrat: any): string {
-      return SCORE_LABELS_LOCAL.map(({ key, label, icon }) => {
-        const myPct = Math.round((myStrat?.scores?.[key] ?? 0) * 100);
-        const cPct = Math.round((compStrat?.scores?.[key] ?? 0) * 100);
-        const myWin = myPct >= cPct;
-        return `
-          <div class="comp-row">
-            <div class="comp-cell comp-cell-you ${myWin ? "comp-winner" : ""}">${scoreBadge(myPct)}</div>
-            <div class="comp-cell comp-label mono">${icon} ${escapeHtml(label)}</div>
-            <div class="comp-cell comp-cell-them ${!myWin ? "comp-winner" : ""}">${scoreBadge(cPct)}</div>
-          </div>`;
-      }).join("");
-    }
-
-    const myOverallM = data.mobile?.scoreOverall ?? 0;
-    const myOverallD = data.desktop?.scoreOverall ?? 0;
-    const cOverallM = comp.mobile?.scoreOverall ?? 0;
-    const cOverallD = comp.desktop?.scoreOverall ?? 0;
-
-    competitorGrid.innerHTML = `
-      <div class="comp-table">
-        <div class="comp-header">
-          <div class="comp-hcell comp-hcell-you mono">📱 Vous</div>
-          <div class="comp-hcell comp-hcell-label mono">Mobile</div>
-          <div class="comp-hcell comp-hcell-them mono">📱 Eux</div>
-        </div>
-        <div class="comp-overall-row">
-          <div class="comp-overall-val ${myOverallM >= cOverallM ? "comp-overall-win" : ""}">${myOverallM}<span class="comp-overall-suffix">/100</span></div>
-          <div class="comp-overall-label mono">Score global</div>
-          <div class="comp-overall-val ${cOverallM > myOverallM ? "comp-overall-win" : ""}">${cOverallM}<span class="comp-overall-suffix">/100</span></div>
-        </div>
-        ${stratRows(data.mobile, comp.mobile)}
-      </div>
-      <div class="comp-table">
-        <div class="comp-header">
-          <div class="comp-hcell comp-hcell-you mono">🖥️ Vous</div>
-          <div class="comp-hcell comp-hcell-label mono">Desktop</div>
-          <div class="comp-hcell comp-hcell-them mono">🖥️ Eux</div>
-        </div>
-        <div class="comp-overall-row">
-          <div class="comp-overall-val ${myOverallD >= cOverallD ? "comp-overall-win" : ""}">${myOverallD}<span class="comp-overall-suffix">/100</span></div>
-          <div class="comp-overall-label mono">Score global</div>
-          <div class="comp-overall-val ${cOverallD > myOverallD ? "comp-overall-win" : ""}">${cOverallD}<span class="comp-overall-suffix">/100</span></div>
-        </div>
-        ${stratRows(data.desktop, comp.desktop)}
-      </div>`;
-  }
-
   function applyStrategy(strategy: Strategy) {
     currentStrategy = strategy;
     stratBtnMobile.classList.toggle("active", strategy === "mobile");
@@ -770,9 +661,8 @@ import Footer from "../components/Footer.astro";
     throw new Error("L'analyse prend trop de temps (timeout 3 min). Réessayez.");
   }
 
-  async function runAudit(url: string, competitorUrl: string | null): Promise<any> {
+  async function runAudit(url: string): Promise<any> {
     const body: Record<string, string> = { url };
-    if (competitorUrl) body.competitorUrl = competitorUrl;
 
     const res = await fetch("/.netlify/functions/audit", {
       method: "POST",
@@ -806,8 +696,7 @@ import Footer from "../components/Footer.astro";
     const stopLoader = startLoader();
 
     try {
-      const competitorVal = competitorInput.value.trim();
-      const data = await runAudit(url, competitorVal || null);
+      const data = await runAudit(url);
 
       stopLoader();
       lastReport = data;
@@ -821,7 +710,6 @@ import Footer from "../components/Footer.astro";
       renderTechStack(data.techStack || []);
       renderSsl(data.ssl);
       renderSeoExt(data.seo);
-      renderCompetitor(data);
       applyStrategy("mobile");
 
       results.style.display = "block";
@@ -1790,42 +1678,7 @@ import Footer from "../components/Footer.astro";
     .frame-mobile { width: 90px; }
   }
 
-  /* ----- Competitor toggle ----- */
-
-  .competitor-toggle-line {
-    margin-top: 6px;
-  }
-
-  .competitor-toggle-btn {
-    background: transparent;
-    border: none;
-    padding: 0;
-    cursor: pointer;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--text-dim);
-    transition: color 0.15s;
-  }
-
-  .competitor-toggle-btn:hover { color: var(--accent-hex); }
-
-  .competitor-input {
-    color: var(--text-muted) !important;
-  }
-
-  .t-competitor-line {
-    display: none;
-    gap: 8px;
-    align-items: center;
-    flex-wrap: wrap;
-    padding-left: 2px;
-    animation: fadeInDown 0.2s ease;
-  }
-
-  @keyframes fadeInDown {
-    from { opacity: 0; transform: translateY(-4px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
+  /* ----- Competitor toggle (retiré) ----- */
 
   /* ----- Tech stack badges (E18) ----- */
 
@@ -1956,109 +1809,5 @@ import Footer from "../components/Footer.astro";
     font-size: 9px;
   }
 
-  /* ----- Competitor comparison (E2) ----- */
-
-  .competitor-wrap { margin-bottom: 2rem; }
-
-  .competitor-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-  }
-
-  .comp-table {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-  }
-
-  .comp-header {
-    display: grid;
-    grid-template-columns: 1fr 1.4fr 1fr;
-    background: var(--bg-elevated);
-    border-bottom: 1px solid var(--border);
-  }
-
-  .comp-hcell {
-    padding: 10px 12px;
-    font-size: 11px;
-    color: var(--text-muted);
-    text-align: center;
-  }
-
-  .comp-hcell-you  { color: var(--accent-hex); text-align: left; }
-  .comp-hcell-them { color: var(--purple); text-align: right; }
-  .comp-hcell-label { text-align: center; }
-
-  .comp-overall-row {
-    display: grid;
-    grid-template-columns: 1fr 1.4fr 1fr;
-    padding: 14px 12px;
-    border-bottom: 1px solid var(--border);
-    align-items: center;
-  }
-
-  .comp-overall-label {
-    font-size: 10px;
-    color: var(--text-dim);
-    text-align: center;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-  }
-
-  .comp-overall-val {
-    font-size: 28px;
-    font-weight: 700;
-    font-family: var(--font-mono);
-    color: var(--text-muted);
-    line-height: 1;
-  }
-
-  .comp-overall-val:last-child { text-align: right; }
-
-  .comp-overall-win { color: var(--accent-hex) !important; }
-
-  .comp-overall-suffix {
-    font-size: 11px;
-    color: var(--text-dim);
-    margin-left: 2px;
-  }
-
-  .comp-row {
-    display: grid;
-    grid-template-columns: 1fr 1.4fr 1fr;
-    padding: 8px 12px;
-    border-bottom: 1px solid rgba(255,255,255,0.03);
-    align-items: center;
-  }
-
-  .comp-row:last-child { border-bottom: none; }
-
-  .comp-label {
-    font-size: 11px;
-    color: var(--text-muted);
-    text-align: center;
-  }
-
-  .comp-cell-them { text-align: right; }
-
-  .comp-score {
-    display: inline-block;
-    font-family: var(--font-mono);
-    font-size: 14px;
-    font-weight: 700;
-    padding: 2px 8px;
-    border-radius: 3px;
-    border: 1px solid;
-    background: rgba(255,255,255,0.03);
-  }
-
-  .comp-winner .comp-score {
-    background: rgba(0, 212, 170, 0.08);
-  }
-
-  @media (max-width: 760px) {
-    .competitor-grid { grid-template-columns: 1fr; }
-  }
+  /* ----- Competitor comparison (retiré) ----- */
 </style>

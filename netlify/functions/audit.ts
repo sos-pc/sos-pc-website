@@ -96,16 +96,11 @@ const handler: Handler = async (event: HandlerEvent) => {
     }
 
     let url: string;
-    let competitorUrl: string | null = null;
     try {
       const body = JSON.parse(event.body || "{}");
       url = normalizeUrl(body.url || "");
       if (!url || url.length < 8) throw new Error("URL invalide");
       if (isPrivateUrl(url)) throw new Error("URL privée non autorisée");
-      if (body.competitorUrl) {
-        const raw = normalizeUrl(String(body.competitorUrl));
-        if (!isPrivateUrl(raw) && raw.length >= 8) competitorUrl = raw;
-      }
     } catch (e: any) {
       return jsonResponse(400, { error: e?.message || "URL invalide" });
     }
@@ -134,7 +129,6 @@ const handler: Handler = async (event: HandlerEvent) => {
       await store.setJSON(jobId, {
         status: "pending",
         url,
-        competitorUrl,
         createdAt: Date.now(),
         expiresAt: Date.now() + JOB_TTL_MS,
       });
@@ -156,7 +150,7 @@ const handler: Handler = async (event: HandlerEvent) => {
       const bgRes = await fetch(bgUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ jobId, url, competitorUrl }),
+        body: JSON.stringify({ jobId, url }),
         signal: AbortSignal.timeout(BG_TRIGGER_TIMEOUT_MS),
       });
       // Netlify replies 202 Accepted for background invocations; anything
