@@ -1,0 +1,1815 @@
+---
+import Layout from "../layouts/Layout.astro";
+import AsciiBackground from "../components/AsciiBackground.astro";
+import Navbar from "../components/Navbar.astro";
+import Footer from "../components/Footer.astro";
+---
+
+<Layout title="Audit Web — Talos Int." description="Analysez gratuitement les performances, le SEO et l'accessibilité de votre site web sur mobile et desktop. Rapport détaillé en français.">
+  <AsciiBackground />
+  <Navbar />
+  <main id="main-content">
+    <section class="audit-section">
+      <div class="section-label">
+        <span class="tag tag-blue">outil</span>
+        <span class="mono text-muted">// Audit Web gratuit</span>
+      </div>
+
+      <div class="audit-header">
+        <h1>Audit <span class="teal">Web</span> gratuit</h1>
+        <p>Analysez les performances, le SEO, l'accessibilité et les bonnes pratiques de votre site sur mobile <em>et</em> desktop. Rapport détaillé en français, prêt à transmettre.</p>
+      </div>
+
+      <div class="audit-input-wrap">
+        <div class="audit-terminal">
+          <div class="terminal-bar">
+            <span class="t-dot red"></span>
+            <span class="t-dot yellow"></span>
+            <span class="t-dot green"></span>
+            <span class="t-title">audit-web.sh — bash</span>
+          </div>
+          <div class="terminal-body">
+            <div class="t-line">
+              <span class="t-prompt">$</span>
+              <span class="t-cmd">audit</span>
+              <form id="audit-form" class="audit-form">
+                <input
+                  id="audit-url"
+                  type="url"
+                  name="url"
+                  placeholder="https://votre-site.fr"
+                  required
+                  autocomplete="url"
+                  spellcheck="false"
+                  class="audit-input"
+                />
+                <button type="submit" class="audit-submit" id="audit-submit-btn">
+                  <span id="audit-submit-label">Analyser</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                </button>
+              </form>
+            </div>
+
+            <div id="audit-output" class="audit-output" style="display:none;">
+              <div class="t-output" id="audit-status">Connexion au serveur d'analyse...</div>
+              <div class="audit-progress-bar" id="audit-progress-bar">
+                <div class="audit-progress-fill" id="audit-progress-fill"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="audit-results" class="audit-results" style="display:none;">
+
+        <div class="audit-overview">
+          <div class="overall-card">
+            <div class="overall-ring" id="overall-ring">
+              <span class="overall-val" id="overall-val">—</span>
+              <span class="overall-suffix mono">/100</span>
+            </div>
+            <div class="overall-meta">
+              <h2 id="overall-verdict" class="overall-verdict mono">Analyse</h2>
+              <p id="overall-summary" class="overall-summary"></p>
+              <p class="overall-mobile-note mono">// score Google de référence (mobile)</p>
+            </div>
+          </div>
+
+          <div class="screenshots-card">
+            <div class="screenshots-header mono">// aperçu du site</div>
+            <div class="screenshots-grid">
+              <div class="screenshot-slot screenshot-mobile" id="screenshot-mobile-slot" style="display:none;">
+                <div class="screenshot-frame frame-mobile">
+                  <img id="screenshot-mobile-img" alt="Aperçu mobile du site" />
+                </div>
+                <span class="screenshot-label mono">📱 mobile</span>
+              </div>
+              <div class="screenshot-slot screenshot-desktop" id="screenshot-desktop-slot" style="display:none;">
+                <div class="screenshot-frame frame-desktop">
+                  <img id="screenshot-desktop-img" alt="Aperçu desktop du site" />
+                </div>
+                <span class="screenshot-label mono">🖥️ desktop</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="strategy-toggle" id="strategy-toggle">
+          <button type="button" class="strat-btn active" data-strategy="mobile" id="strat-btn-mobile">
+            📱 Mobile
+            <span class="strat-score mono" id="strat-score-mobile">—</span>
+          </button>
+          <button type="button" class="strat-btn" data-strategy="desktop" id="strat-btn-desktop">
+            🖥️ Desktop
+            <span class="strat-score mono" id="strat-score-desktop">—</span>
+          </button>
+        </div>
+
+        <div class="audit-scores" id="audit-scores"></div>
+
+        <!-- E18 — Stack technique détectée -->
+        <div class="tech-wrap" id="tech-wrap" style="display:none;">
+          <h3 class="audit-section-title mono">// Stack technique détectée</h3>
+          <p class="audit-section-sub">Technologies identifiées automatiquement sur votre site.</p>
+          <div class="tech-badges" id="tech-badges"></div>
+        </div>
+
+        <!-- E15 — Sécurité SSL / headers -->
+        <div class="ssl-wrap" id="ssl-wrap" style="display:none;">
+          <h3 class="audit-section-title mono">// Sécurité &amp; headers HTTP</h3>
+          <p class="audit-section-sub" id="ssl-sub"></p>
+          <div class="ssl-grid" id="ssl-grid"></div>
+        </div>
+
+        <!-- E17 — SEO étendu -->
+        <div class="seo-ext-wrap" id="seo-ext-wrap" style="display:none;">
+          <h3 class="audit-section-title mono">// SEO étendu</h3>
+          <p class="audit-section-sub" id="seo-ext-sub"></p>
+          <div class="seo-ext-grid" id="seo-ext-grid"></div>
+        </div>
+
+        <!-- E2 — Comparaison concurrent (retirée) -->
+
+        <div class="vitals-wrap" id="vitals-wrap" style="display:none;">
+          <h3 class="audit-section-title mono">// Core Web Vitals</h3>
+          <p class="audit-section-sub">Les métriques que Google utilise pour juger l'expérience de vos visiteurs.</p>
+          <div class="vitals-grid" id="vitals-grid"></div>
+        </div>
+
+        <div class="quickwins-wrap" id="quickwins-wrap" style="display:none;">
+          <h3 class="audit-section-title mono">// Quick wins</h3>
+          <p class="audit-section-sub">Actions rapides à fort impact pour faire grimper votre score.</p>
+          <div class="quickwins-list" id="quickwins-list"></div>
+        </div>
+
+        <div class="audit-issues-wrap" id="audit-issues-wrap">
+          <h3 class="audit-section-title mono">// Tous les problèmes détectés</h3>
+          <p class="audit-section-sub" id="issues-sub"></p>
+          <div id="audit-issues" class="audit-issues"></div>
+        </div>
+
+        <div class="budget-card" id="budget-card" style="display:none;">
+          <div class="budget-header">
+            <span class="mono budget-label">// Estimation budget de correction</span>
+          </div>
+          <div class="budget-body">
+            <div class="budget-amount">
+              <span class="budget-range mono" id="budget-range">—</span>
+              <span class="budget-meta mono" id="budget-meta">—</span>
+            </div>
+            <p class="budget-note">Fourchette indicative basée sur les tarifs Talos Int. Le devis final dépend de la complexité de votre site et des priorités retenues.</p>
+          </div>
+        </div>
+
+        <div class="audit-actions">
+          <button class="btn-primary" id="audit-attach-btn" style="display:none;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+            Joindre au formulaire de contact
+          </button>
+          <button class="btn-ghost" id="audit-pdf-btn" style="display:none;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+            <span id="audit-pdf-label">Télécharger PDF</span>
+          </button>
+          <a href="/#contact" class="btn-ghost" id="audit-contact-btn" style="display:none;">
+            Refaire mon site avec Talos Int. →
+          </a>
+        </div>
+      </div>
+
+    </section>
+  </main>
+  <Footer />
+</Layout>
+
+<script>
+  type Strategy = "mobile" | "desktop";
+
+  const form = document.getElementById("audit-form") as HTMLFormElement;
+  const urlInput = document.getElementById("audit-url") as HTMLInputElement;
+  const submitBtn = document.getElementById("audit-submit-btn") as HTMLButtonElement;
+  const submitLabel = document.getElementById("audit-submit-label") as HTMLElement;
+  const output = document.getElementById("audit-output") as HTMLElement;
+  const status = document.getElementById("audit-status") as HTMLElement;
+  const progressBar = document.getElementById("audit-progress-bar") as HTMLElement;
+  const progressFill = document.getElementById("audit-progress-fill") as HTMLElement;
+  const results = document.getElementById("audit-results") as HTMLElement;
+  const scores = document.getElementById("audit-scores") as HTMLElement;
+  const issuesWrap = document.getElementById("audit-issues-wrap") as HTMLElement;
+  const issues = document.getElementById("audit-issues") as HTMLElement;
+  const issuesSub = document.getElementById("issues-sub") as HTMLElement;
+  const quickwinsWrap = document.getElementById("quickwins-wrap") as HTMLElement;
+  const quickwinsList = document.getElementById("quickwins-list") as HTMLElement;
+  const vitalsWrap = document.getElementById("vitals-wrap") as HTMLElement;
+  const vitalsGrid = document.getElementById("vitals-grid") as HTMLElement;
+  const overallRing = document.getElementById("overall-ring") as HTMLElement;
+  const overallVal = document.getElementById("overall-val") as HTMLElement;
+  const overallVerdict = document.getElementById("overall-verdict") as HTMLElement;
+  const overallSummary = document.getElementById("overall-summary") as HTMLElement;
+  const mobileSlot = document.getElementById("screenshot-mobile-slot") as HTMLElement;
+  const desktopSlot = document.getElementById("screenshot-desktop-slot") as HTMLElement;
+  const mobileImg = document.getElementById("screenshot-mobile-img") as HTMLImageElement;
+  const desktopImg = document.getElementById("screenshot-desktop-img") as HTMLImageElement;
+  const stratBtnMobile = document.getElementById("strat-btn-mobile") as HTMLButtonElement;
+  const stratBtnDesktop = document.getElementById("strat-btn-desktop") as HTMLButtonElement;
+  const stratScoreMobile = document.getElementById("strat-score-mobile") as HTMLElement;
+  const stratScoreDesktop = document.getElementById("strat-score-desktop") as HTMLElement;
+  const budgetCard = document.getElementById("budget-card") as HTMLElement;
+  const budgetRange = document.getElementById("budget-range") as HTMLElement;
+  const budgetMeta = document.getElementById("budget-meta") as HTMLElement;
+  const attachBtn = document.getElementById("audit-attach-btn") as HTMLElement;
+  const contactBtn = document.getElementById("audit-contact-btn") as HTMLElement;
+  const pdfBtn = document.getElementById("audit-pdf-btn") as HTMLElement;
+  const pdfLabel = document.getElementById("audit-pdf-label") as HTMLElement;
+  const techWrap = document.getElementById("tech-wrap") as HTMLElement;
+  const techBadges = document.getElementById("tech-badges") as HTMLElement;
+  const sslWrap = document.getElementById("ssl-wrap") as HTMLElement;
+  const sslSub = document.getElementById("ssl-sub") as HTMLElement;
+  const sslGrid = document.getElementById("ssl-grid") as HTMLElement;
+  const seoExtWrap = document.getElementById("seo-ext-wrap") as HTMLElement;
+  const seoExtSub = document.getElementById("seo-ext-sub") as HTMLElement;
+  const seoExtGrid = document.getElementById("seo-ext-grid") as HTMLElement;
+
+  let lastReport: any = null;
+  let currentStrategy: Strategy = "mobile";
+
+  const SCORE_LABELS = [
+    { key: "performance", label: "Performance", icon: "⚡" },
+    { key: "seo", label: "SEO", icon: "🔍" },
+    { key: "accessibility", label: "Accessibilité", icon: "♿" },
+    { key: "best-practices", label: "Bonnes pratiques", icon: "✓" },
+  ];
+
+  const EFFORT_LABELS: Record<string, { label: string; color: string }> = {
+    easy: { label: "facile", color: "var(--accent-hex)" },
+    medium: { label: "moyen", color: "var(--yellow)" },
+    hard: { label: "important", color: "var(--purple)" },
+  };
+
+  // Indicative price ranges per effort level (EUR).
+  // Adjust these constants to match your actual offer.
+  const EFFORT_PRICE: Record<string, { min: number; max: number }> = {
+    easy: { min: 50, max: 150 },
+    medium: { min: 200, max: 500 },
+    hard: { min: 600, max: 1200 },
+  };
+
+  function computeBudget(items: any[]): { min: number; max: number; count: number } {
+    let min = 0;
+    let max = 0;
+    items.forEach((i) => {
+      const range = EFFORT_PRICE[i.effort] || EFFORT_PRICE.medium;
+      min += range.min;
+      max += range.max;
+    });
+    return { min, max, count: items.length };
+  }
+
+  function formatEur(n: number): string {
+    return new Intl.NumberFormat("fr-FR").format(n) + " €";
+  }
+
+  function scoreColor(score: number): string {
+    if (score >= 90) return "var(--accent-hex)";
+    if (score >= 50) return "var(--yellow)";
+    return "var(--red)";
+  }
+
+  function verdictFor(score: number): string {
+    if (score >= 90) return "Excellent";
+    if (score >= 70) return "Correct";
+    if (score >= 50) return "À optimiser";
+    return "Critique";
+  }
+
+  function escapeHtml(s: string): string {
+    const div = document.createElement("div");
+    div.textContent = s;
+    return div.innerHTML;
+  }
+
+  function animateScore(target: HTMLElement, from: number, to: number, duration: number) {
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduceMotion) {
+      target.textContent = String(to);
+      return;
+    }
+    const start = performance.now();
+    const ease = (t: number) => 1 - Math.pow(1 - t, 3);
+    function tick(now: number) {
+      const elapsed = now - start;
+      const progress = Math.min(1, elapsed / duration);
+      const value = Math.round(from + (to - from) * ease(progress));
+      target.textContent = String(value);
+      if (progress < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+
+  function animateRing(ring: HTMLElement, from: number, to: number, duration: number) {
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduceMotion) {
+      ring.style.setProperty("--pct", String(to));
+      return;
+    }
+    const start = performance.now();
+    const ease = (t: number) => 1 - Math.pow(1 - t, 3);
+    function tick(now: number) {
+      const elapsed = now - start;
+      const progress = Math.min(1, elapsed / duration);
+      const value = from + (to - from) * ease(progress);
+      ring.style.setProperty("--pct", String(value));
+      if (progress < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+
+  function renderOverallFromMobile(data: any) {
+    const mobile = data.mobile;
+    const score = mobile?.scoreOverall ?? 0;
+    const color = scoreColor(score);
+    overallRing.style.setProperty("--color", color);
+    overallVal.style.color = color;
+    overallVerdict.textContent = verdictFor(score);
+    overallVerdict.style.color = color;
+
+    animateScore(overallVal, 0, score, 1500);
+    animateRing(overallRing, 0, score, 1500);
+
+    const s = mobile?.summary || { critical: 0, warning: 0, passed: 0 };
+    const parts: string[] = [];
+    if (s.critical) parts.push(`${s.critical} problème${s.critical > 1 ? "s" : ""} critique${s.critical > 1 ? "s" : ""}`);
+    if (s.warning) parts.push(`${s.warning} amélioration${s.warning > 1 ? "s" : ""} possible${s.warning > 1 ? "s" : ""}`);
+    if (s.passed) parts.push(`${s.passed} test${s.passed > 1 ? "s" : ""} réussi${s.passed > 1 ? "s" : ""}`);
+    overallSummary.textContent = parts.length ? parts.join(" · ") : "Tous les tests sont passés.";
+  }
+
+  function renderScreenshots(data: any) {
+    const m = data.mobile?.screenshot;
+    const d = data.desktop?.screenshot;
+    if (m) {
+      mobileImg.src = m;
+      mobileSlot.style.display = "flex";
+    } else {
+      mobileSlot.style.display = "none";
+    }
+    if (d) {
+      desktopImg.src = d;
+      desktopSlot.style.display = "flex";
+    } else {
+      desktopSlot.style.display = "none";
+    }
+  }
+
+  function renderToggle(data: any) {
+    const mScore = data.mobile?.scoreOverall ?? 0;
+    const dScore = data.desktop?.scoreOverall ?? 0;
+    stratScoreMobile.textContent = mScore + "/100";
+    stratScoreDesktop.textContent = dScore + "/100";
+    stratScoreMobile.style.color = scoreColor(mScore);
+    stratScoreDesktop.style.color = scoreColor(dScore);
+  }
+
+  function renderScores(strat: any) {
+    scores.innerHTML = "";
+    SCORE_LABELS.forEach(({ key, label, icon }) => {
+      const val = strat?.scores?.[key] ?? 0;
+      const pct = Math.round(val * 100);
+      const color = scoreColor(pct);
+      scores.innerHTML += `
+        <div class="score-card">
+          <div class="score-ring" style="--pct:${pct};--color:${color}">
+            <span class="score-val" style="color:${color}">${pct}</span>
+          </div>
+          <span class="score-label mono">${icon} ${label}</span>
+        </div>`;
+    });
+  }
+
+  function renderVitals(vitals: any[]) {
+    if (!vitals || vitals.length === 0) {
+      vitalsWrap.style.display = "none";
+      return;
+    }
+    vitalsWrap.style.display = "block";
+    vitalsGrid.innerHTML = "";
+    vitals.forEach((v: any) => {
+      const ratingClass = v.rating === "good" ? "vital-good" : v.rating === "needs-improvement" ? "vital-warn" : "vital-poor";
+      const ratingLabel = v.rating === "good" ? "Bon" : v.rating === "needs-improvement" ? "À améliorer" : "Mauvais";
+      vitalsGrid.innerHTML += `
+        <div class="vital-card ${ratingClass}">
+          <span class="vital-label mono">${escapeHtml(v.label)}</span>
+          <span class="vital-value">${escapeHtml(v.value)}</span>
+          <span class="vital-rating mono">${ratingLabel}</span>
+        </div>`;
+    });
+  }
+
+  function renderQuickWins(items: any[]) {
+    if (!items || items.length === 0) {
+      quickwinsWrap.style.display = "none";
+      return;
+    }
+    quickwinsWrap.style.display = "block";
+    quickwinsList.innerHTML = "";
+    items.forEach((item: any, idx: number) => {
+      const effort = EFFORT_LABELS[item.effort] || EFFORT_LABELS.medium;
+      quickwinsList.innerHTML += `
+        <div class="qw-item">
+          <span class="qw-num mono">${idx + 1}</span>
+          <div class="qw-body">
+            <div class="qw-head">
+              <span class="qw-title">${escapeHtml(item.title)}</span>
+              <span class="qw-tag mono" style="color:${effort.color};border-color:${effort.color}">effort ${effort.label}</span>
+            </div>
+            <span class="qw-desc">${escapeHtml(item.description || "")}</span>
+            ${item.impact ? `<span class="qw-impact"><span class="impact-icon mono">→</span> ${escapeHtml(item.impact)}</span>` : ""}
+            <span class="qw-cat mono">${escapeHtml(item.category || "")}</span>
+          </div>
+        </div>`;
+    });
+  }
+
+  function renderIssues(items: any[]) {
+    issues.innerHTML = "";
+    if (!items || !items.length) {
+      issuesWrap.style.display = "none";
+      return;
+    }
+    issuesWrap.style.display = "block";
+    issuesSub.textContent = `${items.length} audit${items.length > 1 ? "s" : ""} ayant échoué, triés par sévérité.`;
+
+    items.forEach((item: any) => {
+      const lvl = item.level === "error" ? "err" : item.level === "warning" ? "warn" : "ok";
+      const icon = lvl === "err" ? "✗" : lvl === "warn" ? "⚠" : "✓";
+      const effort = EFFORT_LABELS[item.effort] || EFFORT_LABELS.medium;
+      issues.innerHTML += `
+        <div class="issue-item issue-${lvl}">
+          <span class="issue-icon mono">${icon}</span>
+          <div class="issue-body">
+            <div class="issue-head">
+              <span class="issue-title">${escapeHtml(item.title)}</span>
+              <span class="issue-cat mono">${escapeHtml(item.category || "")}</span>
+              <span class="issue-effort mono" style="color:${effort.color};border-color:${effort.color}">${effort.label}</span>
+            </div>
+            <span class="issue-desc">${escapeHtml(item.description || "")}</span>
+            ${item.impact ? `<span class="issue-impact"><span class="impact-icon mono">→</span> ${escapeHtml(item.impact)}</span>` : ""}
+          </div>
+        </div>`;
+    });
+  }
+
+  function renderBudget(items: any[]) {
+    if (!items || items.length === 0) {
+      budgetCard.style.display = "none";
+      return;
+    }
+    const { min, max, count } = computeBudget(items);
+    budgetRange.textContent = `${formatEur(min)} — ${formatEur(max)}`;
+    budgetMeta.textContent = `pour corriger ${count} problème${count > 1 ? "s" : ""}`;
+    budgetCard.style.display = "block";
+  }
+
+  const TECH_CATEGORY_COLORS: Record<string, string> = {
+    CMS: "#7aa2f7",
+    Framework: "#bb9af7",
+    JS: "#e0af68",
+    CSS: "#2ac3de",
+    Analytics: "#9ece6a",
+    Serveur: "#f7768e",
+    Autre: "#a9b1d6",
+  };
+
+  function renderTechStack(techs: any[]) {
+    if (!techs || techs.length === 0) {
+      techWrap.style.display = "none";
+      return;
+    }
+    techWrap.style.display = "block";
+    techBadges.innerHTML = "";
+    techs.forEach((t: any) => {
+      const color = TECH_CATEGORY_COLORS[t.category] || TECH_CATEGORY_COLORS.Autre;
+      const version = t.version ? ` <span class="tech-version">${escapeHtml(t.version)}</span>` : "";
+      techBadges.innerHTML += `
+        <span class="tech-badge" style="--tech-color:${color}">
+          <span class="tech-cat">${escapeHtml(t.category)}</span>
+          <span class="tech-name">${escapeHtml(t.name)}</span>${version}
+        </span>`;
+    });
+  }
+
+  function renderSsl(ssl: any) {
+    if (!ssl) { sslWrap.style.display = "none"; return; }
+    sslWrap.style.display = "block";
+
+    const httpsOk = ssl.https || ssl.redirectsToHttps;
+    const scoreColor = ssl.score >= 70 ? "var(--accent-hex)" : ssl.score >= 40 ? "var(--yellow)" : "var(--red)";
+    const httpsLabel = ssl.https ? "HTTPS actif" : ssl.redirectsToHttps ? "Redirige vers HTTPS" : "HTTP non sécurisé";
+    const presented = (ssl.headers as any[]).filter((h: any) => h.present).length;
+    sslSub.textContent = `${httpsLabel} · ${presented}/${ssl.headers.length} headers de sécurité présents · Score ${ssl.score}/100`;
+
+    sslGrid.innerHTML = "";
+
+    // HTTPS row
+    const httpsState = ssl.https ? "ssl-ok" : ssl.redirectsToHttps ? "ssl-warn" : "ssl-fail";
+    const httpsIcon = ssl.https ? "✓" : ssl.redirectsToHttps ? "⚠" : "✗";
+    sslGrid.innerHTML += `
+      <div class="ssl-row ${httpsState}">
+        <span class="ssl-icon mono">${httpsIcon}</span>
+        <div class="ssl-body">
+          <span class="ssl-name">HTTPS</span>
+          <span class="ssl-desc">${httpsOk ? "La connexion est chiffrée." : "Le site est servi en HTTP — les données transitent en clair."}</span>
+        </div>
+        <span class="ssl-badge mono" style="color:${httpsOk ? "var(--accent-hex)" : "var(--red)"}">${httpsOk ? "OK" : "MANQUANT"}</span>
+      </div>`;
+
+    // Security headers rows
+    (ssl.headers as any[]).forEach((h: any) => {
+      const state = h.present ? "ssl-ok" : "ssl-fail";
+      const icon = h.present ? "✓" : "✗";
+      const badge = h.present ? "OK" : "ABSENT";
+      const badgeColor = h.present ? "var(--accent-hex)" : "var(--red)";
+      sslGrid.innerHTML += `
+        <div class="ssl-row ${state}">
+          <span class="ssl-icon mono">${icon}</span>
+          <div class="ssl-body">
+            <span class="ssl-name mono">${escapeHtml(h.label)}</span>
+            <span class="ssl-desc">${escapeHtml(h.description)}</span>
+            ${h.present && h.value ? `<span class="ssl-value mono">${escapeHtml(h.value.slice(0, 80))}${h.value.length > 80 ? "…" : ""}</span>` : ""}
+          </div>
+          <span class="ssl-badge mono" style="color:${badgeColor}">${badge}</span>
+        </div>`;
+    });
+  }
+
+  function renderSeoExt(seo: any) {
+    if (!seo || !seo.checks || seo.checks.length === 0) {
+      seoExtWrap.style.display = "none";
+      return;
+    }
+    seoExtWrap.style.display = "block";
+
+    const goodCount = seo.checks.filter((c: any) => c.level === "good").length;
+    const scoreColor = seo.score >= 70 ? "var(--accent-hex)" : seo.score >= 40 ? "var(--yellow)" : "var(--red)";
+    seoExtSub.textContent = `${goodCount}/${seo.checks.length} points validés · Score SEO ${seo.score}/100`;
+
+    seoExtGrid.innerHTML = "";
+    seo.checks.forEach((c: any) => {
+      const stateClass = c.level === "good" ? "seo-ok" : c.level === "warn" ? "seo-warn" : "seo-info";
+      const icon = c.level === "good" ? "✓" : c.level === "warn" ? "⚠" : "·";
+      const badgeText = c.level === "good" ? "OK" : c.level === "warn" ? "ABSENT" : "INFO";
+      const badgeColor = c.level === "good" ? "var(--accent-hex)" : c.level === "warn" ? "var(--red)" : "var(--text-dim)";
+      seoExtGrid.innerHTML += `
+        <div class="ssl-row ${stateClass}">
+          <span class="ssl-icon mono">${icon}</span>
+          <div class="ssl-body">
+            <span class="ssl-name mono">${escapeHtml(c.label)}</span>
+            <span class="ssl-desc">${escapeHtml(c.description)}</span>
+            ${c.value ? `<span class="ssl-value mono">${escapeHtml(String(c.value).slice(0, 100))}${String(c.value).length > 100 ? "…" : ""}</span>` : ""}
+          </div>
+          <span class="ssl-badge mono" style="color:${badgeColor}">${badgeText}</span>
+        </div>`;
+    });
+  }
+
+  function applyStrategy(strategy: Strategy) {
+    currentStrategy = strategy;
+    stratBtnMobile.classList.toggle("active", strategy === "mobile");
+    stratBtnDesktop.classList.toggle("active", strategy === "desktop");
+    if (!lastReport) return;
+    const strat = strategy === "mobile" ? lastReport.mobile : lastReport.desktop;
+    renderScores(strat);
+    renderVitals(strat?.vitals || []);
+    renderQuickWins(strat?.quickWins || []);
+    renderIssues(strat?.issues || []);
+    renderBudget(strat?.issues || []);
+  }
+
+  stratBtnMobile.addEventListener("click", () => applyStrategy("mobile"));
+  stratBtnDesktop.addEventListener("click", () => applyStrategy("desktop"));
+
+  function setLoading(loading: boolean) {
+    submitBtn.disabled = loading;
+    submitLabel.textContent = loading ? "Analyse..." : "Analyser";
+    urlInput.readOnly = loading;
+  }
+
+  function showOutput(text: string, pct?: number) {
+    output.style.display = "block";
+    status.textContent = text;
+    if (pct !== undefined) {
+      progressFill.style.width = pct + "%";
+      progressBar.style.display = "block";
+    }
+  }
+
+  function hideProgress() {
+    progressBar.style.display = "none";
+    progressFill.style.width = "0%";
+  }
+
+  // Adaptive loader — messages + progress keyed to real elapsed time.
+  // PSI typically takes 15-90s. Heavy WordPress sites can hit 60-80s.
+  // We pre-schedule messages at realistic timestamps and grow the bar
+  // to 88% max while waiting for the server response.
+  const LOADER_STEPS: { ms: number; text: string; pct: number }[] = [
+    { ms: 0,     text: "Connexion au serveur d'analyse...",   pct: 3  },
+    { ms: 1200,  text: "Résolution DNS et ping...",            pct: 8  },
+    { ms: 3000,  text: "Audit mobile (4G simulé)...",          pct: 16 },
+    { ms: 10000, text: "Audit desktop (haut débit)...",        pct: 28 },
+    { ms: 18000, text: "Détection de la stack technique...",   pct: 40 },
+    { ms: 26000, text: "Capture des écrans...",                pct: 50 },
+    { ms: 36000, text: "Analyse des Core Web Vitals...",       pct: 60 },
+    { ms: 46000, text: "Audit SEO et accessibilité...",        pct: 70 },
+    { ms: 58000, text: "Site complexe, audit approfondi...",   pct: 78 },
+    { ms: 70000, text: "Compilation du rapport...",            pct: 84 },
+    { ms: 82000, text: "Finalisation...",                      pct: 88 },
+  ];
+
+  function startLoader(): () => void {
+    showOutput(LOADER_STEPS[0].text, LOADER_STEPS[0].pct);
+    const start = Date.now();
+    const timers: ReturnType<typeof setTimeout>[] = [];
+
+    LOADER_STEPS.slice(1).forEach((step) => {
+      const id = setTimeout(() => {
+        showOutput(step.text, step.pct);
+      }, step.ms);
+      timers.push(id);
+    });
+
+    return () => timers.forEach(clearTimeout);
+  }
+
+  const POLL_INTERVAL_MS = 2000;
+  const POLL_MAX_ATTEMPTS = 180; // 180 * 2s = 6 min hard ceiling on the client.
+
+  function sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  async function pollAuditStatus(jobId: string): Promise<any> {
+    for (let attempt = 0; attempt < POLL_MAX_ATTEMPTS; attempt++) {
+      await sleep(POLL_INTERVAL_MS);
+      const res = await fetch(`/.netlify/functions/audit-status?id=${encodeURIComponent(jobId)}`);
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: "Erreur serveur" }));
+        throw new Error(err.error || `Erreur ${res.status}`);
+      }
+      const job = await res.json();
+      if (job.status === "done") return job.result;
+      if (job.status === "error") throw new Error(job.error || "Erreur inconnue");
+      // status === "pending" → keep polling
+    }
+    throw new Error("L'analyse prend trop de temps (timeout 6 min). Réessayez.");
+  }
+
+  async function runAudit(url: string): Promise<any> {
+    const body: Record<string, string> = { url };
+
+    const res = await fetch("/.netlify/functions/audit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: "Erreur serveur" }));
+      throw new Error(err.error || `Erreur ${res.status}`);
+    }
+
+    const initial = await res.json();
+    if (initial.status === "done") return initial.result;
+    if (initial.status === "pending" && initial.jobId) {
+      return pollAuditStatus(initial.jobId);
+    }
+    throw new Error("Réponse inattendue du serveur d'audit.");
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const url = urlInput.value.trim();
+    if (!url) return;
+
+    setLoading(true);
+    results.style.display = "none";
+    attachBtn.style.display = "none";
+    contactBtn.style.display = "none";
+
+    const stopLoader = startLoader();
+
+    try {
+      const data = await runAudit(url);
+
+      stopLoader();
+      lastReport = data;
+
+      showOutput(`✓ Analyse terminée pour ${data.finalUrl || url}`, 100);
+      setTimeout(hideProgress, 800);
+
+      renderOverallFromMobile(data);
+      renderScreenshots(data);
+      renderToggle(data);
+      renderTechStack(data.techStack || []);
+      renderSsl(data.ssl);
+      renderSeoExt(data.seo);
+      applyStrategy("mobile");
+
+      results.style.display = "block";
+      attachBtn.style.display = "inline-flex";
+      pdfBtn.style.display = "inline-flex";
+      contactBtn.style.display = "inline-flex";
+    } catch (err: any) {
+      stopLoader();
+      hideProgress();
+      showOutput(`✗ Erreur : ${err.message || "Impossible d'analyser ce site."}`);
+    } finally {
+      setLoading(false);
+    }
+  });
+
+  attachBtn.addEventListener("click", () => {
+    if (!lastReport) return;
+    const text = buildReport(lastReport);
+    const message = buildHumanMessage(lastReport);
+    const payload = {
+      text,
+      message,
+      generated: new Date().toLocaleString("fr-FR"),
+      score: lastReport.mobile?.scoreOverall ?? 0,
+      issues: lastReport.mobile?.issues || [],
+      symptoms_user: [],
+      url: lastReport.finalUrl || lastReport.url || "",
+    };
+    try {
+      localStorage.setItem("sospc_web_audit_v1", JSON.stringify(payload));
+    } catch {}
+    window.location.href = "/#contact";
+  });
+
+  function buildHumanMessage(data: any): string {
+    const lines: string[] = [];
+    const url = data.finalUrl || data.url || "";
+    const mScore = data.mobile?.scoreOverall ?? 0;
+    const dScore = data.desktop?.scoreOverall ?? 0;
+    const mSummary = data.mobile?.summary || { critical: 0, warning: 0 };
+    const dSummary = data.desktop?.summary || { critical: 0, warning: 0 };
+    const mIssues = data.mobile?.issues || [];
+    const dIssues = data.desktop?.issues || [];
+
+    lines.push(`Bonjour,`);
+    lines.push("");
+    lines.push(`J'ai utilisé l'outil d'audit de Talos Int. sur ${url} et j'aimerais discuter des corrections possibles.`);
+    lines.push("");
+    lines.push(`Résultat de l'audit :`);
+    lines.push(`  • Score mobile  : ${mScore}/100 (${verdictFor(mScore)})`);
+    lines.push(`  • Score desktop : ${dScore}/100 (${verdictFor(dScore)})`);
+    lines.push(`  • ${mSummary.critical || 0} problème(s) critique(s) sur mobile, ${dSummary.critical || 0} sur desktop`);
+
+    const allIssues = [...mIssues, ...dIssues];
+    if (allIssues.length > 0) {
+      const budget = computeBudget(mIssues.length >= dIssues.length ? mIssues : dIssues);
+      lines.push(`  • Budget estimé pour corrections : ${formatEur(budget.min)} — ${formatEur(budget.max)}`);
+    }
+
+    const criticals = mIssues.filter((i: any) => i.level === "error").slice(0, 3);
+    if (criticals.length > 0) {
+      lines.push("");
+      lines.push("Principaux problèmes critiques (mobile) :");
+      criticals.forEach((c: any) => {
+        lines.push(`  • ${c.title}`);
+      });
+    }
+
+    lines.push("");
+    lines.push(`Merci de me recontacter pour discuter d'un devis.`);
+    return lines.join("\n");
+  }
+
+  function buildScoresLines(label: string, strat: any): string[] {
+    const lines: string[] = [];
+    lines.push(`SCORES ${label.toUpperCase()}`);
+    SCORE_LABELS.forEach(({ key, label: l }) => {
+      const pct = Math.round((strat?.scores?.[key] ?? 0) * 100);
+      const filled = Math.round(pct / 5);
+      const bar = "#".repeat(filled) + "-".repeat(20 - filled);
+      lines.push(`  ${l.padEnd(18)} [${bar}] ${String(pct).padStart(3, " ")}/100`);
+    });
+    return lines;
+  }
+
+  function buildIssuesLines(strat: any): string[] {
+    const lines: string[] = [];
+    if (strat?.issues?.length) {
+      lines.push(`PROBLÈMES DÉTECTÉS (${strat.issues.length})`);
+      strat.issues.forEach((i: any) => {
+        const lvl = i.level === "error" ? "[CRITIQUE]" : "[ATTENTION]";
+        lines.push(`${lvl} ${i.title}  (${i.category || "—"} · effort ${i.effort})`);
+        if (i.description) lines.push(`           ${i.description}`);
+        if (i.impact) lines.push(`           → ${i.impact}`);
+        lines.push("");
+      });
+      const budget = computeBudget(strat.issues);
+      lines.push(`BUDGET ESTIMÉ : ${formatEur(budget.min)} — ${formatEur(budget.max)}  (${budget.count} corrections)`);
+      lines.push("");
+    }
+    return lines;
+  }
+
+  function buildVitalsLines(strat: any): string[] {
+    const lines: string[] = [];
+    if (strat?.vitals?.length) {
+      lines.push("CORE WEB VITALS");
+      strat.vitals.forEach((v: any) => {
+        const ratingLabel = v.rating === "good" ? "BON" : v.rating === "needs-improvement" ? "À AMÉLIORER" : "MAUVAIS";
+        lines.push(`  ${v.label.padEnd(35)} ${v.value.padStart(8)}  [${ratingLabel}]`);
+      });
+    }
+    return lines;
+  }
+
+  function buildReport(data: any): string {
+    const lines: string[] = [];
+    const sep = "=".repeat(56);
+    const dash = "-".repeat(56);
+
+    lines.push(sep);
+    lines.push("  RAPPORT AUDIT WEB — TALOS INT.");
+    lines.push("  " + new Date().toLocaleString("fr-FR"));
+    lines.push("  URL : " + (data.finalUrl || data.url || "?"));
+    lines.push(sep);
+    lines.push("");
+
+    const mScore = data.mobile?.scoreOverall ?? 0;
+    const dScore = data.desktop?.scoreOverall ?? 0;
+    lines.push(`SCORE GLOBAL`);
+    lines.push(`  Mobile  : ${mScore}/100  (${verdictFor(mScore)})`);
+    lines.push(`  Desktop : ${dScore}/100  (${verdictFor(dScore)})`);
+    lines.push("");
+
+    lines.push(dash);
+    buildScoresLines("mobile", data.mobile).forEach((l) => lines.push(l));
+    lines.push("");
+    buildScoresLines("desktop", data.desktop).forEach((l) => lines.push(l));
+    lines.push("");
+
+    lines.push(dash);
+    lines.push("MOBILE");
+    lines.push(dash);
+    buildVitalsLines(data.mobile).forEach((l) => lines.push(l));
+    lines.push("");
+    buildIssuesLines(data.mobile).forEach((l) => lines.push(l));
+
+    lines.push(dash);
+    lines.push("DESKTOP");
+    lines.push(dash);
+    buildVitalsLines(data.desktop).forEach((l) => lines.push(l));
+    lines.push("");
+    buildIssuesLines(data.desktop).forEach((l) => lines.push(l));
+
+    lines.push(sep);
+    lines.push("  Rapport Talos Int. — talos-int.com/audit");
+    lines.push(sep);
+    return lines.join("\n");
+  }
+
+  // E10 — PDF download via jsPDF loaded dynamically on click
+  pdfBtn.addEventListener("click", async () => {
+    if (!lastReport) return;
+    pdfLabel.textContent = "Génération…";
+    pdfBtn.setAttribute("disabled", "true");
+
+    try {
+      // Load jsPDF from CDN only when the user clicks — no bundle cost otherwise
+      const { jsPDF } = await import("https://cdn.jsdelivr.net/npm/jspdf@2.5.1/+esm" as any) as any;
+
+      const doc = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" });
+      const pageW = doc.internal.pageSize.getWidth();
+      const margin = 40;
+      const lineH = 13;
+      const maxW = pageW - margin * 2;
+
+      doc.setFont("courier", "normal");
+      doc.setFontSize(8);
+
+      let y = margin;
+
+      function addLine(text: string, indent = 0) {
+        const prefix = " ".repeat(indent);
+        const wrapped = doc.splitTextToSize(prefix + text, maxW);
+        wrapped.forEach((line: string) => {
+          if (y > doc.internal.pageSize.getHeight() - margin) {
+            doc.addPage();
+            y = margin;
+          }
+          doc.text(line, margin, y);
+          y += lineH;
+        });
+      }
+
+      const reportText = buildReport(lastReport);
+      const reportLines = reportText.split("\n");
+
+      // Header — slightly bigger
+      doc.setFontSize(9);
+      addLine(reportLines[0] || "");
+      doc.setFontSize(8);
+      reportLines.slice(1).forEach((line) => addLine(line));
+
+      // Tech stack appendix
+      const techs: any[] = lastReport.techStack || [];
+      if (techs.length > 0) {
+        addLine("");
+        addLine("=".repeat(56));
+        addLine("  STACK TECHNIQUE DÉTECTÉE");
+        addLine("=".repeat(56));
+        addLine("");
+        const grouped: Record<string, string[]> = {};
+        techs.forEach((t: any) => {
+          grouped[t.category] = grouped[t.category] || [];
+          grouped[t.category].push(t.name + (t.version ? ` ${t.version}` : ""));
+        });
+        Object.entries(grouped).forEach(([cat, names]) => {
+          addLine(`  ${cat.padEnd(12)} ${names.join(", ")}`);
+        });
+      }
+
+      const filename = `audit-talos-int-${new Date().toISOString().slice(0, 10)}.pdf`;
+      doc.save(filename);
+    } catch {
+      alert("Impossible de générer le PDF. Vérifiez votre connexion internet.");
+    } finally {
+      pdfLabel.textContent = "Télécharger PDF";
+      pdfBtn.removeAttribute("disabled");
+    }
+  });
+</script>
+
+<style>
+  .teal { color: var(--accent-hex); }
+  .text-muted { color: var(--text-muted); }
+
+  .section-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 1rem;
+  }
+
+  .audit-section {
+    padding: calc(var(--navbar-h) + 3rem) 0 5rem;
+  }
+
+  .audit-header {
+    margin-bottom: 2.5rem;
+  }
+
+  .audit-header h1 {
+    font-size: clamp(2rem, 4vw, 2.8rem);
+    margin-bottom: 0.75rem;
+  }
+
+  .audit-header p {
+    color: var(--text-muted);
+    font-size: 16px;
+    line-height: 1.7;
+    max-width: 600px;
+  }
+
+  .audit-header em {
+    font-style: normal;
+    color: var(--accent-hex);
+  }
+
+  .audit-terminal {
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    box-shadow: 0 0 30px #0006;
+  }
+
+  .terminal-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--bg-elevated);
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .t-dot { width: 12px; height: 12px; border-radius: 50%; }
+  .t-dot.red { background: #f7768e; }
+  .t-dot.yellow { background: #e0af68; }
+  .t-dot.green { background: #00d4aa; }
+
+  .t-title {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-left: 8px;
+  }
+
+  .terminal-body {
+    background: #0d0e14;
+    padding: 20px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.8;
+  }
+
+  .t-line {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .t-prompt { color: var(--accent-hex); font-weight: 600; }
+  .t-cmd { color: var(--text); }
+
+  .audit-form {
+    display: flex;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .audit-input {
+    flex: 1;
+    min-width: 0;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    padding: 4px 8px;
+    font-size: 13px;
+    color: var(--accent-hex);
+    font-family: var(--font-mono);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .audit-input:focus { border-color: var(--accent-hex); }
+  .audit-input::placeholder { color: var(--text-dim); }
+
+  .audit-submit {
+    background: var(--accent-hex);
+    color: #1a1b26;
+    border: none;
+    border-radius: var(--radius);
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: var(--font-mono);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+
+  .audit-submit:hover { box-shadow: 0 0 12px #00d4aa66; }
+
+  .audit-submit:disabled {
+    background: var(--border);
+    color: var(--text-dim);
+    cursor: wait;
+    box-shadow: none;
+  }
+
+  .audit-output {
+    margin-top: 12px;
+    padding-left: 16px;
+  }
+
+  .t-output { color: var(--text-muted); }
+
+  .audit-progress-bar {
+    display: none;
+    height: 2px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 1px;
+    margin-top: 8px;
+    overflow: hidden;
+  }
+
+  .audit-progress-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--accent-hex);
+    border-radius: 1px;
+    transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 6px var(--accent-hex);
+  }
+
+  .audit-results { margin-top: 2.5rem; }
+
+  /* ----- Overview (overall score + screenshots) ----- */
+
+  .audit-overview {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 24px;
+    margin-bottom: 2rem;
+    align-items: stretch;
+  }
+
+  .overall-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 28px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .overall-ring {
+    --pct: 0;
+    --color: var(--accent-hex);
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    background: conic-gradient(
+      var(--color) calc(var(--pct) * 1%),
+      var(--border) calc(var(--pct) * 1%)
+    );
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    position: relative;
+    flex-direction: column;
+  }
+
+  .overall-ring::before {
+    content: "";
+    position: absolute;
+    inset: 8px;
+    border-radius: 50%;
+    background: var(--bg-card);
+  }
+
+  .overall-val {
+    position: relative;
+    font-size: 32px;
+    font-weight: 700;
+    font-family: var(--font-mono);
+    line-height: 1;
+  }
+
+  .overall-suffix {
+    position: relative;
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 2px;
+  }
+
+  .overall-meta { flex: 1; min-width: 0; }
+
+  .overall-verdict {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .overall-summary {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin-bottom: 8px;
+  }
+
+  .overall-mobile-note {
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+
+  /* Screenshots */
+
+  .screenshots-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px 18px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .screenshots-header {
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.05em;
+  }
+
+  .screenshots-grid {
+    display: flex;
+    gap: 14px;
+    align-items: flex-end;
+    justify-content: center;
+    flex: 1;
+  }
+
+  .screenshot-slot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .screenshot-mobile { flex: 0 0 auto; }
+  .screenshot-desktop { flex: 1 1 auto; min-width: 0; max-width: 320px; }
+
+  .screenshot-frame {
+    position: relative;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    background: #0d0e14;
+    width: 100%;
+  }
+
+  .frame-mobile {
+    aspect-ratio: 9 / 16;
+    width: 110px;
+    border-radius: 14px;
+    border-width: 2px;
+  }
+
+  .frame-desktop {
+    aspect-ratio: 16 / 10;
+    width: 100%;
+  }
+
+  .screenshot-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+    display: block;
+  }
+
+  .screenshot-frame::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 30%;
+    background: linear-gradient(to bottom, transparent, rgba(13, 14, 20, 0.7));
+    pointer-events: none;
+  }
+
+  .screenshot-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+  }
+
+  /* ----- Strategy toggle ----- */
+
+  .strategy-toggle {
+    display: inline-flex;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 4px;
+    margin-bottom: 1.5rem;
+    gap: 4px;
+  }
+
+  .strat-btn {
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-body);
+    transition: all 0.15s;
+  }
+
+  .strat-btn:hover { color: var(--text); }
+
+  .strat-btn.active {
+    background: var(--bg-elevated);
+    color: var(--text);
+    box-shadow: 0 0 0 1px var(--accent-hex);
+  }
+
+  .strat-score {
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  /* ----- Scores grid ----- */
+
+  .audit-scores {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 2rem;
+  }
+
+  .score-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 18px 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    transition: border-color 0.2s;
+  }
+
+  .score-card:hover { border-color: var(--color, var(--accent-hex)); }
+
+  .score-ring {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: conic-gradient(
+      var(--color) calc(var(--pct) * 1%),
+      var(--border) calc(var(--pct) * 1%)
+    );
+    position: relative;
+  }
+
+  .score-ring::before {
+    content: "";
+    position: absolute;
+    inset: 5px;
+    border-radius: 50%;
+    background: var(--bg-card);
+  }
+
+  .score-val {
+    position: relative;
+    font-size: 16px;
+    font-weight: 700;
+    font-family: var(--font-mono);
+  }
+
+  .score-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-align: center;
+  }
+
+  /* ----- Section titles ----- */
+
+  .audit-section-title {
+    font-size: 14px;
+    color: var(--accent-hex);
+    margin-bottom: 0.25rem;
+    letter-spacing: 0.03em;
+  }
+
+  .audit-section-sub {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+  }
+
+  /* ----- Vitals ----- */
+
+  .vitals-wrap { margin-bottom: 2rem; }
+
+  .vitals-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+
+  .vital-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-left-width: 3px;
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .vital-good { border-left-color: var(--accent-hex); }
+  .vital-warn { border-left-color: var(--yellow); }
+  .vital-poor { border-left-color: var(--red); }
+
+  .vital-label {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .vital-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    font-family: var(--font-mono);
+  }
+
+  .vital-rating {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .vital-good .vital-rating { color: var(--accent-hex); }
+  .vital-warn .vital-rating { color: var(--yellow); }
+  .vital-poor .vital-rating { color: var(--red); }
+
+  /* ----- Quick wins ----- */
+
+  .quickwins-wrap { margin-bottom: 2rem; }
+
+  .quickwins-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .qw-item {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 14px 16px;
+    background: linear-gradient(90deg, #00d4aa14, transparent 80%);
+    border: 1px solid rgba(0, 212, 170, 0.3);
+    border-radius: var(--radius);
+  }
+
+  .qw-num {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--accent-hex);
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #00d4aa1a;
+    border: 1px solid var(--accent-hex);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .qw-body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .qw-head {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .qw-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .qw-tag {
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 3px;
+    border: 1px solid;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .qw-desc {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  .qw-cat {
+    font-size: 10px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .qw-impact,
+  .issue-impact {
+    font-size: 12px;
+    color: var(--accent-hex);
+    line-height: 1.5;
+    font-style: italic;
+    background: rgba(0, 212, 170, 0.06);
+    border-left: 2px solid var(--accent-hex);
+    padding: 6px 10px;
+    border-radius: 0 var(--radius) var(--radius) 0;
+    margin-top: 4px;
+  }
+
+  .impact-icon {
+    color: var(--accent-hex);
+    font-style: normal;
+    font-weight: 700;
+    margin-right: 4px;
+  }
+
+  /* ----- Budget card ----- */
+
+  .budget-card {
+    background: linear-gradient(135deg, rgba(0, 212, 170, 0.12), transparent 70%);
+    border: 1px solid rgba(0, 212, 170, 0.4);
+    border-radius: var(--radius-lg);
+    padding: 20px 24px;
+    margin-bottom: 2rem;
+  }
+
+  .budget-header {
+    margin-bottom: 12px;
+  }
+
+  .budget-label {
+    font-size: 11px;
+    color: var(--accent-hex);
+    letter-spacing: 0.05em;
+  }
+
+  .budget-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .budget-amount {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+
+  .budget-range {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .budget-meta {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  .budget-note {
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  /* ----- All issues ----- */
+
+  .audit-issues-wrap { margin-bottom: 2rem; }
+
+  .audit-issues {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .issue-item {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 12px 14px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-left-width: 3px;
+    border-radius: var(--radius);
+    transition: border-color 0.2s;
+  }
+
+  .issue-err { border-left-color: var(--red); }
+  .issue-warn { border-left-color: var(--yellow); }
+
+  .issue-icon { flex-shrink: 0; font-size: 14px; }
+  .issue-err .issue-icon { color: var(--red); }
+  .issue-warn .issue-icon { color: var(--yellow); }
+
+  .issue-body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .issue-head {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .issue-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .issue-cat,
+  .issue-effort {
+    font-size: 9px;
+    padding: 1px 6px;
+    border-radius: 3px;
+    border: 1px solid;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .issue-cat {
+    color: var(--text-dim);
+    border-color: var(--border);
+  }
+
+  .issue-desc {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.55;
+  }
+
+  /* ----- Actions ----- */
+
+  .audit-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+  }
+
+  /* ----- Responsive ----- */
+
+  @media (max-width: 900px) {
+    .audit-overview { grid-template-columns: 1fr; }
+    .vitals-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 640px) {
+    .audit-scores { grid-template-columns: repeat(2, 1fr); }
+    .overall-card {
+      flex-direction: column;
+      text-align: center;
+      gap: 16px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .vitals-grid { grid-template-columns: 1fr 1fr; }
+    .t-line { flex-direction: column; align-items: flex-start; }
+    .audit-form { width: 100%; }
+    .strategy-toggle { display: flex; width: 100%; }
+    .strat-btn { flex: 1; justify-content: center; }
+    .frame-mobile { width: 90px; }
+  }
+
+  /* ----- Competitor toggle (retiré) ----- */
+
+  /* ----- Tech stack badges (E18) ----- */
+
+  .tech-wrap { margin-bottom: 2rem; }
+
+  /* ----- SSL / Security headers (E15) ----- */
+
+  .ssl-wrap { margin-bottom: 2rem; }
+
+  /* ----- SEO étendu (E17) — réutilise les styles ssl-row/badge/body ----- */
+
+  .seo-ext-wrap { margin-bottom: 2rem; }
+
+  .seo-ext-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .seo-ok   { border-left-color: var(--accent-hex); }
+  .seo-warn { border-left-color: var(--red); }
+  .seo-info { border-left-color: var(--text-dim); }
+
+  .seo-ok   .ssl-icon { color: var(--accent-hex); }
+  .seo-warn .ssl-icon { color: var(--red); }
+  .seo-info .ssl-icon { color: var(--text-dim); }
+
+
+  .ssl-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .ssl-row {
+    display: grid;
+    grid-template-columns: 20px 1fr auto;
+    gap: 10px;
+    align-items: start;
+    padding: 10px 14px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-left-width: 3px;
+    border-radius: var(--radius);
+  }
+
+  .ssl-ok   { border-left-color: var(--accent-hex); }
+  .ssl-warn { border-left-color: var(--yellow); }
+  .ssl-fail { border-left-color: var(--red); }
+
+  .ssl-icon { font-size: 13px; margin-top: 1px; flex-shrink: 0; }
+  .ssl-ok   .ssl-icon { color: var(--accent-hex); }
+  .ssl-warn .ssl-icon { color: var(--yellow); }
+  .ssl-fail .ssl-icon { color: var(--red); }
+
+  .ssl-body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .ssl-name { font-size: 12px; font-weight: 600; color: var(--text); }
+
+  .ssl-desc { font-size: 11px; color: var(--text-muted); line-height: 1.5; }
+
+  .ssl-value {
+    font-size: 10px;
+    color: var(--text-dim);
+    word-break: break-all;
+    margin-top: 2px;
+    padding: 2px 6px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 3px;
+    border: 1px solid var(--border);
+  }
+
+  .ssl-badge {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 3px 7px;
+    border-radius: 3px;
+    border: 1px solid currentColor;
+    white-space: nowrap;
+    align-self: start;
+    flex-shrink: 0;
+  }
+
+  .tech-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .tech-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0;
+    border-radius: 4px;
+    border: 1px solid var(--tech-color, var(--border));
+    overflow: hidden;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    line-height: 1;
+  }
+
+  .tech-cat {
+    background: var(--tech-color, var(--border));
+    color: #1a1b26;
+    padding: 4px 7px;
+    font-weight: 700;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .tech-name {
+    padding: 4px 8px;
+    color: var(--text);
+    background: rgba(255,255,255,0.04);
+  }
+
+  .tech-version {
+    padding: 4px 6px 4px 0;
+    color: var(--text-dim);
+    font-size: 9px;
+  }
+
+  /* ----- Competitor comparison (retiré) ----- */
+</style>

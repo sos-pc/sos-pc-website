@@ -755,3 +755,54 @@ body.cover-active #sospc-widget {
     right: 16px;
   }
 }
+
+
+/* ---------- Accessibility ---------- */
+
+.skip-link {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 10000;
+  background: var(--accent-hex);
+  color: #1a1b26;
+  padding: 10px 16px;
+  border-radius: var(--radius);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transform: translateY(-150%);
+  transition: transform 0.2s ease;
+}
+
+.skip-link:focus,
+.skip-link:focus-visible {
+  transform: translateY(0);
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Hide purely decorative animated elements that have no static value */
+  .cover-cursor,
+  .t-cursor,
+  .arrow-icon,
+  #sospc-pulse,
+  .cover-dot {
+    animation: none !important;
+  }
+
+  /* The ASCII background stays visible as a static grid; the canvas
+     script renders a single frame instead of animating. */
+}

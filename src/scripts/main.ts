@@ -1,5 +1,7 @@
 import "./diagnostic-widget.ts";
 
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
 const observer = new IntersectionObserver(
   (entries) => {
     entries.forEach((entry) => {
@@ -13,25 +15,27 @@ const observer = new IntersectionObserver(
   { threshold: 0.05 }
 );
 
-document
-  .querySelectorAll(
-    ".service-card-new, .portfolio-card, .info-card, .stat"
-  )
-  .forEach((el, idx) => {
-    const rect = el.getBoundingClientRect();
-    const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
-    if (!isVisible) {
-      (el as HTMLElement).style.opacity = "0";
-      (el as HTMLElement).style.transform = "translateY(20px)";
-      (el as HTMLElement).style.transition =
-        "opacity 0.4s ease " +
-        Math.min(idx * 0.02, 0.1) +
-        "s, transform 0.4s ease " +
-        Math.min(idx * 0.02, 0.1) +
-        "s";
-      observer.observe(el);
-    }
-  });
+if (!reduceMotion) {
+  document
+    .querySelectorAll(
+      ".service-card-new, .portfolio-card, .info-card, .stat"
+    )
+    .forEach((el, idx) => {
+      const rect = el.getBoundingClientRect();
+      const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
+      if (!isVisible) {
+        (el as HTMLElement).style.opacity = "0";
+        (el as HTMLElement).style.transform = "translateY(20px)";
+        (el as HTMLElement).style.transition =
+          "opacity 0.4s ease " +
+          Math.min(idx * 0.02, 0.1) +
+          "s, transform 0.4s ease " +
+          Math.min(idx * 0.02, 0.1) +
+          "s";
+        observer.observe(el);
+      }
+    });
+}
 
 function formatDiagMeta(data: any) {
   const parts: string[] = [];
@@ -65,7 +69,7 @@ function attachDiagToForm(data: any) {
   ) as HTMLInputElement;
   if (subject && !subject.value) {
     subject.value =
-      "Suite diagnostic SOS-PC du " +
+      "Suite diagnostic Talos Int. du " +
       (data.generated || new Date().toLocaleDateString("fr-FR"));
   }
 }
@@ -114,6 +118,29 @@ document.addEventListener("DOMContentLoaded", function () {
       text: saved.diagReport.summary || "",
     };
     attachDiagToForm(meta);
+  } catch {}
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+  try {
+    const raw = localStorage.getItem("sospc_web_audit_v1");
+    if (!raw) return;
+    const payload = JSON.parse(raw);
+    localStorage.removeItem("sospc_web_audit_v1");
+    attachDiagToForm(payload);
+    const subject = document.querySelector(
+      'input[name="subject"]'
+    ) as HTMLInputElement;
+    if (subject && !subject.value) {
+      const urlPart = payload.url ? ` (${payload.url})` : "";
+      subject.value = "Suite audit web Talos Int. du " + (payload.generated || new Date().toLocaleDateString("fr-FR")) + urlPart;
+    }
+    const message = document.querySelector(
+      'textarea[name="message"]'
+    ) as HTMLTextAreaElement;
+    if (message && !message.value && payload.message) {
+      message.value = payload.message;
+    }
   } catch {}
 });
 

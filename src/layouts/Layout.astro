@@ -4,7 +4,7 @@ export interface Props {
   description?: string;
 }
 
-const { title = "SOS-PC — Dépannage & Solutions Informatiques", description = "Dépannage PC, réparation informatique et création de sites web à Le Castellet (04700). SOS-PC, intervention rapide dans les Alpes-de-Haute-Provence. Diagnostic IA gratuit." } = Astro.props;
+const { title = "Talos Int. — Dépannage & Solutions Informatiques", description = "Dépannage PC, réparation informatique et création de sites web à Le Castellet (04700). Talos Int., intervention rapide dans les Alpes-de-Haute-Provence. Diagnostic IA gratuit." } = Astro.props;
 ---
 
 <!doctype html>
@@ -16,31 +16,31 @@ const { title = "SOS-PC — Dépannage & Solutions Informatiques", description =
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>{title}</title>
     <meta name="keywords" content="depannage informatique 04700, reparation PC Le Castellet, technicien informatique Alpes-Haute-Provence" />
-    <meta name="author" content="SOS-PC" />
-    <link rel="canonical" href="https://sos-pc.click" />
-    <meta property="og:title" content="SOS-PC  Dépannage informatique Le Castellet 04700" />
+    <meta name="author" content="Talos Int." />
+    <link rel="canonical" href="https://talos-int.com" />
+    <meta property="og:title" content="Talos Int. — Dépannage informatique Le Castellet 04700" />
     <meta property="og:description" content="Diagnostic IA gratuit, réparation PC et création web dans les Alpes-de-Haute-Provence." />
-    <meta property="og:image" content="https://sos-pc.click/logo.png" />
-    <meta property="og:url" content="https://sos-pc.click" />
+    <meta property="og:image" content="https://talos-int.com/logo.png" />
+    <meta property="og:url" content="https://talos-int.com" />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="fr_FR" />
     <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content="SOS-PC  Dépannage informatique Le Castellet" />
-    <meta name="twitter:image" content="https://sos-pc.click/logo.png" />
+    <meta name="twitter:title" content="Talos Int. — Dépannage informatique Le Castellet" />
+    <meta name="twitter:image" content="https://talos-int.com/logo.png" />
     <script type="application/ld+json" set:html={JSON.stringify({
       "@context": "https://schema.org",
       "@type": "LocalBusiness",
-      "name": "SOS-PC",
+      "name": "Talos Int.",
       "description": "Dépannage informatique, réparation PC et création de sites web",
       "telephone": "+33769561491",
-      "email": "sos.pc.04@gmail.com",
+      "email": "contact@talos-int.com",
       "address": {
         "@type": "PostalAddress",
         "addressLocality": "Le Castellet",
         "postalCode": "04700",
         "addressCountry": "FR"
       },
-      "url": "https://sos-pc.click",
+      "url": "https://talos-int.com",
       "areaServed": "Alpes-de-Haute-Provence"
     })} />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -59,6 +59,7 @@ const { title = "SOS-PC — Dépannage & Solutions Informatiques", description =
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
   </head>
   <body>
+    <a href="#main-content" class="skip-link">Aller au contenu</a>
     <slot />
   </body>
   <script src="../scripts/main.ts"></script>

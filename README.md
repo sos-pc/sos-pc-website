@@ -1,8 +1,8 @@
-# SOS-PC — Site Vitrine
+# Talos Int. — Site Vitrine
 
-Site vitrines pour **SOS-PC**, entreprise de dépannage informatique, création web et hébergement basée au Castellet (04700).
+Site vitrines pour **Talos Int.**, entreprise de dépannage informatique, création web et hébergement basée au Castellet (04700).
 
-**Demo :** [sos-pc.click](https://sos-pc.click)
+**Demo :** [talos-int.com](https://talos-int.com)
 
 ## Stack
 
@@ -84,5 +84,9 @@ Le output se trouve dans `dist/`.
 
 ## Services externes
 
-- **Diagnostic IA :** `sos-pc-diagnostic.netlify.app` (API poll/analyze/chat)
-- **Script PowerShell :** `sos-pc.click/diag.ps1` (redirect vers le site diagnostic)
+- **Diagnostic IA :** `sos-pc-diagnostic.netlify.app` (API poll/analyze/chat) — backend historique, conservé en l'état. À renommer ultérieurement (sous-domaine custom `diag.talos-int.com` recommandé).
+- **Script PowerShell :** `talos-int.com/diag.ps1` (redirect vers le backend diagnostic ci-dessus, configuré dans `netlify.toml`)
+
+## Note sur les identifiants internes
+
+Les clés `localStorage`/`sessionStorage` (`sospc_*_v1`) et les IDs HTML (`#sospc-*`) sont conservés **volontairement** : les renommer casserait les sessions des visiteurs actuels. Ces identifiants ne sont pas visibles côté UI.
