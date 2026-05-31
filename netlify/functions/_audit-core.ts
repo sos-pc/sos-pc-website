@@ -519,7 +519,7 @@ async function fetchPageData(url: string): Promise<PageData> {
   try {
     const res = await fetch(url, {
       signal: AbortSignal.timeout(TECH_FETCH_TIMEOUT_MS),
-      headers: { "User-Agent": "Mozilla/5.0 (compatible; SOS-PC-Audit/1.0)" },
+      headers: { "User-Agent": "Mozilla/5.0 (compatible; TalosInt-Audit/1.0)" },
       redirect: "follow",
     });
 
