@@ -5,7 +5,7 @@ import Navbar from "../components/Navbar.astro";
 import Footer from "../components/Footer.astro";
 ---
 
-<Layout title="Audit Web — SOS-PC" description="Analysez gratuitement les performances, le SEO et l'accessibilité de votre site web sur mobile et desktop. Rapport détaillé en français.">
+<Layout title="Audit Web — Talos Int." description="Analysez gratuitement les performances, le SEO et l'accessibilité de votre site web sur mobile et desktop. Rapport détaillé en français.">
   <AsciiBackground />
   <Navbar />
   <main id="main-content">
@@ -157,7 +157,7 @@ import Footer from "../components/Footer.astro";
               <span class="budget-range mono" id="budget-range">—</span>
               <span class="budget-meta mono" id="budget-meta">—</span>
             </div>
-            <p class="budget-note">Fourchette indicative basée sur les tarifs SOS-PC. Le devis final dépend de la complexité de votre site et des priorités retenues.</p>
+            <p class="budget-note">Fourchette indicative basée sur les tarifs Talos Int. Le devis final dépend de la complexité de votre site et des priorités retenues.</p>
           </div>
         </div>
 
@@ -171,7 +171,7 @@ import Footer from "../components/Footer.astro";
             <span id="audit-pdf-label">Télécharger PDF</span>
           </button>
           <a href="/#contact" class="btn-ghost" id="audit-contact-btn" style="display:none;">
-            Refaire mon site avec SOS-PC →
+            Refaire mon site avec Talos Int. →
           </a>
         </div>
       </div>
@@ -758,7 +758,7 @@ import Footer from "../components/Footer.astro";
 
     lines.push(`Bonjour,`);
     lines.push("");
-    lines.push(`J'ai utilisé l'outil d'audit de SOS-PC sur ${url} et j'aimerais discuter des corrections possibles.`);
+    lines.push(`J'ai utilisé l'outil d'audit de Talos Int. sur ${url} et j'aimerais discuter des corrections possibles.`);
     lines.push("");
     lines.push(`Résultat de l'audit :`);
     lines.push(`  • Score mobile  : ${mScore}/100 (${verdictFor(mScore)})`);
@@ -833,7 +833,7 @@ import Footer from "../components/Footer.astro";
     const dash = "-".repeat(56);
 
     lines.push(sep);
-    lines.push("  RAPPORT AUDIT WEB — SOS-PC");
+    lines.push("  RAPPORT AUDIT WEB — TALOS INT.");
     lines.push("  " + new Date().toLocaleString("fr-FR"));
     lines.push("  URL : " + (data.finalUrl || data.url || "?"));
     lines.push(sep);
@@ -867,7 +867,7 @@ import Footer from "../components/Footer.astro";
     buildIssuesLines(data.desktop).forEach((l) => lines.push(l));
 
     lines.push(sep);
-    lines.push("  Rapport SOS-PC — sos-pc.click/audit");
+    lines.push("  Rapport Talos Int. — talos-int.com/audit");
     lines.push(sep);
     return lines.join("\n");
   }
@@ -933,7 +933,7 @@ import Footer from "../components/Footer.astro";
         });
       }
 
-      const filename = `audit-sos-pc-${new Date().toISOString().slice(0, 10)}.pdf`;
+      const filename = `audit-talos-int-${new Date().toISOString().slice(0, 10)}.pdf`;
       doc.save(filename);
     } catch {
       alert("Impossible de générer le PDF. Vérifiez votre connexion internet.");

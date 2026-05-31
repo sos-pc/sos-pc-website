@@ -69,7 +69,7 @@ function attachDiagToForm(data: any) {
   ) as HTMLInputElement;
   if (subject && !subject.value) {
     subject.value =
-      "Suite diagnostic SOS-PC du " +
+      "Suite diagnostic Talos Int. du " +
       (data.generated || new Date().toLocaleDateString("fr-FR"));
   }
 }
@@ -133,7 +133,7 @@ document.addEventListener("DOMContentLoaded", function () {
     ) as HTMLInputElement;
     if (subject && !subject.value) {
       const urlPart = payload.url ? ` (${payload.url})` : "";
-      subject.value = "Suite audit web SOS-PC du " + (payload.generated || new Date().toLocaleDateString("fr-FR")) + urlPart;
+      subject.value = "Suite audit web Talos Int. du " + (payload.generated || new Date().toLocaleDateString("fr-FR")) + urlPart;
     }
     const message = document.querySelector(
       'textarea[name="message"]'
