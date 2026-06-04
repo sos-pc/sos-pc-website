@@ -1,6 +1,8 @@
 import "./diagnostic-widget.ts";
 
-const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const reduceMotion = window.matchMedia(
+  "(prefers-reduced-motion: reduce)",
+).matches;
 
 const observer = new IntersectionObserver(
   (entries) => {
@@ -12,14 +14,12 @@ const observer = new IntersectionObserver(
       }
     });
   },
-  { threshold: 0.05 }
+  { threshold: 0.05 },
 );
 
 if (!reduceMotion) {
   document
-    .querySelectorAll(
-      ".service-card-new, .portfolio-card, .info-card, .stat"
-    )
+    .querySelectorAll(".service-card-new, .portfolio-card, .info-card, .stat")
     .forEach((el, idx) => {
       const rect = el.getBoundingClientRect();
       const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
@@ -42,11 +42,15 @@ function formatDiagMeta(data: any) {
   if (data.generated) parts.push(data.generated);
   if (data.score != null) parts.push("Score " + data.score + "/100");
   const problemCount = (data.issues || []).filter(
-    (i: any) => i.level !== "ok"
+    (i: any) => i.level !== "ok",
   ).length;
   if (problemCount)
     parts.push(
-      problemCount + " problème" + (problemCount > 1 ? "s" : "") + " détecté" + (problemCount > 1 ? "s" : "")
+      problemCount +
+        " problème" +
+        (problemCount > 1 ? "s" : "") +
+        " détecté" +
+        (problemCount > 1 ? "s" : ""),
     );
   if ((data.symptoms_user || []).length)
     parts.push(data.symptoms_user.length + " symptôme(s) décrits");
@@ -65,7 +69,7 @@ function attachDiagToForm(data: any) {
   const label = document.getElementById("contact-submit-label");
   if (label) label.textContent = "Envoyer + diagnostic joint";
   const subject = document.querySelector(
-    'input[name="subject"]'
+    'input[name="subject"]',
   ) as HTMLInputElement;
   if (subject && !subject.value) {
     subject.value =
@@ -83,20 +87,20 @@ function attachDiagToForm(data: any) {
   const label = document.getElementById("contact-submit-label");
   if (label) label.textContent = "Envoyer le message";
   const subject = document.querySelector(
-    'input[name="subject"]'
+    'input[name="subject"]',
   ) as HTMLInputElement;
   if (subject && subject.value.startsWith("Suite diagnostic"))
     subject.value = "";
 };
 
 window.addEventListener("sospc:attach-diag", (e: any) =>
-  attachDiagToForm(e.detail)
+  attachDiagToForm(e.detail),
 );
 window.addEventListener("sospc:attach-diag-update", (e: any) =>
-  attachDiagToForm(e.detail)
+  attachDiagToForm(e.detail),
 );
 window.addEventListener("sospc:diag-reset", () =>
-  (window as any).sospcDetachDiag()
+  (window as any).sospcDetachDiag(),
 );
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -129,14 +133,17 @@ document.addEventListener("DOMContentLoaded", function () {
     localStorage.removeItem("sospc_web_audit_v1");
     attachDiagToForm(payload);
     const subject = document.querySelector(
-      'input[name="subject"]'
+      'input[name="subject"]',
     ) as HTMLInputElement;
     if (subject && !subject.value) {
       const urlPart = payload.url ? ` (${payload.url})` : "";
-      subject.value = "Suite audit web Talos Int. du " + (payload.generated || new Date().toLocaleDateString("fr-FR")) + urlPart;
+      subject.value =
+        "Suite audit web Talos Int. du " +
+        (payload.generated || new Date().toLocaleDateString("fr-FR")) +
+        urlPart;
     }
     const message = document.querySelector(
-      'textarea[name="message"]'
+      'textarea[name="message"]',
     ) as HTMLTextAreaElement;
     if (message && !message.value && payload.message) {
       message.value = payload.message;
@@ -148,6 +155,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const script = document.createElement("script");
   script.src =
     "https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.12.2/lottie_light.min.js";
+  script.async = true;
   script.onload = function () {
     document.querySelectorAll("[data-lottie-src]").forEach((el) => {
       const src = el.getAttribute("data-lottie-src");
