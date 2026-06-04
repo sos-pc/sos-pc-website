@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 370 104" width="370" height="104">
+  <!-- TALOS INT. — Hexnode Horizontal (Version fond clair) -->
+  <g>
+    <line x1="52" y1="52" x2="52.0" y2="14.0" stroke="#007a62" stroke-width="0.6" opacity="0.14"/>
+    <line x1="52" y1="52" x2="84.9" y2="33.0" stroke="#007a62" stroke-width="0.6" opacity="0.14"/>
+    <line x1="52" y1="52" x2="84.9" y2="71.0" stroke="#007a62" stroke-width="0.6" opacity="0.14"/>
+    <line x1="52" y1="52" x2="52.0" y2="90.0" stroke="#007a62" stroke-width="0.6" opacity="0.14"/>
+    <line x1="52" y1="52" x2="19.1" y2="71.0" stroke="#007a62" stroke-width="0.6" opacity="0.14"/>
+    <line x1="52" y1="52" x2="19.1" y2="33.0" stroke="#007a62" stroke-width="0.6" opacity="0.14"/>
+  </g>
+  <polygon points="52.0,14.0 84.9,33.0 84.9,71.0 52.0,90.0 19.1,71.0 19.1,33.0"
+    fill="none" stroke="#007a62" stroke-width="1.75" stroke-linejoin="round"/>
+  <circle cx="52.0" cy="14.0" r="3.5" fill="#007a62"/>
+  <circle cx="84.9" cy="33.0" r="3.5" fill="#007a62"/>
+  <circle cx="84.9" cy="71.0" r="3.5" fill="#007a62"/>
+  <circle cx="52.0" cy="90.0" r="3.5" fill="#007a62"/>
+  <circle cx="19.1" cy="71.0" r="3.5" fill="#007a62"/>
+  <circle cx="19.1" cy="33.0" r="3.5" fill="#007a62"/>
+  <circle cx="52" cy="52" r="2" fill="#007a62" opacity="0.5"/>
+  <rect x="31" y="34" width="42" height="9" rx="1" fill="#1a1b26"/>
+  <rect x="44" y="43" width="16" height="30" rx="1" fill="#1a1b26"/>
+  <line x1="106" y1="28" x2="106" y2="76" stroke="#007a62" stroke-width="0.75" opacity="0.35"/>
+  <text x="120" y="48"
+    font-family="'Helvetica Neue', Helvetica, Arial, sans-serif"
+    font-size="22" font-weight="500" letter-spacing="5" fill="#1a1b26">TALOS</text>
+  <text x="121" y="72"
+    font-family="'Helvetica Neue', Helvetica, Arial, sans-serif"
+    font-size="16" font-weight="400" letter-spacing="5" fill="#007a62">INT.</text>
+</svg>
