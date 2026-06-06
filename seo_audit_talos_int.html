@@ -1,0 +1,354 @@
+
+<style>
+  .score-ring { transform: rotate(-90deg); transform-origin: 50% 50%; }
+  .section { border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; background: var(--color-background-primary); margin-bottom: 12px; }
+  .badge { display: inline-block; font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 20px; }
+  .badge-red { background: var(--color-background-danger); color: var(--color-text-danger); }
+  .badge-amber { background: var(--color-background-warning); color: var(--color-text-warning); }
+  .badge-green { background: var(--color-background-success); color: var(--color-text-success); }
+  .badge-blue { background: var(--color-background-info); color: var(--color-text-info); }
+  .row { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .row:last-child { border-bottom: none; }
+  .row-icon { font-size: 16px; margin-top: 2px; flex-shrink: 0; }
+  .row-text { flex: 1; font-size: 13px; color: var(--color-text-primary); line-height: 1.5; }
+  .row-label { font-size: 12px; color: var(--color-text-secondary); margin-top: 2px; }
+  .metric-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 12px; }
+  .metric-card { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 12px 14px; text-align: center; }
+  .metric-num { font-size: 28px; font-weight: 500; line-height: 1.1; }
+  .metric-lbl { font-size: 11px; color: var(--color-text-secondary); margin-top: 4px; }
+  .cat-title { font-size: 13px; font-weight: 500; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 10px; }
+  .progress-bar { height: 6px; border-radius: 3px; background: var(--color-border-tertiary); margin-top: 6px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 3px; }
+  .tab-row { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+  .tab { font-size: 12px; padding: 5px 12px; border-radius: 20px; border: 0.5px solid var(--color-border-secondary); cursor: pointer; color: var(--color-text-secondary); background: var(--color-background-primary); }
+  .tab.active { background: var(--color-text-primary); color: var(--color-background-primary); border-color: var(--color-text-primary); }
+  .pane { display: none; }
+  .pane.active { display: block; }
+  h2.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
+</style>
+
+<h2 class="sr-only">Audit SEO de talos-int.com — rapport détaillé par catégorie</h2>
+
+<div style="padding: 1rem 0;">
+
+  <!-- Header -->
+  <div style="display:flex; align-items:center; gap: 16px; margin-bottom: 16px;">
+    <div style="position:relative; width:72px; height:72px; flex-shrink:0;">
+      <svg width="72" height="72" viewBox="0 0 72 72">
+        <circle cx="36" cy="36" r="30" fill="none" stroke="var(--color-border-tertiary)" stroke-width="6"/>
+        <circle cx="36" cy="36" r="30" fill="none" stroke="#E24B4A" stroke-width="6" stroke-dasharray="56.5 132.5" class="score-ring" stroke-linecap="round"/>
+        <text x="36" y="40" text-anchor="middle" font-size="18" font-weight="500" fill="var(--color-text-primary)" style="font-family:var(--font-sans)">30</text>
+      </svg>
+    </div>
+    <div>
+      <div style="font-size:18px; font-weight:500; color:var(--color-text-primary);">talos-int.com</div>
+      <div style="font-size:13px; color:var(--color-text-secondary); margin-top:3px;">Score SEO global estimé : <strong>30 / 100</strong> — Nécessite des améliorations majeures</div>
+      <div style="display:flex; gap:6px; margin-top:8px;">
+        <span class="badge badge-green">HTTPS ✓</span>
+        <span class="badge badge-green">OG tags ✓</span>
+        <span class="badge badge-red">Non indexé ✗</span>
+        <span class="badge badge-red">SEO local absent ✗</span>
+        <span class="badge badge-amber">Contenu fin ~</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scores par catégorie -->
+  <div class="metric-grid">
+    <div class="metric-card">
+      <div class="metric-num" style="color:#E24B4A;">2<span style="font-size:16px;">/10</span></div>
+      <div class="metric-lbl">Visibilité Google</div>
+      <div class="progress-bar"><div class="progress-fill" style="width:20%; background:#E24B4A;"></div></div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-num" style="color:#E24B4A;">2<span style="font-size:16px;">/10</span></div>
+      <div class="metric-lbl">SEO local</div>
+      <div class="progress-bar"><div class="progress-fill" style="width:20%; background:#E24B4A;"></div></div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-num" style="color:#BA7517;">5<span style="font-size:16px;">/10</span></div>
+      <div class="metric-lbl">Technique</div>
+      <div class="progress-bar"><div class="progress-fill" style="width:50%; background:#BA7517;"></div></div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-num" style="color:#E24B4A;">2<span style="font-size:16px;">/10</span></div>
+      <div class="metric-lbl">Contenu</div>
+      <div class="progress-bar"><div class="progress-fill" style="width:20%; background:#E24B4A;"></div></div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tab-row">
+    <div class="tab active" onclick="showTab('issues')">Problèmes critiques</div>
+    <div class="tab" onclick="showTab('positives')">Points positifs</div>
+    <div class="tab" onclick="showTab('actions')">Plan d'action</div>
+  </div>
+
+  <!-- TAB: Issues -->
+  <div class="pane active" id="pane-issues">
+    <div class="section">
+      <div class="cat-title">🔴 Critiques — impact immédiat sur le classement</div>
+
+      <div class="row">
+        <div class="row-icon"><i class="ti ti-search-off" aria-hidden="true" style="color:var(--color-text-danger);"></i></div>
+        <div>
+          <div class="row-text"><strong>Site absent de Google</strong> pour ses propres mots-clés</div>
+          <div class="row-label">La requête "talos-int.com dépannage informatique Le Castellet" ne retourne aucun résultat du site. Cela peut indiquer un problème d'indexation, un site trop récent ou sans backlinks.</div>
+        </div>
+        <span class="badge badge-red">Critique</span>
+      </div>
+
+      <div class="row">
+        <div class="row-icon"><i class="ti ti-link-off" aria-hidden="true" style="color:var(--color-text-danger);"></i></div>
+        <div>
+          <div class="row-text"><strong>Canonical URL incohérente</strong> — www vs sans www</div>
+          <div class="row-label">La balise canonical pointe vers <code>https://talos-int.com</code> (sans www) mais le site charge sur <code>https://www.talos-int.com</code>. Google peut traiter les deux comme des pages dupliquées.</div>
+        </div>
+        <span class="badge badge-red">Critique</span>
+      </div>
+
+      <div class="row">
+        <div class="row-icon"><i class="ti ti-map-pin-off" aria-hidden="true" style="color:var(--color-text-danger);"></i></div>
+        <div>
+          <div class="row-text"><strong>Aucune données structurées</strong> LocalBusiness (Schema.org)</div>
+          <div class="row-label">Sans balisage JSON-LD LocalBusiness, Google ne peut pas afficher l'encart local (adresse, téléphone, horaires) dans les résultats de recherche. Essentiel pour toute activité locale.</div>
+        </div>
+        <span class="badge badge-red">Critique</span>
+      </div>
+
+      <div class="row">
+        <div class="row-icon"><i class="ti ti-building-store" aria-hidden="true" style="color:var(--color-text-danger);"></i></div>
+        <div>
+          <div class="row-text"><strong>Aucune fiche Google Business Profile</strong></div>
+          <div class="row-label">Pour un service local (04700), la fiche GMB est le premier levier de visibilité. Elle permet d'apparaître sur Google Maps et dans l'encart local — contournant la concurrence organique.</div>
+        </div>
+        <span class="badge badge-red">Critique</span>
+      </div>
+
+      <div class="row">
+        <div class="row-icon"><i class="ti ti-brand-google" aria-hidden="true" style="color:var(--color-text-danger);"></i></div>
+        <div>
+          <div class="row-text"><strong>Concurrence du nom de marque</strong> — "Talos" écrasé par Cisco</div>
+          <div class="row-label">Cisco Talos Intelligence est un mastodonte du secteur cyber. Toute recherche "Talos informatique" retourne Cisco en premier. Le nom "Talos Int." est très difficile à positionner en marque.</div>
+        </div>
+        <span class="badge badge-red">Critique</span>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="cat-title">🟡 Importants — freinent la progression</div>
+
+      <div class="row">
+        <div class="row-icon"><i class="ti ti-file-x" aria-hidden="true" style="color:var(--color-text-warning);"></i></div>
+        <div>
+          <div class="row-text"><strong>Pas de sitemap.xml</strong> ni de robots.txt détectés</div>
+          <div class="row-label">Google ne sait pas quelles pages explorer ni par où commencer. Un sitemap accélère l'indexation, surtout pour un site récent sans backlinks.</div>
+        </div>
+        <span class="badge badge-amber">Important</span>
+      </div>
+
+      <div class="row">
+        <div class="row-icon"><i class="ti ti-layout-sidebar" aria-hidden="true" style="color:var(--color-text-warning);"></i></div>
+        <div>
+          <div class="row-text"><strong>Site one-page</strong> avec navigation par ancres (#services, #about…)</div>
+          <div class="row-label">Une seule URL indexable = une seule chance d'apparaître dans Google. Chaque service (réparation, création web, streaming) mériterait sa propre page avec contenu dédié et URL unique.</div>
+        </div>
+        <span class="badge badge-amber">Important</span>
+      </div>
+
+      <div class="row">
+        <div class="row-icon"><i class="ti ti-writing" aria-hidden="true" style="color:var(--color-text-warning);"></i></div>
+        <div>
+          <div class="row-text"><strong>Contenu très mince</strong> — pas de blog, pas de FAQ, pas de pages dédiées</div>
+          <div class="row-label">Google classe les pages qui répondent à des questions. Aucun article, aucune FAQ, aucun contenu long format = aucune chance de capter du trafic informationnel (ex: "comment réparer PC lent").</div>
+        </div>
+        <span class="badge badge-amber">Important</span>
+      </div>
+
+      <div class="row">
+        <div class="row-icon"><i class="ti ti-heading" aria-hidden="true" style="color:var(--color-text-warning);"></i></div>
+        <div>
+          <div class="row-text"><strong>Plusieurs balises H1</strong> sur la même page</div>
+          <div class="row-label">"Talos Int." et "Votre partenaire tech de confiance" semblent être deux H1 distincts. Il ne doit y en avoir qu'un seul, clair et incluant le mot-clé principal.</div>
+        </div>
+        <span class="badge badge-amber">Important</span>
+      </div>
+
+      <div class="row">
+        <div class="row-icon"><i class="ti ti-title" aria-hidden="true" style="color:var(--color-text-warning);"></i></div>
+        <div>
+          <div class="row-text"><strong>Titre HTML ≠ OG title</strong> — incohérence des balises</div>
+          <div class="row-label">Le <code>&lt;title&gt;</code> dit "Dépannage & Solutions Informatiques" mais l'<code>og:title</code> dit "Dépannage informatique Le Castellet 04700". Choisir un titre unique et cohérent.</div>
+        </div>
+        <span class="badge badge-amber">Important</span>
+      </div>
+
+      <div class="row">
+        <div class="row-icon"><i class="ti ti-link" aria-hidden="true" style="color:var(--color-text-warning);"></i></div>
+        <div>
+          <div class="row-text"><strong>Aucun backlink</strong> — autorité de domaine nulle</div>
+          <div class="row-label">Sans liens entrants (annuaires locaux, partenaires, presse), Google n'a aucune raison de faire confiance au site. L'autorité de domaine est probablement de 0.</div>
+        </div>
+        <span class="badge badge-amber">Important</span>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="cat-title">🔵 Mineurs — à corriger après le reste</div>
+
+      <div class="row">
+        <div class="row-icon"><i class="ti ti-file-code" aria-hidden="true" style="color:var(--color-text-info);"></i></div>
+        <div>
+          <div class="row-text">Chemins d'images avec des espaces (<code>brand logo/</code> → encodé en <code>%20</code>)</div>
+          <div class="row-label">Mauvaise pratique. Renommer les dossiers/fichiers sans espace.</div>
+        </div>
+        <span class="badge badge-blue">Mineur</span>
+      </div>
+
+      <div class="row">
+        <div class="row-icon"><i class="ti ti-tags" aria-hidden="true" style="color:var(--color-text-info);"></i></div>
+        <div>
+          <div class="row-text">Balise <code>meta keywords</code> encore présente</div>
+          <div class="row-label">Ignorée par Google depuis 2009. Pas nuisible, mais inutile.</div>
+        </div>
+        <span class="badge badge-blue">Mineur</span>
+      </div>
+
+      <div class="row">
+        <div class="row-icon"><i class="ti ti-brand-twitter" aria-hidden="true" style="color:var(--color-text-info);"></i></div>
+        <div>
+          <div class="row-text">Twitter card en mode <code>summary</code> au lieu de <code>summary_large_image</code></div>
+          <div class="row-label">La vignette sera petite lors du partage. Passer à <code>summary_large_image</code> avec une image de 1200×630px.</div>
+        </div>
+        <span class="badge badge-blue">Mineur</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: Positives -->
+  <div class="pane" id="pane-positives">
+    <div class="section">
+      <div class="cat-title">✅ Ce qui fonctionne bien</div>
+      <div class="row">
+        <div class="row-icon"><i class="ti ti-lock" aria-hidden="true" style="color:var(--color-text-success);"></i></div>
+        <div class="row-text">HTTPS activé — certificat SSL présent <span class="badge badge-green">Bon</span></div>
+      </div>
+      <div class="row">
+        <div class="row-icon"><i class="ti ti-brand-meta" aria-hidden="true" style="color:var(--color-text-success);"></i></div>
+        <div>
+          <div class="row-text">Balises Open Graph présentes et correctement remplies <span class="badge badge-green">Bon</span></div>
+          <div class="row-label">og:title, og:description, og:image, og:type, og:url, og:locale — tout est là.</div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="row-icon"><i class="ti ti-list" aria-hidden="true" style="color:var(--color-text-success);"></i></div>
+        <div>
+          <div class="row-text">Meta description bien rédigée et sous 160 caractères <span class="badge badge-green">Bon</span></div>
+          <div class="row-label">"Dépannage PC, réparation informatique et création de sites web à Le Castellet (04700)…" — inclut les mots-clés locaux et un appel à l'action.</div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="row-icon"><i class="ti ti-device-mobile" aria-hidden="true" style="color:var(--color-text-success);"></i></div>
+        <div class="row-text">Viewport mobile configuré <span class="badge badge-green">Bon</span></div>
+      </div>
+      <div class="row">
+        <div class="row-icon"><i class="ti ti-language" aria-hidden="true" style="color:var(--color-text-success);"></i></div>
+        <div class="row-text">Contenu entièrement en français, cohérent avec la cible locale <span class="badge badge-green">Bon</span></div>
+      </div>
+      <div class="row">
+        <div class="row-icon"><i class="ti ti-brand-twitter" aria-hidden="true" style="color:var(--color-text-success);"></i></div>
+        <div class="row-text">Twitter Card configurée (à améliorer mais présente) <span class="badge badge-amber">Acceptable</span></div>
+      </div>
+      <div class="row">
+        <div class="row-icon"><i class="ti ti-map-pin" aria-hidden="true" style="color:var(--color-text-success);"></i></div>
+        <div>
+          <div class="row-text">Code postal 04700 dans le titre meta et la description <span class="badge badge-green">Bon</span></div>
+          <div class="row-label">Signal local positif, même si insuffisant seul.</div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="row-icon"><i class="ti ti-phone" aria-hidden="true" style="color:var(--color-text-success);"></i></div>
+        <div>
+          <div class="row-text">Numéro de téléphone et email en clair sur la page <span class="badge badge-green">Bon</span></div>
+          <div class="row-label">Google les lit comme signal NAP (Name, Address, Phone).</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: Actions -->
+  <div class="pane" id="pane-actions">
+    <div class="section">
+      <div class="cat-title">Actions prioritaires — semaine 1</div>
+      <div class="row">
+        <div style="font-size:13px; font-weight:500; color:var(--color-text-danger); min-width:24px;">1</div>
+        <div>
+          <div class="row-text"><strong>Créer une fiche Google Business Profile</strong></div>
+          <div class="row-label">→ business.google.com — ajouter adresse, téléphone, horaires, photos, catégorie "Réparation d'ordinateurs". C'est le levier n°1 pour apparaître sur Google Maps localement.</div>
+        </div>
+      </div>
+      <div class="row">
+        <div style="font-size:13px; font-weight:500; color:var(--color-text-danger); min-width:24px;">2</div>
+        <div>
+          <div class="row-text"><strong>Corriger le canonical</strong> — choisir www ou non-www et rediriger l'autre en 301</div>
+          <div class="row-label">→ Si le site charge sur www, mettre canonical = https://www.talos-int.com. Configurer une redirection 301 de talos-int.com → www.talos-int.com.</div>
+        </div>
+      </div>
+      <div class="row">
+        <div style="font-size:13px; font-weight:500; color:var(--color-text-danger); min-width:24px;">3</div>
+        <div>
+          <div class="row-text"><strong>Ajouter le balisage Schema.org LocalBusiness</strong> en JSON-LD</div>
+          <div class="row-label">→ Inclure : name, address, telephone, url, openingHours, priceRange, geo (latitude/longitude). À placer dans le &lt;head&gt;.</div>
+        </div>
+      </div>
+      <div class="row">
+        <div style="font-size:13px; font-weight:500; color:var(--color-text-danger); min-width:24px;">4</div>
+        <div>
+          <div class="row-text"><strong>Soumettre un sitemap.xml</strong> dans Google Search Console</div>
+          <div class="row-label">→ Générer un sitemap (même simple) et le déclarer dans Search Console pour forcer l'indexation.</div>
+        </div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="cat-title">Actions à moyen terme — mois 1-2</div>
+      <div class="row">
+        <div style="font-size:13px; font-weight:500; color:var(--color-text-warning); min-width:24px;">5</div>
+        <div>
+          <div class="row-text"><strong>Créer des pages dédiées</strong> pour chaque service</div>
+          <div class="row-label">→ /reparation-informatique, /creation-site-web, /hebergement-streaming — chacune avec 500+ mots, mots-clés locaux, FAQ. Sortir du modèle one-page.</div>
+        </div>
+      </div>
+      <div class="row">
+        <div style="font-size:13px; font-weight:500; color:var(--color-text-warning); min-width:24px;">6</div>
+        <div>
+          <div class="row-text"><strong>S'inscrire dans les annuaires locaux</strong> pour créer des backlinks</div>
+          <div class="row-label">→ Pages Jaunes, Yelp, Cylex, Kompass, Allovoisins, SIRENE — cohérence NAP obligatoire (même nom, adresse, téléphone partout).</div>
+        </div>
+      </div>
+      <div class="row">
+        <div style="font-size:13px; font-weight:500; color:var(--color-text-warning); min-width:24px;">7</div>
+        <div>
+          <div class="row-text"><strong>Corriger le H1 unique</strong> et la cohérence title/og:title</div>
+          <div class="row-label">→ Un seul H1 clair : "Dépannage informatique à Le Castellet (04700) — Talos Int." Uniformiser le title HTML et l'og:title.</div>
+        </div>
+      </div>
+      <div class="row">
+        <div style="font-size:13px; font-weight:500; color:var(--color-text-warning); min-width:24px;">8</div>
+        <div>
+          <div class="row-text"><strong>Ajouter des avis clients</strong> et du contenu FAQ</div>
+          <div class="row-label">→ Demander des avis Google à vos premiers clients. Ajouter une section FAQ avec balisage Schema FAQPage pour apparaître en rich snippets.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function showTab(id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('pane-' + id).classList.add('active');
+}
+</script>
