@@ -1,7 +1,7 @@
 <nav id="navbar">
   <div class="nav-inner">
     <a href="/" class="logo-link">
-      <img src="/brand logo/talos-int-icon-dark.svg" alt="Talos Int." class="logo-img" id="nav-logo" />
+      <img src="/brand-logo/talos-int-icon-dark.svg" alt="Talos Int." class="logo-img" id="nav-logo" />
       <span class="logo-text mono">Talos Int.</span>
     </a>
     <ul class="nav-links" id="nav-links-list">
@@ -48,9 +48,9 @@
 
   function updateLogo(isDark: boolean) {
     var navLogo = document.getElementById("nav-logo") as HTMLImageElement;
-    if (navLogo) navLogo.src = isDark ? "/brand logo/talos-int-icon-dark.svg" : "/brand logo/talos-int-icon-light.svg";
+    if (navLogo) navLogo.src = isDark ? "/brand-logo/talos-int-icon-dark.svg" : "/brand-logo/talos-int-icon-light.svg";
     var coverLogo = document.getElementById("cover-logo") as HTMLImageElement;
-    if (coverLogo) coverLogo.src = isDark ? "/brand logo/talos-int-horizontal-dark.svg" : "/brand logo/talos-int-horizontal-light.svg";
+    if (coverLogo) coverLogo.src = isDark ? "/brand-logo/talos-int-horizontal-dark.svg" : "/brand-logo/talos-int-horizontal-light.svg";
   }
 
   function setTheme(isDark: boolean) {

@@ -7,6 +7,12 @@
   ]
 
 [[redirects]]
+from = "https://talos-int.com/*"
+to = "https://www.talos-int.com/:splat"
+status = 301
+force = true
+
+[[redirects]]
 from = "/diag.ps1"
 to = "https://sos-pc-diagnostic.netlify.app/diag.ps1"
 status = 200

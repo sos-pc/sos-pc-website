@@ -13,20 +13,24 @@ const { title = "Talos Int. — Dépannage & Solutions Informatiques", descripti
     <meta charset="UTF-8" />
     <meta name="description" content={description} />
     <meta name="viewport" content="width=device-width" />
-    <link rel="icon" type="image/svg+xml" href="/brand logo/talos-int-icon-dark.svg" />
+    <meta name="robots" content="index, follow" />
+    <link rel="icon" type="image/svg+xml" href="/brand-logo/talos-int-icon-dark.svg" />
     <title>{title}</title>
-    <meta name="keywords" content="depannage informatique 04700, reparation PC Le Castellet, technicien informatique Alpes-Haute-Provence" />
+    <meta name="keywords" content="depannage informatique 04700, reparation PC Le Castellet, technicien informatique Alpes-de-Haute-Provence" />
     <meta name="author" content="Talos Int." />
-    <link rel="canonical" href="https://talos-int.com" />
-    <meta property="og:title" content="Talos Int. — Dépannage informatique Le Castellet 04700" />
-    <meta property="og:description" content="Diagnostic IA gratuit, réparation PC et création web dans les Alpes-de-Haute-Provence." />
-    <meta property="og:image" content="https://talos-int.com/brand%20logo/talos-int-dark.svg" />
-    <meta property="og:url" content="https://talos-int.com" />
+    <link rel="canonical" href="https://www.talos-int.com" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content="https://www.talos-int.com/brand-logo/talos-int-dark.svg" />
+    <meta property="og:image:width" content="200" />
+    <meta property="og:image:height" content="210" />
+    <meta property="og:url" content="https://www.talos-int.com" />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="fr_FR" />
+    <meta property="og:site_name" content="Talos Int." />
     <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content="Talos Int. — Dépannage informatique Le Castellet" />
-    <meta name="twitter:image" content="https://talos-int.com/brand%20logo/talos-int-dark.svg" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:image" content="https://www.talos-int.com/brand-logo/talos-int-dark.svg" />
     <script type="application/ld+json" set:html={JSON.stringify({
       "@context": "https://schema.org",
       "@type": "LocalBusiness",
@@ -40,12 +44,30 @@ const { title = "Talos Int. — Dépannage & Solutions Informatiques", descripti
         "postalCode": "04700",
         "addressCountry": "FR"
       },
-      "url": "https://talos-int.com",
-      "areaServed": "Alpes-de-Haute-Provence"
+      "url": "https://www.talos-int.com",
+      "areaServed": "Alpes-de-Haute-Provence",
+      "priceRange": "€€",
+      "image": "https://www.talos-int.com/brand-logo/talos-int-dark.svg",
+      "openingHours": "Mo-Fr 09:00-18:00",
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": 43.95,
+        "longitude": 5.98
+      }
+    })} />
+    <script type="application/ld+json" set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [{
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Accueil",
+        "item": "https://www.talos-int.com"
+      }]
     })} />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="preload" href="/brand logo/talos-int-icon-dark.svg" as="image" />
+    <link rel="preload" href="/brand-logo/talos-int-icon-dark.svg" as="image" />
     <script is:inline>
       (function() {
         var theme = localStorage.getItem("theme");
