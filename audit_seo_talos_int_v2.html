@@ -1,0 +1,331 @@
+
+<style>
+* { box-sizing: border-box; }
+body { margin: 0; }
+.card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; margin-bottom: 10px; }
+.pill { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 500; padding: 3px 9px; border-radius: 20px; white-space: nowrap; }
+.pill-red { background: var(--color-background-danger); color: var(--color-text-danger); }
+.pill-amber { background: var(--color-background-warning); color: var(--color-text-warning); }
+.pill-green { background: var(--color-background-success); color: var(--color-text-success); }
+.pill-blue { background: var(--color-background-info); color: var(--color-text-info); }
+.issue { display: flex; gap: 12px; align-items: flex-start; padding: 11px 0; border-bottom: 0.5px solid var(--color-border-tertiary); }
+.issue:last-child { border-bottom: none; padding-bottom: 0; }
+.issue-icon { font-size: 18px; margin-top: 1px; flex-shrink: 0; line-height: 1; }
+.issue-body { flex: 1; min-width: 0; }
+.issue-title { font-size: 13px; font-weight: 500; color: var(--color-text-primary); line-height: 1.4; margin-bottom: 3px; }
+.issue-desc { font-size: 12px; color: var(--color-text-secondary); line-height: 1.55; }
+.issue-pill { flex-shrink: 0; margin-top: 2px; }
+.cat-label { font-size: 11px; font-weight: 500; color: var(--color-text-tertiary); letter-spacing: 0.06em; text-transform: uppercase; margin: 0 0 8px; }
+.score-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 10px; }
+.score-cell { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 10px 8px; text-align: center; }
+.score-num { font-size: 20px; font-weight: 500; line-height: 1.1; }
+.score-lbl { font-size: 10px; color: var(--color-text-secondary); margin-top: 3px; line-height: 1.3; }
+.bar { height: 4px; border-radius: 2px; background: var(--color-border-tertiary); margin-top: 6px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 2px; }
+.divider { height: 0.5px; background: var(--color-border-tertiary); margin: 12px 0; }
+</style>
+
+<h2 style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">Audit SEO de talos-int.com — score global et problèmes par catégorie</h2>
+
+<div style="padding: 0.75rem 0;">
+
+  <div class="card">
+    <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
+      <div>
+        <div style="font-size:15px; font-weight:500; color:var(--color-text-primary);">talos-int.com — audit SEO</div>
+        <div style="font-size:12px; color:var(--color-text-secondary); margin-top:2px;">Analyse du 7 juin 2026 · Site de dépannage informatique local (04700)</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:30px; font-weight:500; color:#A32D2D; line-height:1;">28<span style="font-size:16px; color:var(--color-text-secondary);">/100</span></div>
+        <div style="font-size:11px; color:var(--color-text-secondary);">Score global estimé</div>
+      </div>
+    </div>
+    <div class="score-row">
+      <div class="score-cell">
+        <div class="score-num" style="color:#A32D2D;">1<span style="font-size:13px;">/10</span></div>
+        <div class="score-lbl">Visibilité<br>Google</div>
+        <div class="bar"><div class="bar-fill" style="width:10%; background:#E24B4A;"></div></div>
+      </div>
+      <div class="score-cell">
+        <div class="score-num" style="color:#A32D2D;">2<span style="font-size:13px;">/10</span></div>
+        <div class="score-lbl">SEO<br>local</div>
+        <div class="bar"><div class="bar-fill" style="width:20%; background:#E24B4A;"></div></div>
+      </div>
+      <div class="score-cell">
+        <div class="score-num" style="color:#854F0B;">5<span style="font-size:13px;">/10</span></div>
+        <div class="score-lbl">Technique<br>&amp; balises</div>
+        <div class="bar"><div class="bar-fill" style="width:50%; background:#EF9F27;"></div></div>
+      </div>
+      <div class="score-cell">
+        <div class="score-num" style="color:#A32D2D;">2<span style="font-size:13px;">/10</span></div>
+        <div class="score-lbl">Contenu<br>SEO</div>
+        <div class="bar"><div class="bar-fill" style="width:20%; background:#E24B4A;"></div></div>
+      </div>
+      <div class="score-cell">
+        <div class="score-num" style="color:#A32D2D;">1<span style="font-size:13px;">/10</span></div>
+        <div class="score-lbl">Autorité<br>domaine</div>
+        <div class="bar"><div class="bar-fill" style="width:10%; background:#E24B4A;"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="position:relative; height:220px; margin-bottom:10px;">
+    <canvas id="radarChart" role="img" aria-label="Graphique radar des 5 dimensions SEO : Visibilité 1, SEO local 2, Technique 5, Contenu 2, Autorité 1">Scores SEO : Visibilité 1/10, SEO local 2/10, Technique 5/10, Contenu 2/10, Autorité 1/10.</canvas>
+  </div>
+
+  <div class="card">
+    <div class="cat-label"><i class="ti ti-alert-circle" aria-hidden="true"></i> Problèmes critiques</div>
+
+    <div class="issue">
+      <div class="issue-icon" style="color:var(--color-text-danger);"><i class="ti ti-search-off" aria-hidden="true"></i></div>
+      <div class="issue-body">
+        <div class="issue-title">Site absent des résultats Google</div>
+        <div class="issue-desc">La commande <code>site:talos-int.com</code> ne retourne aucune page du site. Sans indexation, aucun trafic organique n'est possible — c'est le problème racine de tous les autres.</div>
+      </div>
+      <div class="issue-pill"><span class="pill pill-red">Critique</span></div>
+    </div>
+
+    <div class="issue">
+      <div class="issue-icon" style="color:var(--color-text-danger);"><i class="ti ti-link-off" aria-hidden="true"></i></div>
+      <div class="issue-body">
+        <div class="issue-title">Canonical www / non-www incohérent</div>
+        <div class="issue-desc">La balise <code>canonical</code> pointe vers <code>talos-int.com</code> (sans www) mais le site tourne sur <code>www.talos-int.com</code>. Google peut considérer les deux URLs comme du contenu dupliqué et refuser d'en indexer une.</div>
+      </div>
+      <div class="issue-pill"><span class="pill pill-red">Critique</span></div>
+    </div>
+
+    <div class="issue">
+      <div class="issue-icon" style="color:var(--color-text-danger);"><i class="ti ti-map-pin-off" aria-hidden="true"></i></div>
+      <div class="issue-body">
+        <div class="issue-title">Aucune donnée structurée LocalBusiness</div>
+        <div class="issue-desc">Sans balisage JSON-LD <code>LocalBusiness</code>, Google ne peut pas afficher l'encart enrichi (adresse, téléphone, horaires, avis) dans les résultats. C'est le signal SEO local n°1 pour une activité de proximité.</div>
+      </div>
+      <div class="issue-pill"><span class="pill pill-red">Critique</span></div>
+    </div>
+
+    <div class="issue">
+      <div class="issue-icon" style="color:var(--color-text-danger);"><i class="ti ti-building-store" aria-hidden="true"></i></div>
+      <div class="issue-body">
+        <div class="issue-title">Pas de fiche Google Business Profile</div>
+        <div class="issue-desc">Pour une activité locale comme le dépannage informatique à domicile, la fiche GMB est plus puissante que le référencement organique. Elle permet d'apparaître sur Google Maps et dans le pack local (les 3 premiers résultats locaux).</div>
+      </div>
+      <div class="issue-pill"><span class="pill pill-red">Critique</span></div>
+    </div>
+
+    <div class="issue">
+      <div class="issue-icon" style="color:var(--color-text-danger);"><i class="ti ti-trophy-off" aria-hidden="true"></i></div>
+      <div class="issue-body">
+        <div class="issue-title">Conflit de marque avec Cisco Talos</div>
+        <div class="issue-desc">Cisco Talos Intelligence Group est un acteur majeur de la cybersécurité mondiale. Toute recherche "Talos informatique" est écrasée par Cisco, Talos (crypto), Talos Principle (jeu vidéo)… Le nom de domaine rend le positionnement sur la marque quasi impossible.</div>
+      </div>
+      <div class="issue-pill"><span class="pill pill-red">Critique</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="cat-label"><i class="ti ti-alert-triangle" aria-hidden="true"></i> Problèmes importants</div>
+
+    <div class="issue">
+      <div class="issue-icon" style="color:var(--color-text-warning);"><i class="ti ti-sitemap" aria-hidden="true"></i></div>
+      <div class="issue-body">
+        <div class="issue-title">Pas de sitemap.xml ni de robots.txt</div>
+        <div class="issue-desc">Google ne sait ni quelles pages explorer, ni ce qui est autorisé. Pour un site neuf sans backlinks, le sitemap est indispensable — à soumettre dans Google Search Console dès sa création.</div>
+      </div>
+      <div class="issue-pill"><span class="pill pill-amber">Important</span></div>
+    </div>
+
+    <div class="issue">
+      <div class="issue-icon" style="color:var(--color-text-warning);"><i class="ti ti-layout-navbar" aria-hidden="true"></i></div>
+      <div class="issue-body">
+        <div class="issue-title">Architecture one-page avec navigation par ancres</div>
+        <div class="issue-desc">Une seule URL indexable (<code>/</code>) pour tous les services. Chaque service (réparation, création web, streaming) mériterait sa propre page avec URL dédiée, texte riche et mots-clés ciblés. Les ancres <code>#services</code> ne génèrent pas de pages indexables.</div>
+      </div>
+      <div class="issue-pill"><span class="pill pill-amber">Important</span></div>
+    </div>
+
+    <div class="issue">
+      <div class="issue-icon" style="color:var(--color-text-warning);"><i class="ti ti-writing" aria-hidden="true"></i></div>
+      <div class="issue-body">
+        <div class="issue-title">Contenu textuel trop mince</div>
+        <div class="issue-desc">La page repose principalement sur des éléments d'interface, des listes courtes et de l'animation "terminal". Aucun article, aucune FAQ, aucune description détaillée des services — Google n'a pas assez de texte pour déterminer la pertinence thématique du site.</div>
+      </div>
+      <div class="issue-pill"><span class="pill pill-amber">Important</span></div>
+    </div>
+
+    <div class="issue">
+      <div class="issue-icon" style="color:var(--color-text-warning);"><i class="ti ti-heading" aria-hidden="true"></i></div>
+      <div class="issue-body">
+        <div class="issue-title">Deux balises H1 sur la même page</div>
+        <div class="issue-desc">"Talos Int." et "Votre partenaire tech de confiance" semblent être deux H1 distincts. Il ne doit en exister qu'un seul, idéalement formulé ainsi : "Dépannage informatique à Le Castellet (04700) — Talos Int."</div>
+      </div>
+      <div class="issue-pill"><span class="pill pill-amber">Important</span></div>
+    </div>
+
+    <div class="issue">
+      <div class="issue-icon" style="color:var(--color-text-warning);"><i class="ti ti-tag" aria-hidden="true"></i></div>
+      <div class="issue-body">
+        <div class="issue-title">Incohérence entre le <code>&lt;title&gt;</code> et l'<code>og:title</code></div>
+        <div class="issue-desc">Le titre HTML est "Dépannage &amp; Solutions Informatiques" tandis que l'og:title est "Dépannage informatique Le Castellet 04700". Il faut harmoniser — et privilégier la version avec la localisation dans le <code>&lt;title&gt;</code> vu par Google.</div>
+      </div>
+      <div class="issue-pill"><span class="pill pill-amber">Important</span></div>
+    </div>
+
+    <div class="issue">
+      <div class="issue-icon" style="color:var(--color-text-warning);"><i class="ti ti-arrow-merge" aria-hidden="true"></i></div>
+      <div class="issue-body">
+        <div class="issue-title">Autorité de domaine nulle — aucun backlink entrant</div>
+        <div class="issue-desc">Sans liens entrants depuis d'autres sites (annuaires, partenaires, presse locale), Google n'accorde aucun crédit au domaine. Les inscriptions dans des annuaires locaux (Pages Jaunes, Kompass, Yelp…) sont le premier levier d'autorité à bas coût.</div>
+      </div>
+      <div class="issue-pill"><span class="pill pill-amber">Important</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="cat-label"><i class="ti ti-info-circle" aria-hidden="true"></i> Problèmes mineurs</div>
+
+    <div class="issue">
+      <div class="issue-icon" style="color:var(--color-text-info);"><i class="ti ti-folder-x" aria-hidden="true"></i></div>
+      <div class="issue-body">
+        <div class="issue-title">Espaces dans les chemins d'images</div>
+        <div class="issue-desc">Le dossier <code>brand logo/</code> (avec espace) force l'encodage <code>brand%20logo/</code> dans toutes les URLs d'images. Renommer en <code>brand-logo/</code>.</div>
+      </div>
+      <div class="issue-pill"><span class="pill pill-blue">Mineur</span></div>
+    </div>
+
+    <div class="issue">
+      <div class="issue-icon" style="color:var(--color-text-info);"><i class="ti ti-tag-off" aria-hidden="true"></i></div>
+      <div class="issue-body">
+        <div class="issue-title">Balise <code>meta keywords</code> présente mais inutile</div>
+        <div class="issue-desc">Ignorée par Google depuis 2009. Son maintien n'est pas nuisible mais encombre le <code>&lt;head&gt;</code> inutilement.</div>
+      </div>
+      <div class="issue-pill"><span class="pill pill-blue">Mineur</span></div>
+    </div>
+
+    <div class="issue">
+      <div class="issue-icon" style="color:var(--color-text-info);"><i class="ti ti-brand-twitter" aria-hidden="true"></i></div>
+      <div class="issue-body">
+        <div class="issue-title">Twitter card en mode <code>summary</code></div>
+        <div class="issue-desc">La vignette sera petite lors d'un partage sur X/Twitter. Passer à <code>summary_large_image</code> avec une image dédiée 1200×630 px améliore nettement le taux de clic social.</div>
+      </div>
+      <div class="issue-pill"><span class="pill pill-blue">Mineur</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="cat-label"><i class="ti ti-circle-check" aria-hidden="true"></i> Ce qui fonctionne déjà</div>
+    <div style="display:flex; flex-wrap:wrap; gap:6px;">
+      <span class="pill pill-green"><i class="ti ti-lock" aria-hidden="true"></i> HTTPS actif</span>
+      <span class="pill pill-green"><i class="ti ti-device-mobile" aria-hidden="true"></i> Viewport mobile</span>
+      <span class="pill pill-green"><i class="ti ti-brand-meta" aria-hidden="true"></i> OG tags complets</span>
+      <span class="pill pill-green"><i class="ti ti-text-size" aria-hidden="true"></i> Meta description &lt; 160 car.</span>
+      <span class="pill pill-green"><i class="ti ti-map-pin" aria-hidden="true"></i> 04700 dans les métas</span>
+      <span class="pill pill-green"><i class="ti ti-phone" aria-hidden="true"></i> Téléphone &amp; email visibles</span>
+      <span class="pill pill-green"><i class="ti ti-map" aria-hidden="true"></i> Carte Google Maps intégrée</span>
+      <span class="pill pill-green"><i class="ti ti-language" aria-hidden="true"></i> Contenu en français</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="cat-label"><i class="ti ti-list-check" aria-hidden="true"></i> Plan d'action — par ordre de priorité</div>
+    <div style="counter-reset: step;">
+      <div class="issue" style="align-items:center;">
+        <div style="width:22px;height:22px;border-radius:50%;background:var(--color-background-danger);color:var(--color-text-danger);font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0;">1</div>
+        <div class="issue-body">
+          <div class="issue-title">Créer la fiche Google Business Profile</div>
+          <div class="issue-desc">business.google.com · ajouter catégorie, adresse, horaires, photos — levier n°1 visibilité locale</div>
+        </div>
+      </div>
+      <div class="issue" style="align-items:center;">
+        <div style="width:22px;height:22px;border-radius:50%;background:var(--color-background-danger);color:var(--color-text-danger);font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0;">2</div>
+        <div class="issue-body">
+          <div class="issue-title">Corriger le canonical et forcer une redirection 301</div>
+          <div class="issue-desc">Choisir www ou non-www, rediriger l'autre, aligner canonical + og:url sur la même URL</div>
+        </div>
+      </div>
+      <div class="issue" style="align-items:center;">
+        <div style="width:22px;height:22px;border-radius:50%;background:var(--color-background-danger);color:var(--color-text-danger);font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0;">3</div>
+        <div class="issue-body">
+          <div class="issue-title">Ajouter le JSON-LD Schema LocalBusiness dans le &lt;head&gt;</div>
+          <div class="issue-desc">name, address, telephone, url, openingHours, geo — active les rich snippets locaux</div>
+        </div>
+      </div>
+      <div class="issue" style="align-items:center;">
+        <div style="width:22px;height:22px;border-radius:50%;background:var(--color-background-danger);color:var(--color-text-danger);font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0;">4</div>
+        <div class="issue-body">
+          <div class="issue-title">Créer sitemap.xml + robots.txt et ouvrir Google Search Console</div>
+          <div class="issue-desc">Soumettre le sitemap dans GSC pour forcer l'indexation — sans ça, rien d'autre ne sert</div>
+        </div>
+      </div>
+      <div class="issue" style="align-items:center;">
+        <div style="width:22px;height:22px;border-radius:50%;background:var(--color-background-warning);color:var(--color-text-warning);font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0;">5</div>
+        <div class="issue-body">
+          <div class="issue-title">Créer des pages dédiées par service</div>
+          <div class="issue-desc">/reparation-pc · /creation-site-web · /hebergement-streaming — 500+ mots chacune avec FAQ</div>
+        </div>
+      </div>
+      <div class="issue" style="align-items:center; border-bottom:none;">
+        <div style="width:22px;height:22px;border-radius:50%;background:var(--color-background-warning);color:var(--color-text-warning);font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0;">6</div>
+        <div class="issue-body">
+          <div class="issue-title">S'inscrire dans les annuaires locaux</div>
+          <div class="issue-desc">Pages Jaunes, Yelp, Kompass, Allovoisins · même NAP partout · premiers backlinks gratuits</div>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:12px; padding-top:12px; border-top: 0.5px solid var(--color-border-tertiary);">
+      <button onclick="sendPrompt('Génère le code JSON-LD Schema LocalBusiness complet pour Talos Int., dépannage informatique à Le Castellet 04700, téléphone 07 69 56 14 91, email contact@talos-int.com')" style="font-size:12px; cursor:pointer;">Générer le code Schema JSON-LD ↗</button>
+      <button onclick="sendPrompt('Rédige un sitemap.xml minimal pour talos-int.com avec les pages principales')" style="font-size:12px; cursor:pointer; margin-left:8px;">Créer le sitemap.xml ↗</button>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const isDark = matchMedia('(prefers-color-scheme: dark)').matches;
+const gridColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.07)';
+const labelColor = isDark ? '#9c9a92' : '#73726c';
+const fillColor = isDark ? 'rgba(226,75,74,0.25)' : 'rgba(226,75,74,0.15)';
+const borderColor = '#E24B4A';
+
+new Chart(document.getElementById('radarChart'), {
+  type: 'radar',
+  data: {
+    labels: ['Visibilité Google', 'SEO local', 'Technique & balises', 'Contenu SEO', 'Autorité domaine'],
+    datasets: [{
+      label: 'Score actuel',
+      data: [1, 2, 5, 2, 1],
+      fill: true,
+      backgroundColor: fillColor,
+      borderColor: borderColor,
+      borderWidth: 1.5,
+      pointBackgroundColor: borderColor,
+      pointRadius: 3,
+    },{
+      label: 'Objectif cible',
+      data: [7, 7, 8, 6, 5],
+      fill: false,
+      borderColor: isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.12)',
+      borderWidth: 1,
+      borderDash: [4, 3],
+      pointRadius: 0,
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      r: {
+        min: 0,
+        max: 10,
+        ticks: { stepSize: 2, display: false },
+        grid: { color: gridColor },
+        angleLines: { color: gridColor },
+        pointLabels: { color: labelColor, font: { size: 11 } }
+      }
+    },
+    plugins: {
+      legend: { display: false }
+    }
+  }
+});
+</script>
