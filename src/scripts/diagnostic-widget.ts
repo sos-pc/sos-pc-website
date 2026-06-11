@@ -791,12 +791,14 @@ function showBrowserResult(result: any) {
       .join("");
   }
 
-  // Bouton "Analyser ces résultats"
+  // Bouton "Démarrer le chat"
   const existing = el.querySelector(".sospc-browser-chat-btn");
   if (existing) existing.remove();
   const btn = document.createElement("button");
   btn.className = "sospc-browser-chat-btn";
-  btn.textContent = "💬 Analyser ces résultats";
+  btn.innerHTML =
+    '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>' +
+    " Démarrer le chat (sans scan)";
   btn.onclick = () => startBrowserChat(result);
   el.appendChild(btn);
 
@@ -837,6 +839,17 @@ function startBrowserChat(result: any) {
   addMessage("bot", lines);
   chatHistory.push({ role: "assistant", content: lines });
 
+  // Barre persistante pour proposer le scan complet
+  var existingBar = document.getElementById("sospc-scan-hint");
+  if (existingBar) existingBar.remove();
+  var bar = document.createElement("div");
+  bar.id = "sospc-scan-hint";
+  bar.innerHTML =
+    '<span style="font-size:12px;color:var(--text-muted);">🔍 Diagnostic complet (disques, sécurité, logiciels) :</span>' +
+    ' <button onclick="sospcShowScanTrigger()" style="background:rgba(var(--accent),0.12);color:var(--accent-hex);border:1px solid rgba(var(--accent),0.3);border-radius:var(--radius);padding:3px 10px;font-size:11px;font-family:var(--font-mono);cursor:pointer;">Lancer</button>';
+  var sugg = document.getElementById("sospc-suggestions") as HTMLElement;
+  if (sugg) sugg.parentNode?.insertBefore(bar, sugg);
+
   showSuggestions([
     "Expliquer le problème",
     "Améliorer les perfs",
@@ -847,6 +860,16 @@ function startBrowserChat(result: any) {
     new CustomEvent("sospc:attach-diag", { detail: buildFullReport() }),
   );
 }
+
+// Revenir à la vue d'attente pour proposer le scan complet
+(window as any).sospcShowScanTrigger = function () {
+  var viewDiag = document.getElementById("sospc-view-diag") as HTMLElement;
+  var viewWait = document.getElementById("sospc-view-waiting") as HTMLElement;
+  if (viewDiag) viewDiag.style.display = "none";
+  if (viewWait) viewWait.style.display = "block";
+  var sub = document.getElementById("sospc-header-sub") as HTMLElement;
+  if (sub) sub.textContent = "Diagnostic intelligent";
+};
 
 (async function () {
   (window as any).sospcDownloadScript = function () {
