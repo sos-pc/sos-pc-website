@@ -353,13 +353,39 @@ function renderHistory() {
   el.scrollTop = el.scrollHeight;
 }
 
-function setScore(score: number) {
-  const fill = document.getElementById("sospc-score-fill") as HTMLElement;
-  fill.style.background =
-    score >= 70 ? "#00d4aa" : score >= 40 ? "#e0af68" : "#f7768e";
-  (document.getElementById("sospc-score-val") as HTMLElement).textContent =
-    score + "/100";
-  setTimeout(() => (fill.style.width = score + "%"), 100);
+function buildSuggestionList(): string[] {
+  var items = [
+    "Expliquer le problème",
+    "Améliorer les perfs",
+    "Contacter Talos Int.",
+  ];
+  // Ajouter l'option scan si pas encore fait
+  if (!diagData) {
+    items.push("🔍 Lancer le scan complet");
+  }
+  return items;
+}
+
+function handleSuggestionClick(text: string) {
+  // Intercepter l'option scan
+  if (text === "🔍 Lancer le scan complet") {
+    var input = document.getElementById("sospc-input") as HTMLInputElement;
+    if (input) input.value = text;
+    (document.getElementById("sospc-suggestions") as HTMLElement).innerHTML =
+      "";
+    addMessage("user", text);
+    chatHistory.push({ role: "user", content: text });
+    var hint =
+      "Pour un diagnostic complet (disques, sécurité, processus, températures), utilisez le bandeau 🔍 en haut de cette fenêtre :\n\n📋 Copiez la commande et collez-la dans Win+R, ou 📥 téléchargez le fichier .bat et double-cliquez dessus.\n\nLe scan dure ~15 secondes et ne collecte aucune donnée personnelle.";
+    addMessage("bot", hint);
+    chatHistory.push({ role: "assistant", content: hint });
+    saveState();
+    return;
+  }
+  // Comportement normal
+  var input = document.getElementById("sospc-input") as HTMLInputElement;
+  if (input) input.value = text;
+  (window as any).sospcSend();
 }
 
 function showSuggestions(items: string[]) {
@@ -369,13 +395,18 @@ function showSuggestions(items: string[]) {
     const btn = document.createElement("button");
     btn.className = "sospc-suggestion";
     btn.textContent = text;
-    btn.onclick = () => {
-      el.innerHTML = "";
-      (document.getElementById("sospc-input") as HTMLInputElement).value = text;
-      (window as any).sospcSend();
-    };
+    btn.onclick = () => handleSuggestionClick(text);
     el.appendChild(btn);
   });
+}
+
+function setScore(score: number) {
+  const fill = document.getElementById("sospc-score-fill") as HTMLElement;
+  fill.style.background =
+    score >= 70 ? "#00d4aa" : score >= 40 ? "#e0af68" : "#f7768e";
+  (document.getElementById("sospc-score-val") as HTMLElement).textContent =
+    score + "/100";
+  setTimeout(() => (fill.style.width = score + "%"), 100);
 }
 
 function buildFullReport() {
@@ -863,11 +894,7 @@ function startBrowserChat(result: any) {
   addMessage("bot", lines);
   chatHistory.push({ role: "assistant", content: lines });
 
-  showSuggestions([
-    "Expliquer le problème",
-    "Améliorer les perfs",
-    "Contacter Talos Int.",
-  ]);
+  showSuggestions(buildSuggestionList());
   saveState();
   window.dispatchEvent(
     new CustomEvent("sospc:attach-diag", { detail: buildFullReport() }),
@@ -953,11 +980,7 @@ function analyzeData() {
         chatHistory.push({ role: "assistant", content: msg });
       }
 
-      showSuggestions([
-        "Expliquer le problème",
-        "Améliorer les perfs",
-        "Contacter Talos Int.",
-      ]);
+      showSuggestions(buildSuggestionList());
       saveState();
       (
         document.getElementById("sospc-attach-bar") as HTMLElement
