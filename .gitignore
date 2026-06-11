@@ -4,3 +4,5 @@ dist/
 .env
 .env.*
 sos-pc-diagnostic-backend/
+UsersAdministratorDocumentssos-pc-diagnostic/
+sos-pc-diagnostic-backend/
