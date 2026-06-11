@@ -863,6 +863,19 @@ function startBrowserChat(result: any) {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+
+    // Afficher l'indicateur d'attente
+    var indicator = document.getElementById(
+      "sospc-waiting-indicator",
+    ) as HTMLElement;
+    if (indicator) {
+      indicator.innerHTML =
+        '<div id="sospc-pulse"></div><span>Double-cliquez sur le fichier téléchargé — les résultats apparaîtront ici</span>';
+      indicator.style.display = "flex";
+    }
+    // Mettre à jour le sous-titre
+    var sub = document.getElementById("sospc-header-sub") as HTMLElement;
+    if (sub) sub.textContent = "⏳ En attente du scan...";
   };
 })();
 
