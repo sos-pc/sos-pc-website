@@ -651,6 +651,41 @@ body.cover-active #sospc-widget {
     border-color: rgba(var(--accent), 0.5);
 }
 
+/* ── Bandeau scan dans la vue chat ─────────────────────────────── */
+
+#sospc-scan-banner {
+    padding: 8px 12px;
+    background: #0d0e14;
+    border-bottom: 1px solid rgba(var(--accent), 0.15);
+}
+
+#sospc-scan-banner-cmd {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#sospc-scan-banner-code {
+    flex: 1;
+    color: var(--accent-hex);
+    font-size: 10px;
+    font-family: var(--font-mono);
+    word-break: break-all;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#sospc-scan-banner-waiting {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 6px;
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+}
+
 #sospc-score-wrap {
     display: flex;
     align-items: center;

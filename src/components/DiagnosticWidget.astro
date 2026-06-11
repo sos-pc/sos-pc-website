@@ -49,6 +49,17 @@
       </div>
     </div>
     <div id="sospc-view-diag" style="display:none;">
+      <!-- Bandeau scan -->
+      <div id="sospc-scan-banner" style="display:none;">
+        <div id="sospc-scan-banner-cmd">
+          <code id="sospc-scan-banner-code">chargement...</code>
+          <button id="sospc-dl-btn" onclick="sospcDownloadScript()" title="Télécharger (.bat)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          </button>
+          <button id="sospc-copy-btn" onclick="sospcCopy()">Copier</button>
+        </div>
+        <div id="sospc-scan-banner-waiting" style="display:none;"><div id="sospc-pulse"></div><span>En attente des données...</span></div>
+      </div>
       <div id="sospc-score-wrap">
         <span id="sospc-score-lbl">Santé du PC</span>
         <div id="sospc-score-track"><div id="sospc-score-fill"></div></div>

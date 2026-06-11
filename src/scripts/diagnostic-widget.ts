@@ -223,22 +223,28 @@ function buildCommand(id: string) {
 }
 
 (window as any).sospcCopy = function () {
-  navigator.clipboard
-    .writeText(
-      (document.getElementById("sospc-cmd") as HTMLElement).textContent || "",
-    )
-    .then(() => {
-      const btn = document.getElementById("sospc-copy-btn") as HTMLElement;
-      btn.textContent = "Copié !";
-      btn.classList.add("copied");
-      (
-        document.getElementById("sospc-waiting-indicator") as HTMLElement
-      ).style.display = "flex";
-      setTimeout(() => {
-        btn.textContent = "Copier";
-        btn.classList.remove("copied");
-      }, 2500);
+  var cmd =
+    (document.getElementById("sospc-cmd") as HTMLElement).textContent || "";
+  navigator.clipboard.writeText(cmd).then(() => {
+    var btns = document.querySelectorAll("#sospc-copy-btn");
+    btns.forEach(function (b: any) {
+      b.textContent = "Copié !";
+      b.classList.add("copied");
     });
+    // Afficher l'indicateur d'attente dans toutes les vues
+    var indicators = document.querySelectorAll(
+      "#sospc-waiting-indicator, #sospc-scan-banner-waiting",
+    );
+    indicators.forEach(function (el: any) {
+      el.style.display = "flex";
+    });
+    setTimeout(() => {
+      btns.forEach(function (b: any) {
+        b.textContent = "Copier";
+        b.classList.remove("copied");
+      });
+    }, 2500);
+  });
 };
 
 (window as any).sospcReset = function () {
@@ -248,8 +254,12 @@ function buildCommand(id: string) {
     sessionStorage.setItem("sospc_reset", "1");
     sessionStorage.setItem("sospc_fresh_session", "true");
     sessionId = genSessionId();
-    (document.getElementById("sospc-cmd") as HTMLElement).textContent =
-      buildCommand(sessionId);
+    var cmdText = buildCommand(sessionId);
+    (document.getElementById("sospc-cmd") as HTMLElement).textContent = cmdText;
+    var code2 = document.getElementById(
+      "sospc-scan-banner-code",
+    ) as HTMLElement;
+    if (code2) code2.textContent = cmdText;
     (document.getElementById("sospc-view-diag") as HTMLElement).style.display =
       "none";
     (
@@ -258,6 +268,12 @@ function buildCommand(id: string) {
     (
       document.getElementById("sospc-waiting-indicator") as HTMLElement
     ).style.display = "none";
+    var bannerW = document.getElementById(
+      "sospc-scan-banner-waiting",
+    ) as HTMLElement;
+    if (bannerW) bannerW.style.display = "none";
+    var banner = document.getElementById("sospc-scan-banner") as HTMLElement;
+    if (banner) banner.style.display = "none";
     (document.getElementById("sospc-header-sub") as HTMLElement).textContent =
       "Diagnostic intelligent";
     (document.getElementById("sospc-fab-text") as HTMLElement).textContent =
@@ -815,6 +831,14 @@ function startBrowserChat(result: any) {
   (document.getElementById("sospc-attach-bar") as HTMLElement).style.display =
     "block";
 
+  // Afficher le bandeau scan dans la vue chat
+  var banner = document.getElementById("sospc-scan-banner") as HTMLElement;
+  if (banner) banner.style.display = "block";
+  // Sync la commande
+  var code = document.getElementById("sospc-scan-banner-code") as HTMLElement;
+  var cmd = document.getElementById("sospc-cmd") as HTMLElement;
+  if (code && cmd) code.textContent = cmd.textContent;
+
   const lines = [
     "Scan rapide (navigateur) : " + result.score + "/100.",
     "",
@@ -839,17 +863,6 @@ function startBrowserChat(result: any) {
   addMessage("bot", lines);
   chatHistory.push({ role: "assistant", content: lines });
 
-  // Barre persistante pour proposer le scan complet
-  var existingBar = document.getElementById("sospc-scan-hint");
-  if (existingBar) existingBar.remove();
-  var bar = document.createElement("div");
-  bar.id = "sospc-scan-hint";
-  bar.innerHTML =
-    '<span style="font-size:12px;color:var(--text-muted);">🔍 Diagnostic complet (disques, sécurité, logiciels) :</span>' +
-    ' <button onclick="sospcShowScanTrigger()" style="background:rgba(var(--accent),0.12);color:var(--accent-hex);border:1px solid rgba(var(--accent),0.3);border-radius:var(--radius);padding:3px 10px;font-size:11px;font-family:var(--font-mono);cursor:pointer;">Lancer</button>';
-  var sugg = document.getElementById("sospc-suggestions") as HTMLElement;
-  if (sugg) sugg.parentNode?.insertBefore(bar, sugg);
-
   showSuggestions([
     "Expliquer le problème",
     "Améliorer les perfs",
@@ -860,16 +873,6 @@ function startBrowserChat(result: any) {
     new CustomEvent("sospc:attach-diag", { detail: buildFullReport() }),
   );
 }
-
-// Revenir à la vue d'attente pour proposer le scan complet
-(window as any).sospcShowScanTrigger = function () {
-  var viewDiag = document.getElementById("sospc-view-diag") as HTMLElement;
-  var viewWait = document.getElementById("sospc-view-waiting") as HTMLElement;
-  if (viewDiag) viewDiag.style.display = "none";
-  if (viewWait) viewWait.style.display = "block";
-  var sub = document.getElementById("sospc-header-sub") as HTMLElement;
-  if (sub) sub.textContent = "Diagnostic intelligent";
-};
 
 (async function () {
   (window as any).sospcDownloadScript = function () {
@@ -887,15 +890,15 @@ function startBrowserChat(result: any) {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 
-    // Afficher l'indicateur d'attente
-    var indicator = document.getElementById(
-      "sospc-waiting-indicator",
-    ) as HTMLElement;
-    if (indicator) {
-      indicator.innerHTML =
+    // Afficher l'indicateur d'attente dans toutes les vues
+    var indicators = document.querySelectorAll(
+      "#sospc-waiting-indicator, #sospc-scan-banner-waiting",
+    ) as NodeListOf<HTMLElement>;
+    indicators.forEach(function (el) {
+      el.innerHTML =
         '<div id="sospc-pulse"></div><span>Double-cliquez sur le fichier téléchargé — les résultats apparaîtront ici</span>';
-      indicator.style.display = "flex";
-    }
+      el.style.display = "flex";
+    });
     // Mettre à jour le sous-titre
     var sub = document.getElementById("sospc-header-sub") as HTMLElement;
     if (sub) sub.textContent = "⏳ En attente du scan...";
