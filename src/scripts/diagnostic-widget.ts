@@ -851,9 +851,9 @@ function startBrowserChat(result: any) {
 (async function () {
   (window as any).sospcDownloadScript = function () {
     var bat =
-      "@echo off\r\npowershell -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -Command \"$s='" +
+      "@echo off\r\necho SOS-PC Diagnostic\r\necho ================\r\necho.\r\npowershell -NoProfile -ExecutionPolicy Bypass -Command \"$s='" +
       (sessionId || "NOSESSION") +
-      "'; irm https://talos-int.com/diag.ps1 | iex\"\r\n";
+      "'; irm https://talos-int.com/diag.ps1 | iex\"\r\necho.\r\necho Diagnostic termine ! Retournez sur la page web.\r\ntimeout /t 5 >nul\r\n";
     var blob = new Blob([bat], { type: "application/bat" });
     var url = URL.createObjectURL(blob);
     var a = document.createElement("a");
