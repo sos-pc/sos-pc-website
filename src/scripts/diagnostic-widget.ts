@@ -791,8 +791,81 @@ function showBrowserResult(result: any) {
       .join("");
   }
 
+  // Bouton "Analyser ces résultats"
+  const existing = el.querySelector(".sospc-browser-chat-btn");
+  if (existing) existing.remove();
+  const btn = document.createElement("button");
+  btn.className = "sospc-browser-chat-btn";
+  btn.textContent = "💬 Analyser ces résultats";
+  btn.onclick = () => startBrowserChat(result);
+  el.appendChild(btn);
+
   el.style.display = "block";
 }
+
+function startBrowserChat(result: any) {
+  showDiagView();
+  setScore(result.score);
+  (document.getElementById("sospc-header-sub") as HTMLElement).textContent =
+    "Analyse rapide";
+  (document.getElementById("sospc-fab-text") as HTMLElement).textContent =
+    "Voir le diagnostic";
+  (document.getElementById("sospc-attach-bar") as HTMLElement).style.display =
+    "block";
+
+  const lines = [
+    "Scan rapide (navigateur) : " + result.score + "/100.",
+    "",
+    ...(result.alerts || []).map(
+      (a: any) =>
+        (a.level === "critical" ? "🔴" : a.level === "warning" ? "⚠️" : "✅") +
+        " " +
+        a.title,
+    ),
+    "",
+    "CPU : " +
+      result.data.cpu.cores +
+      " cœurs" +
+      (result.data.cpu.arch ? " (" + result.data.cpu.arch + ")" : ""),
+    "RAM : " + (result.data.ram.estimated || "inconnu"),
+    "GPU : " + result.data.gpu.renderer,
+    "OS : " + result.data.os.platform + " " + result.data.os.version,
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  addMessage("bot", lines);
+  chatHistory.push({ role: "assistant", content: lines });
+
+  showSuggestions([
+    "Expliquer le problème",
+    "Améliorer les perfs",
+    "Contacter Talos Int.",
+  ]);
+  saveState();
+  window.dispatchEvent(
+    new CustomEvent("sospc:attach-diag", { detail: buildFullReport() }),
+  );
+}
+
+(async function () {
+  (window as any).sospcDownloadScript = async function () {
+    try {
+      const res = await fetch("https://talos-int.com/diag.ps1");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "diagnostic-sos-pc.ps1";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch {
+      window.open("https://talos-int.com/diag.ps1", "_blank");
+    }
+  };
+})();
 
 window.addEventListener("sospc:browser-scan-done", (e: any) => {
   showBrowserResult(e.detail);

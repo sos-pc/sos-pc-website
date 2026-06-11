@@ -499,7 +499,8 @@ body.cover-active #sospc-widget {
     word-break: break-all;
 }
 
-#sospc-copy-btn {
+#sospc-copy-btn,
+#sospc-dl-btn {
     background: #00d4aa26;
     color: var(--accent-hex);
     border: 1px solid rgba(0, 212, 170, 0.3);
@@ -512,8 +513,13 @@ body.cover-active #sospc-widget {
     transition: background 0.2s;
 }
 
+#sospc-dl-btn {
+    padding: 5px 8px;
+}
+
 #sospc-copy-btn:hover,
-#sospc-copy-btn.copied {
+#sospc-copy-btn.copied,
+#sospc-dl-btn:hover {
     background: #00d4aa4d;
 }
 
@@ -622,6 +628,27 @@ body.cover-active #sospc-widget {
 .browser-alert.ok {
     background: rgba(0, 212, 170, 0.1);
     color: #00d4aa;
+}
+
+.sospc-browser-chat-btn {
+    width: 100%;
+    margin-top: 10px;
+    background: rgba(var(--accent), 0.12);
+    color: var(--accent-hex);
+    border: 1px solid rgba(var(--accent), 0.25);
+    border-radius: var(--radius);
+    padding: 8px 14px;
+    font-size: 12px;
+    font-family: var(--font-mono);
+    cursor: pointer;
+    transition:
+        background 0.2s,
+        border-color 0.2s;
+}
+
+.sospc-browser-chat-btn:hover {
+    background: rgba(var(--accent), 0.22);
+    border-color: rgba(var(--accent), 0.5);
 }
 
 #sospc-score-wrap {
