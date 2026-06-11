@@ -849,21 +849,13 @@ function startBrowserChat(result: any) {
 }
 
 (async function () {
-  (window as any).sospcDownloadScript = async function () {
-    try {
-      const res = await fetch("https://talos-int.com/diag.ps1");
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "diagnostic-sos-pc.ps1";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    } catch {
-      window.open("https://talos-int.com/diag.ps1", "_blank");
-    }
+  (window as any).sospcDownloadScript = function () {
+    var a = document.createElement("a");
+    a.href = window.location.origin + "/diag.ps1";
+    a.download = "diagnostic-sos-pc.ps1";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   };
 })();
 
