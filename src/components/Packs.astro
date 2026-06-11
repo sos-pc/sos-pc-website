@@ -1,0 +1,243 @@
+<section id="packs" class="packs-section">
+  <div class="section-label">
+    <span class="tag tag-teal">03</span>
+    <span class="mono text-muted">// Packs mensuels</span>
+  </div>
+  <h2 class="section-title">Des <span class="teal">formules</span> pour chaque besoin</h2>
+  <p class="packs-sub">Un seul prix, un seul interlocuteur, tout inclus.</p>
+
+  <div class="packs-grid">
+    <div class="pack-card">
+      <div class="pack-top">
+        <span class="pack-icon">🛡️</span>
+        <span class="pack-name">Sérénité</span>
+        <span class="pack-price">49<span class="pack-price-unit">€/mois</span></span>
+        <span class="pack-for">Pour les particuliers</span>
+      </div>
+      <ul class="pack-list">
+        <li>Hébergement site web</li>
+        <li>Maintenance WordPress</li>
+        <li>Alertes sécurité</li>
+        <li>1 dépannage remote/mois</li>
+      </ul>
+      <a href="#contact" class="pack-cta">Choisir ce pack →</a>
+    </div>
+
+    <div class="pack-card pack-featured">
+      <span class="pack-badge">Recommandé</span>
+      <div class="pack-top">
+        <span class="pack-icon">🔧</span>
+        <span class="pack-name">Artisan</span>
+        <span class="pack-price">79<span class="pack-price-unit">€/mois</span></span>
+        <span class="pack-for">Pour les TPE & indépendants</span>
+      </div>
+      <ul class="pack-list">
+        <li>Hébergement site web</li>
+        <li>Maintenance & mises à jour</li>
+        <li>Monitoring Google My Business</li>
+        <li>1h support par mois</li>
+      </ul>
+      <a href="#contact" class="pack-cta">Choisir ce pack →</a>
+    </div>
+
+    <div class="pack-card">
+      <div class="pack-top">
+        <span class="pack-icon">🏡</span>
+        <span class="pack-name">Gîte</span>
+        <span class="pack-price">99<span class="pack-price-unit">€/mois</span></span>
+        <span class="pack-for">Pour l'hébergement touristique</span>
+      </div>
+      <ul class="pack-list">
+        <li>Hébergement site web</li>
+        <li>Système de réservation</li>
+        <li>Monitoring des avis</li>
+        <li>1h support + rapport mensuel</li>
+      </ul>
+      <a href="#contact" class="pack-cta">Choisir ce pack →</a>
+    </div>
+
+    <div class="pack-card">
+      <div class="pack-top">
+        <span class="pack-icon">🏥</span>
+        <span class="pack-name">Cabinet</span>
+        <span class="pack-price">120<span class="pack-price-unit">€/mois</span></span>
+        <span class="pack-for">Pour les professions libérales</span>
+      </div>
+      <ul class="pack-list">
+        <li>Audit pratiques numériques</li>
+        <li>Suivi migration HDS</li>
+        <li>Maintenance infrastructure</li>
+        <li>Alerte certification annuelle</li>
+      </ul>
+      <a href="#contact" class="pack-cta">Choisir ce pack →</a>
+    </div>
+  </div>
+
+  <p class="packs-foot mono">Tous les packs sont sans engagement. Chaque mission ponctuelle se termine par une proposition de pack adapté.</p>
+</section>
+
+<style>
+  .teal { color: var(--accent-hex); }
+  .text-muted { color: var(--text-muted); }
+  .section-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 1rem;
+  }
+  .section-title {
+    font-size: clamp(2rem, 4vw, 2.8rem);
+    margin-bottom: 0.5rem;
+  }
+
+  .packs-section { padding: 5rem 0; border-bottom: 1px solid var(--border); }
+
+  .packs-sub {
+    color: var(--text-muted);
+    font-size: 15px;
+    margin-bottom: 2.5rem;
+  }
+
+  .packs-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 2rem;
+  }
+
+  .pack-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 24px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    position: relative;
+    transition: all 0.25s;
+  }
+
+  .pack-card:hover {
+    border-color: #ffffff1a;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px #0000004d;
+  }
+
+  .pack-featured {
+    border-color: var(--accent-hex);
+    box-shadow: 0 0 20px #00d4aa14;
+  }
+
+  .pack-badge {
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--accent-hex);
+    color: #1a1b26;
+    font-size: 10px;
+    font-weight: 700;
+    font-family: var(--font-mono);
+    padding: 3px 12px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .pack-top {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .pack-icon { font-size: 28px; }
+
+  .pack-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    font-family: var(--font-mono);
+  }
+
+  .pack-price {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--accent-hex);
+    line-height: 1;
+  }
+
+  .pack-price-unit {
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--text-muted);
+  }
+
+  .pack-for {
+    font-size: 11px;
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+  }
+
+  .pack-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+  }
+
+  .pack-list li {
+    font-size: 12px;
+    color: var(--text-muted);
+    padding-left: 16px;
+    position: relative;
+    line-height: 1.5;
+  }
+
+  .pack-list li::before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: var(--accent-hex);
+    font-family: var(--font-mono);
+    font-size: 10px;
+  }
+
+  .pack-cta {
+    display: block;
+    text-align: center;
+    background: rgba(var(--accent), 0.12);
+    color: var(--accent-hex);
+    border: 1px solid rgba(var(--accent), 0.25);
+    border-radius: var(--radius);
+    padding: 8px 14px;
+    font-size: 12px;
+    font-family: var(--font-mono);
+    font-weight: 500;
+    transition: all 0.2s;
+    text-decoration: none;
+    margin-top: auto;
+  }
+
+  .pack-featured .pack-cta {
+    background: var(--accent-hex);
+    color: #1a1b26;
+    border-color: var(--accent-hex);
+  }
+
+  .pack-cta:hover { opacity: 0.85; }
+
+  .packs-foot {
+    font-size: 12px;
+    color: var(--text-dim);
+    text-align: center;
+  }
+
+  @media (max-width: 1000px) {
+    .packs-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 600px) {
+    .packs-grid { grid-template-columns: 1fr; }
+  }
+</style>
