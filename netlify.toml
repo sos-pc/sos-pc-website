@@ -1,13 +1,21 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+  [build.environment]
+    NODE_VERSION = "22"
+
 [functions]
   directory = "netlify/functions"
 
-  [functions.emails]
-  included_files = [
-    "./emails/**"
-  ]
-
 [[redirects]]
 from = "https://talos-int.com/*"
+to = "https://www.talos-int.com/:splat"
+status = 301
+force = true
+
+[[redirects]]
+from = "https://sos-pc.click/*"
 to = "https://www.talos-int.com/:splat"
 status = 301
 force = true
@@ -17,29 +25,3 @@ from = "/diag.ps1"
 to = "https://sos-pc-diagnostic.netlify.app/diag.ps1"
 status = 200
 force = true
-
-[context]
-
-  [context.production]
-
-    [context.production.functions]
-
-      [context.production.functions.emails]
-      included_files = [
-        "./emails/**"
-      ]
-
-  [context.design-alternative]
-
-    [context.design-alternative.functions]
-      directory = "netlify/functions"
-
-      [context.design-alternative.functions.emails]
-      included_files = [
-        "./emails/**"
-      ]
-
-  [context.design-alternative-v2]
-
-    [context.design-alternative-v2.functions]
-      directory = "netlify/functions"
