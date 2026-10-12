@@ -4,7 +4,7 @@ import AsciiBackground from "../../components/AsciiBackground.astro";
 import Navbar from "../../components/Navbar.astro";
 import Footer from "../../components/Footer.astro";
 
-const lastUpdated = "17 mai 2026";
+const lastUpdated = "12 octobre 2026";
 ---
 
 <Layout title="man legal — Talos Int." description="Mentions légales et politique de confidentialité de Talos Int.">
@@ -71,6 +71,8 @@ DIAGNOSTIC PC (script PowerShell, optionnel)
   - état système (OS, mises à jour, sécurité, perfs)
   - événements système 7 derniers jours
   - liste logiciels installés
+  - processus en cours, programmes au démarrage
+  - réseau (cartes actives, IP locale, adresse MAC)
   AUCUN fichier personnel n'est lu ni transmis.
   AUCUN historique de navigation n'est collecté.
 
@@ -87,15 +89,20 @@ NAVIGATION
 
         <h3 class="man-h3">Conservation</h3>
         <pre class="man-pre">Messages de contact          : 3 ans après le dernier échange
-Rapports de diagnostic       : supprimés après 30 jours côté
-                               serveur ; conservés localement
-                               (votre navigateur) jusqu'à
-                               effacement manuel
+Rapports de diagnostic       : supprimés du serveur dès leur
+                               affichage, au plus tard 24 h
+                               après l'envoi ; conservés
+                               localement (votre navigateur)
+                               jusqu'à effacement manuel
 Données client (devis signé) : 10 ans (obligation comptable)</pre>
 
         <h3 class="man-h3">Destinataires</h3>
         <pre class="man-pre">- Talos Int. (responsable de traitement)
 - Netlify Forms (sous-traitant, hébergement formulaire)
+- Netlify (sous-traitant, hébergement du site et
+  stockage temporaire des rapports de diagnostic)
+- Google, via Netlify AI Gateway (sous-traitant,
+  analyse automatisée du diagnostic par l'IA Gemini)
 - aucun transfert commercial à des tiers</pre>
 
         <h3 class="man-h3">Exercer vos droits</h3>

@@ -84,8 +84,9 @@ Le output se trouve dans `dist/`.
 
 ## Services externes
 
-- **Diagnostic IA :** `sos-pc-diagnostic.netlify.app` (API poll/analyze/chat) — backend historique, conservé en l'état. À renommer ultérieurement (sous-domaine custom `diag.talos-int.com` recommandé).
-- **Script PowerShell :** `talos-int.com/diag.ps1` (redirect vers le backend diagnostic ci-dessus, configuré dans `netlify.toml`)
+- **Diagnostic IA :** fonctions `netlify/functions/diag-*` servies sur `/api/diag/{collect,poll,analyze,chat}` (même origine que le site). Analyse par Gemini via Netlify AI Gateway ; rapports stockés dans Netlify Blobs (`diagnostic-sessions`), supprimés à la lecture et purgés toutes les heures par `diag-cleanup` (24 h max).
+- **Script PowerShell :** `public/diag.ps1`, servi sur `www.talos-int.com/diag.ps1`, envoie le rapport à `/api/diag/collect`.
+- **Ancien backend :** `sos-pc-diagnostic.netlify.app` (dépôt `methammer/sos-pc-diagnostic`) n'est plus utilisé par le site.
 
 ## Note sur les identifiants internes
 

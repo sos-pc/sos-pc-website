@@ -1,5 +1,5 @@
 // ============================================================
-//  SOS-PC — Browser Diagnostic Scan
+//  Talos Int. — Browser Diagnostic Scan
 //  Collecte tout ce que le navigateur peut récupérer sans
 //  installation, et génère un score + des alertes immédiates.
 //  ~2 Ko gzippé, lazy-loadé uniquement sur les pages avec widget.
