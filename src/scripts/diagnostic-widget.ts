@@ -219,7 +219,7 @@ function genSessionId() {
 }
 
 function buildCommand(id: string) {
-  return `$s='${id}'; irm https://talos-int.com/diag.ps1 | iex`;
+  return `$s='${id}'; irm https://www.talos-int.com/diag.ps1 | iex`;
 }
 
 (window as any).sospcCopy = function () {
@@ -293,9 +293,7 @@ function startPolling() {
   pollInterval = setInterval(async () => {
     try {
       const res = await (
-        await fetch(
-          `https://sos-pc-diagnostic.netlify.app/api/poll?s=${sessionId}`,
-        )
+        await fetch(`/api/diag/poll?s=${sessionId}`)
       ).json();
       if (res.ready && res.data) {
         stopPolling();
@@ -904,14 +902,14 @@ function startBrowserChat(result: any) {
 (async function () {
   (window as any).sospcDownloadScript = function () {
     var bat =
-      "@echo off\r\necho SOS-PC Diagnostic\r\necho ================\r\necho.\r\npowershell -NoProfile -ExecutionPolicy Bypass -Command \"$s='" +
+      "@echo off\r\necho Talos Int. Diagnostic\r\necho =====================\r\necho.\r\npowershell -NoProfile -ExecutionPolicy Bypass -Command \"$s='" +
       (sessionId || "NOSESSION") +
-      "'; irm https://talos-int.com/diag.ps1 | iex\"\r\necho.\r\necho Diagnostic termine ! Vous pouvez fermer cette fenetre.\r\npause\r\n";
+      "'; irm https://www.talos-int.com/diag.ps1 | iex\"\r\necho.\r\necho Diagnostic termine ! Vous pouvez fermer cette fenetre.\r\npause\r\n";
     var blob = new Blob([bat], { type: "application/bat" });
     var url = URL.createObjectURL(blob);
     var a = document.createElement("a");
     a.href = url;
-    a.download = "diagnostic-sos-pc.bat";
+    a.download = "diagnostic-talos-int.bat";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -942,7 +940,7 @@ function analyzeData() {
     "Analyse en cours...";
   const loadingMsg = addMessage("bot typing", "> analyse en cours...");
 
-  apiFetch("https://sos-pc-diagnostic.netlify.app/api/analyze", {
+  apiFetch("/api/diag/analyze", {
     data: diagData,
     problem: "",
   })
@@ -1012,7 +1010,7 @@ function analyzeData() {
 
   const loadingMsg = addMessage("bot typing", "...");
 
-  apiFetch("https://sos-pc-diagnostic.netlify.app/api/chat", {
+  apiFetch("/api/diag/chat", {
     messages: chatHistory,
     systemData: diagData,
     report: diagReport,
