@@ -2,9 +2,10 @@
 export interface Props {
   title?: string;
   description?: string;
+  noindex?: boolean;
 }
 
-const { title = "Dépannage informatique Oraison (04700) — Talos Int. | Réparation PC, sites web & self-hosting", description = "Dépannage PC, réparation informatique, création de sites web et hébergement souverain à Oraison (04700). Intervention rapide à domicile et en remote. Diagnostic IA gratuit." } = Astro.props;
+const { title = "Dépannage informatique Oraison (04700) — Talos Int. | Réparation PC, sites web & self-hosting", description = "Dépannage PC, réparation informatique, création de sites web et hébergement souverain à Oraison (04700). Intervention rapide à domicile et en remote. Diagnostic IA gratuit.", noindex = false } = Astro.props;
 const canonicalURL = new URL(Astro.url.pathname, Astro.site).href;
 ---
 
@@ -14,7 +15,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site).href;
     <meta charset="UTF-8" />
     <meta name="description" content={description} />
     <meta name="viewport" content="width=device-width" />
-    <meta name="robots" content="index, follow" />
+    <meta name="robots" content={noindex ? "noindex, follow" : "index, follow"} />
     <meta name="theme-color" content="#0d1117" />
 
     <!-- Favicon — Google privilégie les PNG ≥ 96px + fallback ICO -->
@@ -33,7 +34,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site).href;
     <title>{title}</title>
     <meta name="keywords" content="depannage informatique Oraison, reparation PC 04700, technicien informatique Oraison, creation site web Oraison, depannage ordinateur 04, hebergement souverain, automatisation n8n, self-hosting France" />
     <meta name="author" content="Talos Int." />
-    <link rel="canonical" href={canonicalURL} />
+    {!noindex && <link rel="canonical" href={canonicalURL} />}
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:image" content="https://www.talos-int.com/brand-logo/talos-int-dark.svg" />
