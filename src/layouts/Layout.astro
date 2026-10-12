@@ -5,6 +5,7 @@ export interface Props {
 }
 
 const { title = "Dépannage informatique Oraison (04700) — Talos Int. | Réparation PC, sites web & self-hosting", description = "Dépannage PC, réparation informatique, création de sites web et hébergement souverain à Oraison (04700). Intervention rapide à domicile et en remote. Diagnostic IA gratuit." } = Astro.props;
+const canonicalURL = new URL(Astro.url.pathname, Astro.site).href;
 ---
 
 <!doctype html>
@@ -32,13 +33,13 @@ const { title = "Dépannage informatique Oraison (04700) — Talos Int. | Répar
     <title>{title}</title>
     <meta name="keywords" content="depannage informatique Oraison, reparation PC 04700, technicien informatique Oraison, creation site web Oraison, depannage ordinateur 04, hebergement souverain, automatisation n8n, self-hosting France" />
     <meta name="author" content="Talos Int." />
-    <link rel="canonical" href="https://www.talos-int.com" />
+    <link rel="canonical" href={canonicalURL} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:image" content="https://www.talos-int.com/brand-logo/talos-int-dark.svg" />
     <meta property="og:image:width" content="200" />
     <meta property="og:image:height" content="210" />
-    <meta property="og:url" content="https://www.talos-int.com" />
+    <meta property="og:url" content={canonicalURL} />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="fr_FR" />
     <meta property="og:site_name" content="Talos Int." />

@@ -5,7 +5,7 @@ import {
   isPrivateUrl,
   checkRateLimit,
   getCached,
-} from "./_audit-core.js";
+} from "../lib/audit-core.js";
 
 // Sync entry point. Responsibilities:
 //   1. Validate input (HTTP method, URL, private hosts).

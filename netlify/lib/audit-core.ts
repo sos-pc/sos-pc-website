@@ -1,7 +1,7 @@
 // Shared audit core — types, helpers, and the orchestrator runFullAudit().
-// Imported by audit.ts (sync entry), audit-background.ts (long-running),
-// and audit-status.ts (poll endpoint). The leading underscore in the
-// filename keeps Netlify from publishing this as a function endpoint.
+// Imported by audit.ts (sync entry) and audit-background.ts (long-running).
+// Lives outside netlify/functions/ so Netlify doesn't publish it as its own
+// function endpoint (a leading underscore in the filename does not prevent that).
 
 const API_KEY = process.env.PAGESPEED_API_KEY;
 const PSI_BASE = "https://www.googleapis.com/pagespeedonline/v5/runPagespeed";

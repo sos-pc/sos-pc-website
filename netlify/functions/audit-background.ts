@@ -1,5 +1,5 @@
 import type { Handler, HandlerEvent } from "@netlify/functions";
-import { runFullAudit, setCached } from "./_audit-core.js";
+import { runFullAudit, setCached } from "../lib/audit-core.js";
 
 // Background function — runs up to 15 minutes on the credit-based plan.
 // Triggered by audit.ts via an internal fetch. Reads the jobId from the

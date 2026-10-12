@@ -1,6 +1,6 @@
 import { defineConfig } from 'astro/config';
 
 export default defineConfig({
-  site: 'https://talos-int.com',
+  site: 'https://www.talos-int.com',
   output: 'static',
 });
