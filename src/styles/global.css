@@ -566,6 +566,90 @@ body.cover-active #sospc-widget {
     font-family: var(--font-mono);
 }
 
+/* ── App Windows « Talos Diagnostic » ───────────────────────────── */
+
+#sospc-app-block {
+    margin-bottom: 12px;
+}
+
+#sospc-app-launch,
+#sospc-scan-banner-app {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: rgb(var(--accent));
+    color: #1a1b26;
+    border: none;
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: var(--font-mono);
+    cursor: pointer;
+    transition: box-shadow 0.2s, opacity 0.2s;
+}
+
+#sospc-scan-banner-app {
+    margin-bottom: 8px;
+}
+
+#sospc-app-launch:hover,
+#sospc-scan-banner-app:hover {
+    box-shadow: 0 0 16px #00d4aa4d;
+}
+
+#sospc-app-status {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin: 10px 0 0;
+    line-height: 1.5;
+}
+
+#sospc-app-install {
+    display: block;
+    margin-top: 10px;
+    font-size: 12px;
+    font-family: var(--font-mono);
+    color: var(--accent-hex);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+#sospc-app-install.sospc-attention {
+    font-weight: 700;
+    animation: sospc-attention 0.9s ease-in-out 3;
+}
+
+@keyframes sospc-attention {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.45;
+    }
+}
+
+#sospc-script-toggle {
+    display: block;
+    margin-top: 10px;
+    padding: 0;
+    background: none;
+    border: none;
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--text-dim);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+}
+
+.sospc-collapsed {
+    display: none;
+}
+
 /* ── Scan navigateur ────────────────────────────────────────────── */
 
 #sospc-waiting-browser {

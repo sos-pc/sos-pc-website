@@ -21,7 +21,7 @@ function buildPrompt(d: any, problem: string): string {
     "---",
     "Probleme decrit : " + (problem || "Non precise"),
     "",
-    `OS : ${v(d.os?.name, "inconnu")} build ${v(d.os?.build)}`,
+    `OS : ${v(d.os?.name, "inconnu")}${d.os?.display_version ? " " + d.os.display_version : ""} build ${v(d.os?.build)}${d.os?.ubr != null ? "." + d.os.ubr : ""}`,
     `Arch : ${v(d.os?.arch)} | Uptime : ${v(d.os?.uptime)}h`,
   );
 
@@ -49,7 +49,7 @@ function buildPrompt(d: any, problem: string): string {
     for (const p of d.physical_disks) {
       lines.push(
         `  Physique ${v(p.friendly_name)} : ${v(p.media_type)} ${v(p.bus_type)} | sante ${v(p.health_status)} | ` +
-          `temp ${v(p.temperature_c)}C | secteurs realloues ${v(p.reallocated_sectors)} | heures ${v(p.hours_used)}`,
+          `SMART ${v(p.smart_status)} | temp ${v(p.temperature_c)}C | usure ${v(p.wear_pct)}% | heures ${v(p.hours_used)}`,
       );
     }
   }
@@ -60,8 +60,28 @@ function buildPrompt(d: any, problem: string): string {
 
   const s = d.security || {};
   lines.push(
-    `SECURITE : antivirus ${v(s.defender_enabled)} | temps reel ${v(s.realtime_protection)} | ` +
-      `signatures ${v(s.antivirus_signature_date)} | pare-feu prive ${v(s.firewall_private)} / public ${v(s.firewall_public)} | UAC ${v(s.uac_enabled)}`,
+    `SECURITE : Defender ${v(s.defender_enabled)}${s.defender_mode ? " (" + s.defender_mode + ")" : ""} | temps reel ${v(s.realtime_protection)} | ` +
+      `signatures ${v(s.antivirus_signature_date)} | pare-feu prive ${v(s.firewall_private)} / public ${v(s.firewall_public)} | ` +
+      `UAC ${v(s.uac_enabled)} | Secure Boot ${v(s.secure_boot)}`,
+  );
+  if (Array.isArray(s.antivirus_products) && s.antivirus_products.length) {
+    lines.push(
+      "ANTIVIRUS INSTALLES : " +
+        s.antivirus_products
+          .map((a: any) => `${v(a.name)} (${a.enabled ? "actif" : "inactif"}, ${a.up_to_date ? "a jour" : "pas a jour"})`)
+          .join(", "),
+    );
+  }
+
+  const u = d.updates || {};
+  const hotfixes: any[] = Array.isArray(u.last_hotfixes) ? u.last_hotfixes : [];
+  lines.push(
+    `MISES A JOUR : derniere installee ${v(hotfixes[0]?.installed_on)} | redemarrage en attente ${v(u.reboot_pending)}`,
+  );
+
+  const perf = d.performance || {};
+  lines.push(
+    `CHARGE : CPU ${v(perf.cpu_pct ?? d.cpu?.load)}% | RAM ${v(perf.ram_used_pct)}% | disque occupe ${v(perf.disk_pct_busy)}% | fichier d'echange ${v(perf.pagefile_used_pct)}%`,
   );
 
   lines.push("PROCESSUS (top RAM) :");
@@ -75,6 +95,17 @@ function buildPrompt(d: any, problem: string): string {
   lines.push(`STABILITE : ${v(st.critical_24h, "0")} erreurs critiques en 24h | ${v(st.bsod_count, "0")} arrets brutaux sur 7 jours`);
   for (const e of Array.isArray(st.samples) ? st.samples : []) {
     lines.push(`  [ID ${e.id}] ${e.message || e.msg || ""}`);
+  }
+  if (Array.isArray(st.app_crashes_7days) && st.app_crashes_7days.length) {
+    lines.push(
+      "PROGRAMMES AYANT PLANTE (7 jours) : " +
+        st.app_crashes_7days.map((c: any) => `${v(c.app)} x${v(c.count)}`).join(", "),
+    );
+  }
+
+  // Sections the collector could not read (e.g. admin-only data).
+  if (Array.isArray(d.notes) && d.notes.length) {
+    lines.push("DONNEES INDISPONIBLES : " + d.notes.join(" ; "));
   }
 
   lines.push("---", "Fournis le JSON de diagnostic complet.");

@@ -86,6 +86,7 @@ Le output se trouve dans `dist/`.
 
 - **Diagnostic IA :** fonctions `netlify/functions/diag-*` servies sur `/api/diag/{collect,poll,analyze,chat}` (même origine que le site). Analyse par Gemini via Netlify AI Gateway ; rapports stockés dans Netlify Blobs (`diagnostic-sessions`), supprimés à la lecture et purgés toutes les heures par `diag-cleanup` (24 h max).
 - **Script PowerShell :** `public/diag.ps1`, servi sur `www.talos-int.com/diag.ps1`, envoie le rapport à `/api/diag/collect`.
+- **App Windows « Talos Diagnostic » :** `apps/windows/` (WPF, Microsoft Store). Même collecte que le script, sans PowerShell ; ouvre `/?diag=<jeton>` après l'envoi. Build, tests et publication : [apps/windows/README.md](apps/windows/README.md).
 - **Ancien backend :** `sos-pc-diagnostic.netlify.app` (dépôt `methammer/sos-pc-diagnostic`) n'est plus utilisé par le site.
 
 ## Note sur les identifiants internes

@@ -90,7 +90,6 @@ $netAdapters = Get-NetAdapter | Where-Object { $_.Status -eq "Up" } | ForEach-Ob
         type        = if ($_.Name -match "Wi-Fi|WiFi|Wireless") { "WiFi" } elseif ($_.Name -match "VPN|Tunnel") { "VPN" } else { "Ethernet" }
         speed_mbps  = [math]::Round($_.LinkSpeed / 1MB)
         ip          = if ($ip) { $ip.IPAddress } else { $null }
-        mac         = $_.MacAddress
     }
 }
 
