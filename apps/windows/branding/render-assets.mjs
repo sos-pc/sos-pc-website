@@ -69,6 +69,9 @@ for (const [scale, factor] of [["100", 1], ["200", 2]]) {
   await save(pkgDir, `Wide310x150Logo.scale-${scale}.png`, await onBackground(310 * factor, 150 * factor, 120 * factor));
   await save(pkgDir, `StoreLogo.scale-${scale}.png`, await png(tileSvg, 50 * factor));
 }
+// Store listing "1:1 App tile icon" (uploaded in Partner Center, not packaged).
+await save(join(here, "..", "store"), "app-tile-300.png", await png(tileSvg, 300));
+
 // Taskbar / Start list icons at exact sizes, without the accent plate.
 for (const size of [16, 24, 32, 48, 256]) {
   const buffer = await png(tileSvg, size);

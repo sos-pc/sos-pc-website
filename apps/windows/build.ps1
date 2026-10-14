@@ -13,16 +13,20 @@
   Store identity defaults to a local development identity; pass the values
   from Partner Center > Product identity (or set the STORE_* environment
   variables, as the GitHub workflow does) to build the Store upload.
+  -DisplayName must be one of the names reserved for the product (Partner
+  Center rejects a package whose display name was not reserved).
 
 .EXAMPLE
   ./apps/windows/build.ps1
   ./apps/windows/build.ps1 -IdentityName "12345TalosInt.TalosDiagnostic" -Publisher "CN=ABCD1234-..." -Version 1.0.1.0
+  ./apps/windows/build.ps1 -DisplayName "Talos Diagnostic Test" -IdentityName "..." -Publisher "CN=..." -PublisherDisplayName "..."
 #>
 param(
   [string]$Configuration = "Release",
   [string]$IdentityName = $(if ($env:STORE_IDENTITY_NAME) { $env:STORE_IDENTITY_NAME } else { "TalosInt.TalosDiagnostic.Dev" }),
   [string]$Publisher = $(if ($env:STORE_PUBLISHER) { $env:STORE_PUBLISHER } else { "CN=TalosIntDev" }),
   [string]$PublisherDisplayName = $(if ($env:STORE_PUBLISHER_DISPLAY_NAME) { $env:STORE_PUBLISHER_DISPLAY_NAME } else { "Talos Int." }),
+  [string]$DisplayName = $(if ($env:STORE_DISPLAY_NAME) { $env:STORE_DISPLAY_NAME } else { "Talos Diagnostic" }),
   [string]$Version = "1.0.0.0",
   [ValidateSet("x64", "arm64")] [string]$Arch = "x64"
 )
@@ -58,6 +62,7 @@ $tokens = @{
   '$IdentityName$' = $IdentityName
   '$Publisher$' = [System.Security.SecurityElement]::Escape($Publisher)
   '$PublisherDisplayName$' = [System.Security.SecurityElement]::Escape($PublisherDisplayName)
+  '$DisplayName$' = [System.Security.SecurityElement]::Escape($DisplayName)
   '$Version$' = $Version
   '$Arch$' = $Arch
 }
@@ -86,3 +91,4 @@ if ($LASTEXITCODE -ne 0) { throw "makeappx a échoué (manifeste invalide ?)." }
 Write-Host ""
 Write-Host "Package : $msix"
 Write-Host "Identité : $IdentityName / $Publisher"
+Write-Host "Nom affiché : $DisplayName (éditeur : $PublisherDisplayName)"

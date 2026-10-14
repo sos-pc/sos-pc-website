@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Template: build.ps1 fills the $...$ tokens. The Store identity values come
-     from Partner Center > Product identity (see apps/windows/README.md). -->
+     from Partner Center > Product identity (see apps/windows/README.md).
+     $DisplayName$ must be one of the names reserved for the product. -->
 <Package
   xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
   xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
@@ -11,7 +12,7 @@
   <Identity Name="$IdentityName$" Publisher="$Publisher$" Version="$Version$" ProcessorArchitecture="$Arch$" />
 
   <Properties>
-    <DisplayName>Talos Diagnostic</DisplayName>
+    <DisplayName>$DisplayName$</DisplayName>
     <PublisherDisplayName>$PublisherDisplayName$</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
     <Description>Analyse gratuite de votre PC Windows par Talos Int. Les résultats et les conseils s'affichent sur talos-int.com.</Description>
@@ -29,12 +30,12 @@
   <Applications>
     <Application Id="TalosDiagnostic" Executable="TalosDiagnostic.exe" EntryPoint="Windows.FullTrustApplication">
       <uap:VisualElements
-        DisplayName="Talos Diagnostic"
+        DisplayName="$DisplayName$"
         Description="Diagnostic de votre PC par Talos Int."
         BackgroundColor="transparent"
         Square150x150Logo="Assets\Square150x150Logo.png"
         Square44x44Logo="Assets\Square44x44Logo.png">
-        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png" ShortName="Talos Diagnostic" />
+        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png" ShortName="$DisplayName$" />
       </uap:VisualElements>
 
       <Extensions>
@@ -42,7 +43,7 @@
              no data the app trusts (see LaunchOptions / ReportClient). -->
         <uap3:Extension Category="windows.protocol">
           <uap3:Protocol Name="talos-diag" Parameters="&quot;%1&quot;">
-            <uap:DisplayName>Talos Diagnostic</uap:DisplayName>
+            <uap:DisplayName>$DisplayName$</uap:DisplayName>
           </uap3:Protocol>
         </uap3:Extension>
       </Extensions>

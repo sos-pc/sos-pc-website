@@ -68,20 +68,17 @@ Après modification du logo (`branding/app-icon.svg`) : `node apps/windows/brand
    ```powershell
    ./apps/windows/build.ps1 -IdentityName "<Identity/Name>" -Publisher "<Identity/Publisher>" -PublisherDisplayName "<PublisherDisplayName>" -Version 1.0.0.0
    ```
-   (ou renseigner les variables `STORE_IDENTITY_NAME`, `STORE_PUBLISHER`,
-   `STORE_PUBLISHER_DISPLAY_NAME` dans GitHub → Settings → Variables pour que
-   l'artefact du workflow soit directement prêt).
-5. **Soumission** :
-   - Packages : déposer le `.msix`.
-   - Propriétés : catégorie « Utilitaires et outils » ; politique de
-     confidentialité : `https://www.talos-int.com/man/legal/#rgpd`.
-   - Capacité `runFullTrust` : justification à donner, par exemple « Lecture
-     des informations matérielles et système (WMI, journaux d'événements,
-     registre) pour établir un diagnostic du PC à la demande de l'utilisateur ».
-   - Classification d'âge : questionnaire IARC (aucun contenu sensible).
-   - Fiche Store : description, au moins une capture d'écran (1366×768 ou plus).
-   - Pour tester avant d'ouvrir au public : Disponibilité → « Masqué dans le
-     Store » (accessible uniquement par lien direct).
+   `-DisplayName` (par défaut « Talos Diagnostic ») doit être un nom réservé
+   pour le produit, par exemple `-DisplayName "Talos Diagnostic Test"` pour un
+   produit de test. Pour que l'artefact du workflow GitHub soit directement
+   prêt : variables `STORE_IDENTITY_NAME`, `STORE_PUBLISHER`,
+   `STORE_PUBLISHER_DISPLAY_NAME` et `STORE_DISPLAY_NAME` dans GitHub →
+   Settings → Variables.
+5. **Soumission** : tous les champs, les textes à copier-coller, les captures
+   et l'icône 300 × 300 sont dans [store/fiche-store.md](store/fiche-store.md).
+   Pour tester avant d'ouvrir au public, utiliser **Private audience** (et non
+   « disponible mais non découvrable », qui reste accessible à quiconque a le
+   lien). Une fois soumis en *Public audience*, on ne peut plus revenir en privé.
 6. **Activer le parcours app sur le site** une fois l'app certifiée : renseigner
    `STORE_PRODUCT_ID` dans `src/scripts/diagnostic-widget.ts`, et adapter la
    section Diagnostic de l'accueil (`src/components/Diagnostic.astro` : mention
