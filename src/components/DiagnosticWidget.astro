@@ -24,18 +24,31 @@
       <div id="sospc-waiting-body">
         <p id="sospc-intro-title">Analysez votre PC gratuitement</p>
         <p id="sospc-intro-desc">Notre IA détecte les problèmes de performance, les erreurs système et vous donne des conseils personnalisés.</p>
-        <div id="sospc-steps">
-          <div class="sospc-step"><span class="sospc-step-n">1</span><span>Ouvrez le Terminal (<kbd>Win</kbd>+<kbd>X</kbd> → Terminal)</span></div>
-          <div class="sospc-step"><span class="sospc-step-n">2</span><span>Copiez et collez cette commande :</span></div>
-        </div>
-        <div id="sospc-cmd-box">
-          <code id="sospc-cmd">chargement...</code>
-          <button id="sospc-dl-btn" onclick="sospcDownloadScript()" title="Télécharger le script (.bat) — double-cliquez pour lancer">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        <!-- App Windows « Talos Diagnostic » (Microsoft Store, apps/windows) :
+             affichée par diagnostic-widget.ts une fois l'app publiée. -->
+        <div id="sospc-app-block" style="display:none;">
+          <button id="sospc-app-launch" type="button" onclick="sospcLaunchApp()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            Lancer le diagnostic
           </button>
-          <button id="sospc-copy-btn" onclick="sospcCopy()">Copier</button>
+          <p id="sospc-app-status" role="status" aria-live="polite" style="display:none;"></p>
+          <a id="sospc-app-install" href="#" target="_blank" rel="noopener">Première fois ? Installez l'app gratuite (Microsoft Store)</a>
+          <button id="sospc-script-toggle" type="button" aria-expanded="false" aria-controls="sospc-script-block" onclick="sospcToggleScript()">Méthode avancée : commande PowerShell</button>
         </div>
-        <div class="sospc-step"><span class="sospc-step-n">3</span><span>Restez sur cette page — le diagnostic apparaîtra automatiquement ici !</span></div>
+        <div id="sospc-script-block">
+          <div id="sospc-steps">
+            <div class="sospc-step"><span class="sospc-step-n">1</span><span>Ouvrez le Terminal (<kbd>Win</kbd>+<kbd>X</kbd> → Terminal)</span></div>
+            <div class="sospc-step"><span class="sospc-step-n">2</span><span>Copiez et collez cette commande :</span></div>
+          </div>
+          <div id="sospc-cmd-box">
+            <code id="sospc-cmd">chargement...</code>
+            <button id="sospc-dl-btn" onclick="sospcDownloadScript()" title="Télécharger le script (.bat) — double-cliquez pour lancer">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            </button>
+            <button id="sospc-copy-btn" onclick="sospcCopy()">Copier</button>
+          </div>
+          <div class="sospc-step"><span class="sospc-step-n">3</span><span>Restez sur cette page — le diagnostic apparaîtra automatiquement ici !</span></div>
+        </div>
         <div id="sospc-waiting-indicator" style="display:none;"><div id="sospc-pulse"></div><span>En attente des données...</span></div>
         <!-- Scan navigateur instantané -->
         <div id="sospc-waiting-browser" style="display:none;">
@@ -51,6 +64,7 @@
     <div id="sospc-view-diag" style="display:none;">
       <!-- Bandeau scan -->
       <div id="sospc-scan-banner" style="display:none;">
+        <button id="sospc-scan-banner-app" type="button" onclick="sospcLaunchApp()" style="display:none;">Lancer le diagnostic complet</button>
         <div id="sospc-scan-banner-cmd">
           <code id="sospc-scan-banner-code">chargement...</code>
           <button id="sospc-dl-btn" onclick="sospcDownloadScript()" title="Télécharger (.bat)">

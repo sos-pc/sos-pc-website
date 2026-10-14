@@ -1,6 +1,15 @@
 const STORAGE_DIAG = "sospc_diagnostic_v1";
 const STORAGE_POS = "sospc_position_v1";
 
+// ── App Windows « Talos Diagnostic » (Microsoft Store, apps/windows) ──
+// Tant que STORE_PRODUCT_ID est vide, le widget garde la commande PowerShell.
+// Pour tester le parcours app avant publication, dans la console :
+//   localStorage.setItem("talos_app_preview", "1")
+const STORE_PRODUCT_ID = "";
+const APP_PROTOCOL_URL = "talos-diag:scan";
+const STORAGE_APP_SEEN = "talos_app_seen_v1";
+const APP_TOKEN_TIMEOUT_MS = 2 * 60 * 1000;
+
 let isOpen = false;
 let diagData: any = null;
 let diagReport: any = null;
@@ -288,30 +297,46 @@ function buildCommand(id: string) {
   }
 };
 
-function startPolling() {
-  if (pollInterval) return;
-  pollInterval = setInterval(async () => {
-    try {
-      const res = await (
-        await fetch(`/api/diag/poll?s=${sessionId}`)
-      ).json();
-      if (res.ready && res.data) {
-        stopPolling();
-        diagData = res.data;
-        (
-          document.getElementById("sospc-waiting-indicator") as HTMLElement
-        ).style.display = "none";
-        playNotification();
-        if (!isOpen) {
-          isOpen = true;
-          getWidget().classList.remove("sospc-closed");
-          getWidget().classList.add("sospc-open");
-          setTimeout(clampOpenPosition, 50);
-        }
-        analyzeData();
+let pollInFlight = false;
+
+async function pollOnce() {
+  if (pollInFlight) return;
+  pollInFlight = true;
+  try {
+    const res = await (await fetch(`/api/diag/poll?s=${sessionId}`)).json();
+    if (res.ready && res.data) {
+      stopPolling();
+      diagData = res.data;
+      if (String(diagData.collector || "").startsWith("talos-diagnostic-app")) {
+        try {
+          localStorage.setItem(STORAGE_APP_SEEN, "1");
+        } catch {}
       }
-    } catch {}
-  }, 2000);
+      (
+        document.getElementById("sospc-waiting-indicator") as HTMLElement
+      ).style.display = "none";
+      playNotification();
+      openWidget();
+      analyzeData();
+    }
+  } catch {
+  } finally {
+    pollInFlight = false;
+  }
+}
+
+function startPolling(immediate = false) {
+  if (pollInterval) return;
+  pollInterval = setInterval(pollOnce, 2000);
+  if (immediate) pollOnce();
+}
+
+function openWidget() {
+  if (isOpen) return;
+  isOpen = true;
+  getWidget().classList.remove("sospc-closed");
+  getWidget().classList.add("sospc-open");
+  setTimeout(clampOpenPosition, 50);
 }
 
 function stopPolling() {
@@ -373,8 +398,9 @@ function handleSuggestionClick(text: string) {
       "";
     addMessage("user", text);
     chatHistory.push({ role: "user", content: text });
-    var hint =
-      "Pour un diagnostic complet (disques, sécurité, processus, températures), utilisez le bandeau 🔍 en haut de cette fenêtre :\n\n📋 Copiez la commande et collez-la dans Win+R, ou 📥 téléchargez le fichier .bat et double-cliquez dessus.\n\nLe scan dure ~15 secondes et ne collecte aucune donnée personnelle.";
+    var hint = appFlowEnabled()
+      ? "Pour un diagnostic complet (disques, sécurité, erreurs, logiciels), cliquez sur « Lancer le diagnostic complet » en haut de cette fenêtre.\n\nL'app gratuite Talos Diagnostic (Microsoft Store) analyse votre PC en ~15 secondes, puis vos résultats s'ouvrent dans votre navigateur. Aucun fichier personnel n'est lu."
+      : "Pour un diagnostic complet (disques, sécurité, processus, températures), utilisez le bandeau 🔍 en haut de cette fenêtre :\n\n📋 Copiez la commande et collez-la dans le Terminal Windows (clic droit sur le bouton Démarrer → Terminal), ou 📥 téléchargez le fichier .bat et double-cliquez dessus.\n\nLe scan dure ~15 secondes et ne collecte aucune donnée personnelle.";
     addMessage("bot", hint);
     chatHistory.push({ role: "assistant", content: hint });
     saveState();
@@ -601,13 +627,22 @@ function buildFullReport() {
 
   const security = d.security || {};
   if (Object.keys(security).length > 0) {
+    const onOff = (value: any) => (value == null ? "?" : value ? "Actif" : "INACTIF");
     lines.push("SÉCURITÉ");
     lines.push(
-      "Antivirus    : " +
-        (security.defender_enabled ? "Actif" : "INACTIF") +
+      "Defender     : " +
+        onOff(security.defender_enabled) +
         "  |  Temps réel : " +
-        (security.realtime_protection ? "Actif" : "INACTIF"),
+        onOff(security.realtime_protection),
     );
+    const avProducts = (security.antivirus_products || []).filter(Boolean);
+    if (avProducts.length > 0)
+      lines.push(
+        "Antivirus    : " +
+          avProducts
+            .map((a: any) => a.name + (a.enabled ? "" : " (INACTIF)") + (a.up_to_date ? "" : " (pas à jour)"))
+            .join(", "),
+      );
     if (security.antivirus_signature_date)
       lines.push("Signatures   : " + security.antivirus_signature_date);
     lines.push(
@@ -652,6 +687,15 @@ function buildFullReport() {
     lines.push(dash);
     (stability.bsod_last_7days || []).forEach((b: any) => {
       lines.push("  [" + b.time + "] ID:" + b.id + " -- " + b.message);
+    });
+    lines.push("");
+  }
+
+  const appCrashes = (stability.app_crashes_7days || []).filter(Boolean);
+  if (appCrashes.length > 0) {
+    lines.push("PROGRAMMES AYANT PLANTÉ (7 JOURS)");
+    appCrashes.forEach((c: any) => {
+      lines.push("  " + c.app + " -- " + c.count + " fois");
     });
     lines.push("");
   }
@@ -716,6 +760,8 @@ function buildFullReport() {
         "  " + u.id + " -- " + u.description + " (" + u.installed_on + ")",
       );
     });
+    if ((d.updates || {}).reboot_pending)
+      lines.push("  Redémarrage en attente pour terminer des mises à jour");
     lines.push("");
   }
 
@@ -1043,6 +1089,164 @@ function analyzeData() {
     });
 };
 
+// ── Parcours app Windows (Talos Diagnostic) ─────────────────────────
+// L'app génère elle-même son jeton de session, envoie le rapport puis ouvre
+// /?diag=<jeton> : le site ne lui transmet jamais d'identifiant (voir
+// apps/windows/TalosDiagnostic/ReportClient.cs).
+
+function isWindowsDesktop(): boolean {
+  const uaData = (navigator as any).userAgentData;
+  if (uaData && uaData.platform) return uaData.platform === "Windows" && !uaData.mobile;
+  return /Windows NT/.test(navigator.userAgent);
+}
+
+function appFlowEnabled(): boolean {
+  if (!isWindowsDesktop()) return false;
+  if (STORE_PRODUCT_ID) return true;
+  try {
+    return localStorage.getItem("talos_app_preview") === "1";
+  } catch {
+    return false;
+  }
+}
+
+function appSeen(): boolean {
+  try {
+    return localStorage.getItem(STORAGE_APP_SEEN) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function storeInstallUrl(): string {
+  // Même lien que le badge officiel du Store en mode « Direct » : télécharge le
+  // petit installateur signé par Microsoft, qui installe puis lance l'app.
+  return STORE_PRODUCT_ID
+    ? "https://get.microsoft.com/installer/download/" +
+        STORE_PRODUCT_ID +
+        "?referrer=appbadge&source=" +
+        encodeURIComponent(location.hostname)
+    : "https://apps.microsoft.com/";
+}
+
+function setAppStatus(text: string) {
+  const status = document.getElementById("sospc-app-status") as HTMLElement;
+  status.textContent = text;
+  status.style.display = "block";
+  // Lancement depuis le bandeau de la vue chat.
+  const bannerWaiting = document.getElementById("sospc-scan-banner-waiting");
+  const bannerText = bannerWaiting?.querySelector("span");
+  if (bannerWaiting && bannerText) {
+    bannerText.textContent = text;
+    bannerWaiting.style.display = "flex";
+  }
+}
+
+function launchProtocol(url: string) {
+  // Firefox affiche une page d'erreur pour un protocole inconnu : une iframe
+  // invisible permet de rester sur la page si l'app n'est pas installée.
+  if (/Firefox\//.test(navigator.userAgent)) {
+    const frame = document.createElement("iframe");
+    frame.style.display = "none";
+    frame.src = url;
+    document.body.appendChild(frame);
+    setTimeout(() => frame.remove(), 5000);
+  } else {
+    window.location.href = url;
+  }
+}
+
+(window as any).sospcLaunchApp = function () {
+  // Le navigateur demande « Ouvrir Talos Diagnostic ? » puis l'app prend le
+  // focus. Si la page ne perd jamais le focus, l'app n'est sans doute pas installée.
+  let opened = false;
+  const install = document.getElementById("sospc-app-install");
+  const onBlur = () => {
+    opened = true;
+    install?.classList.remove("sospc-attention");
+    setAppStatus(
+      "L'app Talos Diagnostic analyse votre PC. Vos résultats s'ouvriront dans un nouvel onglet.",
+    );
+  };
+  window.addEventListener("blur", onBlur, { once: true });
+  setTimeout(() => window.removeEventListener("blur", onBlur), 60000);
+
+  setAppStatus("Ouverture de l'app Talos Diagnostic…");
+  launchProtocol(APP_PROTOCOL_URL);
+
+  setTimeout(() => {
+    if (opened) return;
+    if (appSeen()) {
+      setAppStatus("Confirmez l'ouverture de Talos Diagnostic dans la fenêtre de votre navigateur.");
+    } else {
+      setAppStatus(
+        "Rien ne s'ouvre ? Installez d'abord l'app gratuite : elle se lance toute seule après l'installation.",
+      );
+      install?.classList.add("sospc-attention");
+    }
+  }, 2500);
+};
+
+(window as any).sospcToggleScript = function () {
+  const block = document.getElementById("sospc-script-block") as HTMLElement;
+  const collapsed = block.classList.toggle("sospc-collapsed");
+  document
+    .getElementById("sospc-script-toggle")
+    ?.setAttribute("aria-expanded", String(!collapsed));
+};
+
+function initAppFlow() {
+  if (!appFlowEnabled()) return;
+  (document.getElementById("sospc-app-block") as HTMLElement).style.display = "block";
+  (document.getElementById("sospc-script-block") as HTMLElement).classList.add("sospc-collapsed");
+  (document.getElementById("sospc-app-install") as HTMLAnchorElement).href = storeInstallUrl();
+  const bannerCmd = document.getElementById("sospc-scan-banner-cmd");
+  const bannerApp = document.getElementById("sospc-scan-banner-app");
+  if (bannerCmd && bannerApp) {
+    bannerCmd.style.display = "none";
+    bannerApp.style.display = "flex";
+  }
+}
+
+// /?diag=<jeton> : page ouverte par l'app après l'envoi du rapport.
+function takeAppTokenFromUrl(): string | null {
+  const params = new URLSearchParams(location.search);
+  const token = params.get("diag");
+  if (token === null) return null;
+  // Retirer le jeton de l'adresse (historique, rechargement, partage).
+  params.delete("diag");
+  const query = params.toString();
+  history.replaceState(history.state, "", location.pathname + (query ? "?" + query : "") + location.hash);
+  try {
+    sessionStorage.setItem("sospc_cover_dismissed_session_v1", "true");
+  } catch {}
+  return /^[A-Za-z0-9]{8,32}$/.test(token) ? token : null;
+}
+
+function receiveAppReport(token: string) {
+  clearState();
+  sessionId = token;
+  (document.getElementById("sospc-cmd") as HTMLElement).textContent = buildCommand(token);
+  (document.getElementById("sospc-header-sub") as HTMLElement).textContent =
+    "Réception de votre rapport…";
+  const indicator = document.getElementById("sospc-waiting-indicator") as HTMLElement;
+  const indicatorText = indicator.querySelector("span") as HTMLElement;
+  indicatorText.textContent = "Réception du rapport de l'app Talos Diagnostic…";
+  indicator.style.display = "flex";
+  openWidget();
+  startPolling(true);
+
+  setTimeout(() => {
+    if (diagData) return;
+    stopPolling();
+    indicatorText.textContent =
+      "Rapport introuvable (déjà affiché ou expiré). Relancez l'analyse depuis l'app Talos Diagnostic.";
+    sessionId = genSessionId();
+    (document.getElementById("sospc-cmd") as HTMLElement).textContent = buildCommand(sessionId);
+    startPolling();
+  }, APP_TOKEN_TIMEOUT_MS);
+}
+
 document.addEventListener("DOMContentLoaded", function () {
   // Guard: this script is loaded globally via Layout.astro, but the widget
   // markup is only rendered on pages that include <DiagnosticWidget />.
@@ -1052,6 +1256,13 @@ document.addEventListener("DOMContentLoaded", function () {
   initDrag();
   restorePosition();
   initBrowserScan();
+  initAppFlow();
+
+  const appToken = takeAppTokenFromUrl();
+  if (appToken) {
+    receiveAppReport(appToken);
+    return;
+  }
 
   const saved = loadState();
   if (saved && saved.diagData && !sessionStorage.getItem("sospc_reset")) {

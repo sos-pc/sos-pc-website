@@ -90,7 +90,9 @@
     }
 
     try {
-      if (sessionStorage.getItem(dismissedKey) === 'true') {
+      // ?diag=… : results page opened by the Talos Diagnostic app, go straight to the widget.
+      const openedByApp = new URLSearchParams(location.search).has('diag');
+      if (openedByApp || sessionStorage.getItem(dismissedKey) === 'true') {
         coverPage.style.transitionProperty = 'none';
         requestAnimationFrame(() => {
           coverPage.classList.add('dismissed');

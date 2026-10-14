@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <!-- Talos Diagnostic app icon: the site's hexagon mark on a dark tile, so it
+       reads on both light and dark taskbars. Source for every PNG/ICO asset. -->
+  <rect x="2" y="2" width="196" height="196" rx="44" fill="#1a1b26"/>
+  <rect x="3.5" y="3.5" width="193" height="193" rx="42.5" fill="none" stroke="#00d4aa" stroke-opacity="0.35" stroke-width="3"/>
+  <g transform="translate(100 100) scale(1.12) translate(-100 -92)">
+    <g opacity="0.18" stroke="#00d4aa" stroke-width="1.2">
+      <line x1="100" y1="92" x2="100.0" y2="32.0"/>
+      <line x1="100" y1="92" x2="152.0" y2="62.0"/>
+      <line x1="100" y1="92" x2="152.0" y2="122.0"/>
+      <line x1="100" y1="92" x2="100.0" y2="152.0"/>
+      <line x1="100" y1="92" x2="48.0" y2="122.0"/>
+      <line x1="100" y1="92" x2="48.0" y2="62.0"/>
+    </g>
+    <polygon points="100.0,32.0 152.0,62.0 152.0,122.0 100.0,152.0 48.0,122.0 48.0,62.0"
+      fill="none" stroke="#00d4aa" stroke-width="5" stroke-linejoin="round"/>
+    <circle cx="100.0" cy="32.0" r="7" fill="#00d4aa"/>
+    <circle cx="152.0" cy="62.0" r="7" fill="#00d4aa"/>
+    <circle cx="152.0" cy="122.0" r="7" fill="#00d4aa"/>
+    <circle cx="100.0" cy="152.0" r="7" fill="#00d4aa"/>
+    <circle cx="48.0" cy="122.0" r="7" fill="#00d4aa"/>
+    <circle cx="48.0" cy="62.0" r="7" fill="#00d4aa"/>
+    <rect x="64.0" y="66.0" width="72.0" height="15.0" rx="2" fill="#c0caf5"/>
+    <rect x="91.0" y="80.0" width="18.0" height="42.0" rx="2" fill="#c0caf5"/>
+  </g>
+</svg>

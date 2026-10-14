@@ -4,7 +4,7 @@ import AsciiBackground from "../../components/AsciiBackground.astro";
 import Navbar from "../../components/Navbar.astro";
 import Footer from "../../components/Footer.astro";
 
-const lastUpdated = "12 octobre 2026";
+const lastUpdated = "14 octobre 2026";
 ---
 
 <Layout title="man legal — Talos Int." description="Mentions légales et politique de confidentialité de Talos Int.">
@@ -66,13 +66,17 @@ Site web  : https://www.netlify.com</pre>
   - message          (saisi volontairement)
   - rapport diag.    (joint volontairement, si disponible)
 
-DIAGNOSTIC PC (script PowerShell, optionnel)
+DIAGNOSTIC PC (application Windows « Talos Diagnostic »
+              ou script PowerShell, optionnel)
   - configuration matérielle (CPU, RAM, GPU, disques)
   - état système (OS, mises à jour, sécurité, perfs)
-  - événements système 7 derniers jours
+  - antivirus installés, pare-feu
+  - événements système et programmes ayant planté
+    (7 derniers jours)
   - liste logiciels installés
   - processus en cours, programmes au démarrage
-  - réseau (cartes actives, IP locale, adresse MAC)
+  - réseau (cartes actives, IP locale)
+  Analyse lancée uniquement à votre demande.
   AUCUN fichier personnel n'est lu ni transmis.
   AUCUN historique de navigation n'est collecté.
 

@@ -1,0 +1,99 @@
+<Window x:Class="TalosDiagnostic.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Talos Diagnostic"
+        Width="480" SizeToContent="Height" ResizeMode="CanMinimize"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource BgBrush}" Foreground="{StaticResource TextBrush}"
+        FontFamily="Segoe UI" FontSize="14"
+        UseLayoutRounding="True" TextOptions.TextFormattingMode="Display">
+  <Grid Margin="28,24,28,20">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+
+    <!-- Header -->
+    <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+      <Image Source="pack://application:,,,/Assets/logo.png" Width="48" Height="48"
+             RenderOptions.BitmapScalingMode="HighQuality" />
+      <StackPanel Margin="14,0,0,0" VerticalAlignment="Center">
+        <TextBlock Text="TALOS INT." FontFamily="{StaticResource MonoFont}" FontSize="12"
+                   Foreground="{StaticResource AccentBrush}" />
+        <TextBlock Text="Diagnostic de votre PC" FontSize="21" FontWeight="SemiBold" />
+      </StackPanel>
+    </StackPanel>
+
+    <!-- 1. Intro (launch from the Start menu) -->
+    <StackPanel x:Name="IntroPanel" Grid.Row="1">
+      <TextBlock TextWrapping="Wrap" Foreground="{StaticResource MutedBrush}"
+                 Text="Une analyse gratuite d'environ 15 secondes. Vos résultats et les conseils de notre IA s'affichent ensuite sur talos-int.com." />
+      <Border Style="{StaticResource Card}" Margin="0,16,0,0">
+        <StackPanel>
+          <TextBlock Style="{StaticResource CardTitle}" Text="CE QUI EST ANALYSÉ" />
+          <TextBlock Style="{StaticResource Bullet}" Text="✓  Processeur, mémoire, disques et carte graphique" />
+          <TextBlock Style="{StaticResource Bullet}" Text="✓  Version de Windows, mises à jour, antivirus et pare-feu" />
+          <TextBlock Style="{StaticResource Bullet}" Text="✓  Erreurs et plantages des 7 derniers jours" />
+          <TextBlock Style="{StaticResource Bullet}" Text="✓  Programmes installés et lancés au démarrage" />
+          <TextBlock Style="{StaticResource CardTitle}" Foreground="{StaticResource RedBrush}" Text="JAMAIS" Margin="0,10,0,6" />
+          <TextBlock Style="{StaticResource Bullet}" Foreground="{StaticResource MutedBrush}"
+                     Text="Vos fichiers, photos, mots de passe ou historique de navigation." />
+        </StackPanel>
+      </Border>
+      <TextBlock Margin="0,12,0,0" FontSize="12">
+        <Hyperlink NavigateUri="https://www.talos-int.com/man/legal/#rgpd" RequestNavigate="OnLink">Politique de confidentialité</Hyperlink>
+      </TextBlock>
+      <Button x:Name="StartButton" Style="{StaticResource PrimaryButton}" Content="Lancer l'analyse"
+              Margin="0,20,0,0" IsDefault="True" Click="OnStart" />
+    </StackPanel>
+
+    <!-- 2. Scan in progress -->
+    <StackPanel x:Name="ProgressPanel" Grid.Row="1" Visibility="Collapsed">
+      <Border Style="{StaticResource Card}">
+        <StackPanel x:Name="StepList" />
+      </Border>
+      <ProgressBar x:Name="Progress" Style="{StaticResource ThinProgress}" Margin="0,16,0,8" Minimum="0" />
+      <TextBlock x:Name="ProgressText" FontSize="12" Foreground="{StaticResource MutedBrush}" Text="Préparation…" />
+      <Button x:Name="CancelButton" Style="{StaticResource GhostButton}" Content="Annuler"
+              Margin="0,16,0,0" HorizontalAlignment="Left" IsCancel="True" Click="OnCancel" />
+    </StackPanel>
+
+    <!-- 3. Done -->
+    <StackPanel x:Name="DonePanel" Grid.Row="1" Visibility="Collapsed">
+      <Border Width="56" Height="56" CornerRadius="28" HorizontalAlignment="Left"
+              Background="{StaticResource AccentSoftBrush}" BorderBrush="{StaticResource AccentBrush}" BorderThickness="2">
+        <TextBlock Text="✓" FontSize="26" FontWeight="Bold" Foreground="{StaticResource AccentBrush}"
+                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+      </Border>
+      <TextBlock Text="Analyse terminée" FontSize="18" FontWeight="SemiBold" Margin="0,14,0,6" />
+      <TextBlock x:Name="DoneText" TextWrapping="Wrap" Foreground="{StaticResource MutedBrush}"
+                 Text="Vos résultats s'ouvrent dans votre navigateur. Vous pouvez fermer cette fenêtre." />
+      <StackPanel Orientation="Horizontal" Margin="0,20,0,0">
+        <Button Style="{StaticResource PrimaryButton}" Content="Voir mes résultats" Click="OnOpenResults" IsDefault="True" />
+        <Button Style="{StaticResource GhostButton}" Content="Fermer" Margin="12,0,0,0" IsCancel="True" Click="OnClose" />
+      </StackPanel>
+    </StackPanel>
+
+    <!-- 4. Error -->
+    <StackPanel x:Name="ErrorPanel" Grid.Row="1" Visibility="Collapsed">
+      <Border Width="56" Height="56" CornerRadius="28" HorizontalAlignment="Left"
+              Background="{StaticResource RedSoftBrush}" BorderBrush="{StaticResource RedBrush}" BorderThickness="2">
+        <TextBlock Text="!" FontSize="26" FontWeight="Bold" Foreground="{StaticResource RedBrush}"
+                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+      </Border>
+      <TextBlock x:Name="ErrorTitle" Text="Envoi impossible" FontSize="18" FontWeight="SemiBold" Margin="0,14,0,6" />
+      <TextBlock x:Name="ErrorText" TextWrapping="Wrap" Foreground="{StaticResource MutedBrush}" />
+      <StackPanel Orientation="Horizontal" Margin="0,20,0,0">
+        <Button x:Name="RetryButton" Style="{StaticResource PrimaryButton}" Content="Réessayer" Click="OnRetry" IsDefault="True" />
+        <Button Style="{StaticResource GhostButton}" Content="Fermer" Margin="12,0,0,0" IsCancel="True" Click="OnClose" />
+      </StackPanel>
+    </StackPanel>
+
+    <!-- Footer -->
+    <TextBlock Grid.Row="2" Margin="0,24,0,0" FontSize="11" Foreground="{StaticResource DimBrush}" TextWrapping="Wrap">
+      <Run Text="Talos Int. · Oraison (04) · 07 69 56 14 91" />
+      <Run x:Name="VersionRun" />
+    </TextBlock>
+  </Grid>
+</Window>

@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- .NET Framework 4.8 ships with Windows 10 1903+ and Windows 11: the app
+       needs no runtime download and the MSIX package stays a few hundred KB. -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <LangVersion>10</LangVersion>
+    <RootNamespace>TalosDiagnostic</RootNamespace>
+    <AssemblyName>TalosDiagnostic</AssemblyName>
+    <ApplicationIcon>Assets\talos.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
+    <Version>1.0.0</Version>
+    <Company>Talos Int.</Company>
+    <Product>Talos Diagnostic</Product>
+    <Description>Diagnostic de PC Windows par Talos Int.</Description>
+    <Copyright>© 2026 Talos Int.</Copyright>
+    <NeutralLanguage>fr-FR</NeutralLanguage>
+    <SatelliteResourceLanguages>fr</SatelliteResourceLanguages>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="System.Management" />
+    <Reference Include="System.Net.Http" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\logo.png" />
+  </ItemGroup>
+
+</Project>

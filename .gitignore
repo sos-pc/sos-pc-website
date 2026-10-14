@@ -6,3 +6,8 @@ dist/
 sos-pc-diagnostic-backend/
 UsersAdministratorDocumentssos-pc-diagnostic/
 sos-pc-diagnostic-backend/
+
+# Windows app build output (apps/windows/build.ps1)
+apps/windows/out/
+apps/windows/**/bin/
+apps/windows/**/obj/

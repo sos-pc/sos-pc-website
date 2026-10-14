@@ -1,0 +1,38 @@
+name: Windows app (Talos Diagnostic)
+
+# Builds the MSIX package for the Microsoft Store whenever the app changes.
+# Set the repository variables STORE_IDENTITY_NAME, STORE_PUBLISHER and
+# STORE_PUBLISHER_DISPLAY_NAME (Partner Center > Product identity) to get a
+# package ready to upload; without them it uses the local dev identity.
+
+on:
+  pull_request:
+    paths:
+      - "apps/windows/**"
+      - ".github/workflows/windows-app.yml"
+  push:
+    branches: [main]
+    paths:
+      - "apps/windows/**"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build MSIX
+        shell: pwsh
+        env:
+          STORE_IDENTITY_NAME: ${{ vars.STORE_IDENTITY_NAME }}
+          STORE_PUBLISHER: ${{ vars.STORE_PUBLISHER }}
+          STORE_PUBLISHER_DISPLAY_NAME: ${{ vars.STORE_PUBLISHER_DISPLAY_NAME }}
+        run: ./apps/windows/build.ps1 -Configuration Release
+
+      - name: Upload package
+        uses: actions/upload-artifact@v4
+        with:
+          name: TalosDiagnostic-msix
+          path: apps/windows/out/*.msix
+          if-no-files-found: error
