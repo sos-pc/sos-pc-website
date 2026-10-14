@@ -83,7 +83,9 @@ Après modification du logo (`branding/app-icon.svg`) : `node apps/windows/brand
    - Pour tester avant d'ouvrir au public : Disponibilité → « Masqué dans le
      Store » (accessible uniquement par lien direct).
 6. **Activer le parcours app sur le site** une fois l'app certifiée : renseigner
-   `STORE_PRODUCT_ID` dans `src/scripts/diagnostic-widget.ts`.
+   `STORE_PRODUCT_ID` dans `src/scripts/diagnostic-widget.ts`, et adapter la
+   section Diagnostic de l'accueil (`src/components/Diagnostic.astro` : mention
+   « aucune installation » et démonstration de la commande PowerShell).
 
 Chaque nouvelle version : augmenter `-Version` (le dernier chiffre doit rester 0)
 et `<Version>` dans `TalosDiagnostic.csproj`.

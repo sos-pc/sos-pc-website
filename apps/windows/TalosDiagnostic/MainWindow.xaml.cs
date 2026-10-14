@@ -102,9 +102,9 @@ namespace TalosDiagnostic
                 else if (i == index) SetStep(glyph, label, "›", "AccentBrush", "TextBrush", FontWeights.SemiBold);
                 else SetStep(glyph, label, "·", "DimBrush", "DimBrush", FontWeights.Normal);
             }
-            Progress.Value = index;
-            ProgressText.Text = index < Collector.Steps.Length
-                ? "Analyse : " + Collector.Steps[index] + "…"
+            Progress.Value = Math.Max(0, index);
+            ProgressText.Text = index < 0 ? "Préparation…"
+                : index < Collector.Steps.Length ? "Analyse : " + Collector.Steps[index] + "…"
                 : "Analyse terminée.";
         }
 

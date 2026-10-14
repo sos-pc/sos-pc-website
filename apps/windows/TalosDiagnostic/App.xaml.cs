@@ -9,6 +9,19 @@ namespace TalosDiagnostic
 {
     public partial class App : Application
     {
+        public App()
+        {
+            // Never close silently on an unexpected UI error: tell the user.
+            DispatcherUnhandledException += (sender, e) =>
+            {
+                MessageBox.Show(
+                    "Une erreur inattendue est survenue : " + e.Exception.Message +
+                    "\n\nBesoin d'aide ? Talos Int. : 07 69 56 14 91",
+                    "Talos Diagnostic", MessageBoxButton.OK, MessageBoxImage.Error);
+                e.Handled = true;
+            };
+        }
+
         protected override async void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
