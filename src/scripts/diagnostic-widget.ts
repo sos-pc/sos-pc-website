@@ -98,9 +98,7 @@ function clampOpenPosition() {
     y = rect.top;
   if (x + panelW > w - 16) x = w - panelW - 16;
   if (x < 16) x = 16;
-  // Measured height: the panel grows as messages arrive (its CSS max-height
-  // keeps it shorter than the viewport).
-  const panelH = Math.min(rect.height, h - 16 * 2);
+  const panelH = Math.min(520, h * 0.8);
   if (y + panelH > h - 16) y = h - panelH - 16;
   if (y < 16) y = 16;
   if (Math.abs(x - rect.left) > 1 || Math.abs(y - rect.top) > 1) {
@@ -119,25 +117,6 @@ function restorePosition() {
     el.style.left = x + "px";
     el.style.top = y + "px";
   } catch {}
-}
-
-// Browser zoom and window resizes change the viewport size in CSS pixels, and
-// the saved position may come from another zoom level or screen; the open
-// panel also grows as messages arrive. Keep the widget fully on screen.
-function keepInViewport() {
-  const el = getWidget();
-  // Never moved: the CSS bottom/right anchoring already keeps it on screen.
-  // Hidden (cover page): nothing to measure yet.
-  if (isDragging || !el.style.top || !el.getClientRects().length) return;
-  if (isOpen) clampOpenPosition();
-  else snapToEdge();
-}
-
-function initViewportTracking() {
-  window.addEventListener("resize", keepInViewport);
-  if ("ResizeObserver" in window) {
-    new ResizeObserver(keepInViewport).observe(getWidget());
-  }
 }
 
 function initDrag() {
@@ -1276,7 +1255,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
   initDrag();
   restorePosition();
-  initViewportTracking();
   initBrowserScan();
   initAppFlow();
 
