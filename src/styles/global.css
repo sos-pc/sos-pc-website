@@ -343,13 +343,24 @@ body.cover-active #sospc-widget {
     font-family: var(--font-mono);
 }
 
+/* The panel fits the viewport: the header stays visible and the two views
+   below (#sospc-view-waiting, #sospc-view-diag) scroll when their content is
+   taller. overflow: clip stops focus() from scrolling the panel itself, which
+   used to push the header out of view. */
 #sospc-panel-content {
     display: none;
     flex-direction: column;
     opacity: 0;
     transition: opacity 0.2s ease 0.15s;
-    max-height: 80vh;
+    max-height: calc(100vh - 48px);
+    max-height: calc(100dvh - 48px);
     overflow: hidden;
+    overflow: clip;
+}
+
+#sospc-view-waiting {
+    min-height: 0;
+    overflow-y: auto;
 }
 
 #sospc-widget.sospc-open #sospc-panel-content {
@@ -815,6 +826,8 @@ body.cover-active #sospc-widget {
 #sospc-view-diag {
     display: none;
     flex-direction: column;
+    min-height: 0;
+    overflow-y: auto;
 }
 
 #sospc-messages {
@@ -918,6 +931,10 @@ body.cover-active #sospc-widget {
     padding: 10px 12px;
     border-top: 1px solid var(--border);
     flex-shrink: 0;
+    /* Stays reachable when the view scrolls on short windows. */
+    position: sticky;
+    bottom: 0;
+    background: var(--bg-card);
 }
 
 #sospc-input {

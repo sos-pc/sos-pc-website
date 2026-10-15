@@ -98,7 +98,8 @@ function clampOpenPosition() {
     y = rect.top;
   if (x + panelW > w - 16) x = w - panelW - 16;
   if (x < 16) x = 16;
-  const panelH = Math.min(520, h * 0.8);
+  // Measured height: the waiting view can be taller than 520 px.
+  const panelH = Math.min(rect.height, h - 16 * 2);
   if (y + panelH > h - 16) y = h - panelH - 16;
   if (y < 16) y = 16;
   if (Math.abs(x - rect.left) > 1 || Math.abs(y - rect.top) > 1) {
