@@ -343,25 +343,13 @@ body.cover-active #sospc-widget {
     font-family: var(--font-mono);
 }
 
-/* The panel always fits the viewport, whatever the browser zoom: the header
-   and the input stay visible, the views below shrink (messages first) and
-   scroll on very short windows. overflow: clip stops focus() from scrolling
-   the panel itself, which used to push the header out of view. */
 #sospc-panel-content {
     display: none;
     flex-direction: column;
     opacity: 0;
     transition: opacity 0.2s ease 0.15s;
-    max-height: calc(100vh - 48px);
-    max-height: calc(100dvh - 48px);
+    max-height: 80vh;
     overflow: hidden;
-    overflow: clip;
-}
-
-#sospc-view-waiting {
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow-y: auto;
 }
 
 #sospc-widget.sospc-open #sospc-panel-content {
@@ -827,19 +815,16 @@ body.cover-active #sospc-widget {
 #sospc-view-diag {
     display: none;
     flex-direction: column;
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow-y: auto;
 }
 
 #sospc-messages {
-    flex: 1 1 auto;
+    flex: 1;
     overflow-y: auto;
     padding: 12px;
     display: flex;
     flex-direction: column;
     gap: 8px;
-    min-height: 80px;
+    min-height: 100px;
     max-height: 260px;
 }
 
@@ -933,10 +918,6 @@ body.cover-active #sospc-widget {
     padding: 10px 12px;
     border-top: 1px solid var(--border);
     flex-shrink: 0;
-    /* Stays reachable when the view scrolls on very short windows. */
-    position: sticky;
-    bottom: 0;
-    background: var(--bg-card);
 }
 
 #sospc-input {
